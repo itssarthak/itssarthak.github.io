@@ -1282,6 +1282,28 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   }
 
+  @keyframes rotateAndPause {
+    0% {
+        transform: rotate(0deg);
+    }
+    20% {
+        transform: rotate(60deg);
+    }
+    40% {
+        transform: rotate(-90deg);
+    }
+    60% {
+        transform: rotate(360deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.avatar-box img {
+    animation: rotateAndPause 10s ease-in-out infinite;
+    animation-delay: 0s; /* Optional, can be adjusted or removed */
+}
 
 
   /**
