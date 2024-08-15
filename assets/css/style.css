@@ -1290,9 +1290,12 @@ textarea.form-input::-webkit-resizer { display: none; }
         transform: rotate(60deg);
     }
     40% {
-        transform: rotate(-90deg);
+        transform: rotate(-75deg);
     }
     60% {
+        transform: rotate(375deg);
+    }
+    70% {
         transform: rotate(360deg);
     }
     100% {
@@ -1304,7 +1307,6 @@ textarea.form-input::-webkit-resizer { display: none; }
     animation: rotateAndPause 10s ease-in-out infinite;
     animation-delay: 0s; /* Optional, can be adjusted or removed */
 }
-
 
   /**
    * #REUSED STYLE
