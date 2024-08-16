@@ -1222,8 +1222,35 @@ textarea.form-input::-webkit-resizer { display: none; }
 .form-btn:disabled:hover::before { background: var(--bg-gradient-jet); }
 
 
+.service-icon {
+    color: var(--orange-yellow-crayola);
+  }
 
+  @keyframes rotateAndPause {
+    0% {
+        transform: rotate(0deg);
+    }
+    20% {
+        transform: rotate(60deg);
+    }
+    40% {
+        transform: rotate(-75deg);
+    }
+    60% {
+        transform: rotate(375deg);
+    }
+    70% {
+        transform: rotate(360deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
 
+.avatar-box img {
+    animation: rotateAndPause 10s ease-in-out infinite;
+    animation-delay: 0s; /* Optional, can be adjusted or removed */
+}
 
 /*-----------------------------------*\
   #RESPONSIVE
@@ -1282,31 +1309,9 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   }
 
-  @keyframes rotateAndPause {
-    0% {
-        transform: rotate(0deg);
-    }
-    20% {
-        transform: rotate(60deg);
-    }
-    40% {
-        transform: rotate(-75deg);
-    }
-    60% {
-        transform: rotate(375deg);
-    }
-    70% {
-        transform: rotate(360deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
 
-.avatar-box img {
-    animation: rotateAndPause 10s ease-in-out infinite;
-    animation-delay: 0s; /* Optional, can be adjusted or removed */
-}
+
+
 
   /**
    * #REUSED STYLE
