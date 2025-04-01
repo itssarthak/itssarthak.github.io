@@ -129,7 +129,68 @@ a { text-decoration: none; }
 
 li { list-style: none; }
 
-img, ion-icon, a, button, time, span { display: block; }
+img, a, button, time, span { display: block; }
+
+ion-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    visibility: visible;
+    stroke-width: 32px;
+    font-size: inherit;
+    color: currentColor;
+}
+
+.icon-box {
+    position: relative;
+    background: var(--border-gradient-onyx);
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-1);
+}
+
+.icon-box::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--eerie-black-1);
+    border-radius: inherit;
+    z-index: -1;
+}
+
+.icon-box ion-icon {
+    font-size: 18px;
+    color: var(--orange-yellow-crayola);
+    z-index: 1;
+}
+
+.social-link {
+    color: var(--light-gray-70);
+    transition: var(--transition-1);
+}
+
+.social-link:hover {
+    color: var(--light-gray);
+}
+
+.social-link ion-icon {
+    font-size: 18px;
+    color: var(--light-gray-70);
+}
+
+.social-link:hover ion-icon {
+    color: var(--light-gray);
+}
+
+button ion-icon {
+    font-size: inherit;
+    margin-left: 5px;
+}
 
 button {
   font: inherit;
@@ -540,9 +601,47 @@ main {
   z-index: -1;
 }
 
-.service-icon-box { margin-bottom: 10px; }
+.service-icon-box {
+  position: relative;
+  background: var(--bg-gradient-onyx);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  z-index: 1;
+}
 
-.service-icon-box img { margin: auto; }
+.service-icon-box::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--eerie-black-1);
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.service-icon-box ion-icon {
+  font-size: 30px;
+  color: var(--orange-yellow-crayola);
+  --ionicon-stroke-width: 32px;
+  z-index: 2;
+}
+
+.service-icon {
+  position: relative;
+  font-size: 30px;
+  line-height: 1;
+  color: var(--orange-yellow-crayola);
+  z-index: 1;
+}
+
+.service-icon ion-icon {
+  font-size: inherit;
+  color: inherit;
+}
 
 .service-content-box { text-align: center; }
 

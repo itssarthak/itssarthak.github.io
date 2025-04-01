@@ -180,26 +180,39 @@
         }
 
         .chat-input button {
-            padding: 14px 28px;
-            border-radius: 12px;
-            border: none;
-            background: var(--orange-yellow-crayola);
-            color: var(--bg-gradient-onyx);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 12px 24px;
+            background: var(--orange-yellow-crayola);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
         }
 
-        .chat-input button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .chat-input button ion-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        ion-icon {
+            pointer-events: none;
+            display: block;
+            width: 1em;
+            height: 1em;
+        }
+
+        .chat-input button:hover {
+            opacity: 0.9;
         }
 
         .chat-input button:disabled {
-            opacity: 0.7;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
@@ -446,7 +459,7 @@
             <div class="chat-input">
                 <input type="text" id="user-input" placeholder="Type your message..." disabled>
                 <button id="send-button" disabled>
-                    <ion-icon name="send-outline"></ion-icon>
+                    <ion-icon name="paper-plane-outline"></ion-icon>
                     Send
                 </button>
             </div>
@@ -456,8 +469,8 @@
     </div>
 
     <!-- ionicon link -->
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.2.2/dist/ionicons/ionicons.js"></script>
 
     <!-- custom js link -->
     <script src="./assets/js/ollama.js"></script>
