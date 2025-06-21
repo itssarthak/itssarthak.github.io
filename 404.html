@@ -123,16 +123,23 @@
         }
         
         .btn-primary {
-            background: var(--bg-gradient-yellow-1);
+            background: var(--orange-yellow-crayola);
             color: var(--eerie-black-1);
+            font-weight: var(--fw-600);
         }
         
         .btn-primary::before {
-            background: var(--bg-gradient-yellow-2);
+            background: var(--orange-yellow-crayola);
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
+            background: var(--vegas-gold);
+            box-shadow: 0 8px 25px rgba(252, 163, 17, 0.3);
+        }
+        
+        .btn-primary:hover::before {
+            background: var(--vegas-gold);
         }
         
         .suggestions {
@@ -259,7 +266,7 @@
                     <ion-icon name="arrow-back-outline"></ion-icon>
                     Go Back
                 </button>
-                <a href="/#contact" class="btn">
+                <a href="/index.html#contact" class="btn">
                     <ion-icon name="mail-outline"></ion-icon>
                     Contact Me
                 </a>
@@ -269,9 +276,8 @@
                 <h3 class="suggestions-title">Here are some helpful links:</h3>
                 <ul class="suggestions-list">
                     <li><a href="/">About Me</a> - Learn more about my background</li>
-                    <li><a href="/#resume">Resume</a> - Check out my experience and skills</li>
-                    <li><a href="/ollama.html">Ollama Chat</a> - Try my AI chat tool</li>
-                    <li><a href="/#contact">Contact</a> - Get in touch with me</li>
+                    <li><a href="/index.html#resume">Resume</a> - Check out my experience and skills</li>
+                    <li><a href="/index.html#contact">Contact</a> - Get in touch with me</li>
                 </ul>
             </div>
             
