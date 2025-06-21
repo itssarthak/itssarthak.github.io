@@ -5,38 +5,391 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
-    <script>
-        // Handle routing for GitHub Pages
-        (function() {
-            const path = window.location.pathname;
-            
-            // Remove trailing slash if present
-            const cleanPath = path.replace(/\/$/, '');
-            
-            // Handle different routes
-            switch(cleanPath) {
-                case '/home':
-                case '/home/':
-                    window.location.replace('/home.html');
-                    break;
-                case '/ollama':
-                case '/ollama/':
-                    window.location.replace('/ollama.html');
-                    break;
-                default:
-                    // If no match, show 404 page
-                    window.location.replace('/404.html');
-                    break;
+    <title>Page Not Found - Sarthak Chhabra</title>
+    
+    <!-- favicon -->
+    <link rel="shortcut icon" href="/assets/images/my-avatar.png" type="image/x-icon">
+    
+    <!-- custom css link -->
+    <link rel="stylesheet" href="/assets/css/style.css">
+    
+    <!-- google font link -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- ionicon scripts -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    
+    <!-- URL parameters handler -->
+    <script src="/assets/js/url-params-handler.js"></script>
+    
+    <style>
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--smoky-black);
+        }
+        
+        .error-content {
+            text-align: center;
+            max-width: 600px;
+            background: var(--bg-gradient-jet);
+            border: 1px solid var(--jet);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: var(--shadow-2);
+        }
+        
+        .error-icon {
+            font-size: 80px;
+            color: var(--orange-yellow-crayola);
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .error-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: var(--fw-600);
+            color: var(--white-1);
+            margin-bottom: 20px;
+            background: var(--text-gradient-yellow);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .error-subtitle {
+            font-size: var(--fs-2);
+            color: var(--light-gray);
+            margin-bottom: 15px;
+            font-weight: var(--fw-500);
+        }
+        
+        .error-message {
+            font-size: var(--fs-4);
+            color: var(--light-gray-70);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            background: var(--border-gradient-onyx);
+            color: var(--orange-yellow-crayola);
+            font-family: var(--ff-poppins);
+            font-size: var(--fs-6);
+            font-weight: var(--fw-500);
+            border: none;
+            border-radius: 14px;
+            padding: 16px 24px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition-1);
+            box-shadow: var(--shadow-2);
+        }
+        
+        .btn::before {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            background: var(--bg-gradient-jet);
+            border-radius: inherit;
+            z-index: -1;
+        }
+        
+        .btn:hover {
+            background: var(--bg-gradient-yellow-1);
+            color: var(--eerie-black-1);
+        }
+        
+        .btn:hover::before {
+            background: var(--bg-gradient-yellow-2);
+        }
+        
+        .btn-primary {
+            background: var(--bg-gradient-yellow-1);
+            color: var(--eerie-black-1);
+        }
+        
+        .btn-primary::before {
+            background: var(--bg-gradient-yellow-2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .suggestions {
+            text-align: left;
+            margin-top: 40px;
+        }
+        
+        .suggestions-title {
+            font-size: var(--fs-4);
+            color: var(--white-1);
+            margin-bottom: 20px;
+            font-weight: var(--fw-500);
+        }
+        
+        .suggestions-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .suggestions-list li {
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+            color: var(--light-gray-70);
+            font-size: var(--fs-6);
+        }
+        
+        .suggestions-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--orange-yellow-crayola);
+            font-weight: var(--fw-600);
+        }
+        
+        .suggestions-list a {
+            color: var(--light-gray);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: var(--transition-1);
+        }
+        
+        .suggestions-list a:hover {
+            color: var(--orange-yellow-crayola);
+            border-bottom-color: var(--orange-yellow-crayola);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .debug-info {
+            margin-top: 40px;
+            padding: 20px;
+            background: var(--eerie-black-2);
+            border-radius: 12px;
+            border: 1px solid var(--jet);
+        }
+        
+        .debug-content {
+            font-family: 'Courier New', monospace;
+            font-size: var(--fs-7);
+            color: var(--light-gray-70);
+            background: var(--smoky-black);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--onyx);
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .debug-toggle {
+            margin-top: 20px;
+            font-size: var(--fs-7);
+            color: var(--light-gray-70);
+            cursor: pointer;
+            text-decoration: underline;
+            transition: var(--transition-1);
+        }
+        
+        .debug-toggle:hover {
+            color: var(--orange-yellow-crayola);
+        }
+        
+        @media (max-width: 580px) {
+            .error-content {
+                padding: 40px 20px;
             }
-        })();
-    </script>
+            
+            .error-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-        <p>Redirecting...</p>
+    <div class="error-container">
+        <div class="error-content">
+            <ion-icon name="compass-outline" class="error-icon"></ion-icon>
+            
+            <h1 class="error-title">404</h1>
+            <h2 class="error-subtitle">Oops! Page Not Found</h2>
+            <p class="error-message">
+                The page you're looking for seems to have wandered off into the digital void. 
+                Don't worry though, we'll help you find your way back!
+            </p>
+            
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">
+                    <ion-icon name="home-outline"></ion-icon>
+                    Go Home
+                </a>
+                <button onclick="history.back()" class="btn">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                    Go Back
+                </button>
+                <a href="/#contact" class="btn">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    Contact Me
+                </a>
+            </div>
+            
+            <div class="suggestions">
+                <h3 class="suggestions-title">Here are some helpful links:</h3>
+                <ul class="suggestions-list">
+                    <li><a href="/">About Me</a> - Learn more about my background</li>
+                    <li><a href="/#resume">Resume</a> - Check out my experience and skills</li>
+                    <li><a href="/ollama.html">Ollama Chat</a> - Try my AI chat tool</li>
+                    <li><a href="/#contact">Contact</a> - Get in touch with me</li>
+                </ul>
+            </div>
+            
+            <!-- Debug toggle -->
+            <div class="debug-toggle" onclick="toggleDebugInfo()">
+                🔍 Show captured URL parameters
+            </div>
+            
+            <!-- Debug info for captured parameters (hidden by default) -->
+            <div id="debug-info" class="debug-info" style="display: none;">
+                <h3 class="suggestions-title">Captured URL Information:</h3>
+                <div id="params-info" class="debug-content"></div>
+            </div>
+        </div>
     </div>
+    
+    <script>
+        // Global variables
+        let debugVisible = false;
+        
+        // Add some interactive hover effects
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'translateY(-2px)';
+            });
+            
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Toggle debug information display
+        function toggleDebugInfo() {
+            const debugInfo = document.getElementById('debug-info');
+            const toggle = document.querySelector('.debug-toggle');
+            
+            debugVisible = !debugVisible;
+            
+            if (debugVisible) {
+                debugInfo.style.display = 'block';
+                toggle.innerHTML = '🔍 Hide captured URL parameters';
+                loadDebugInfo();
+            } else {
+                debugInfo.style.display = 'none';
+                toggle.innerHTML = '🔍 Show captured URL parameters';
+            }
+        }
+        
+        // Load and display debug information
+        function loadDebugInfo() {
+            const paramsInfo = document.getElementById('params-info');
+            
+            // Get current URL parameters
+            const currentParams = new URLSearchParams(window.location.search);
+            const currentParamsObj = {};
+            for (const [key, value] of currentParams.entries()) {
+                currentParamsObj[key] = value;
+            }
+            
+            // Get stored parameters
+            const storedData = window.URLParamsHandler ? 
+                window.URLParamsHandler.getData() : 
+                getStoredParamsLocal();
+            
+            const debugInfo = {
+                'Current URL': window.location.href,
+                'Current Path': window.location.pathname,
+                'Current Query Parameters': currentParamsObj,
+                'Stored URL Data': storedData,
+                'Referrer': document.referrer || 'Direct access',
+                'User Agent': navigator.userAgent,
+                'Timestamp': new Date().toISOString()
+            };
+            
+            paramsInfo.textContent = JSON.stringify(debugInfo, null, 2);
+        }
+        
+        // Fallback function to get stored params if URLParamsHandler not available
+        function getStoredParamsLocal() {
+            try {
+                const stored = localStorage.getItem('urlParams');
+                return stored ? JSON.parse(stored) : null;
+            } catch (error) {
+                return { error: 'Failed to retrieve stored data: ' + error.message };
+            }
+        }
+        
+        // Initialize: Capture any parameters from current 404 URL
+        document.addEventListener('DOMContentLoaded', function() {
+            // Capture parameters from the 404 URL itself
+            if (window.URLParamsHandler && window.location.search) {
+                window.URLParamsHandler.capture();
+            }
+        });
+        
+        // Track 404 for analytics (if you have analytics)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'page_view', {
+                page_title: '404 - Page Not Found',
+                page_location: window.location.href
+            });
+        }
+        
+        // Also track 404 with stored parameters for better analytics
+        setTimeout(() => {
+            const storedData = window.URLParamsHandler ? 
+                window.URLParamsHandler.getData() : 
+                getStoredParamsLocal();
+                
+            if (storedData && typeof gtag !== 'undefined') {
+                gtag('event', '404_with_params', {
+                    original_url: storedData.url,
+                    original_params: JSON.stringify(storedData.params || {}),
+                    current_url: window.location.href
+                });
+            }
+        }, 100);
+    </script>
 </body>
 
 </html> 
