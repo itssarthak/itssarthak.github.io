@@ -136,56 +136,5 @@ for (let i = 0; i < formInputs.length; i++) {
 
 
 
-// page navigation variables
-const navigationLinks = document.querySelectorAll("[data-nav-link]");
-const pages = document.querySelectorAll("[data-page]");
 
-// add event to all nav link
-for (let i = 0; i < navigationLinks.length; i++) {
-  navigationLinks[i].addEventListener("click", function () {
 
-    for (let i = 0; i < pages.length; i++) {
-      if (this.innerHTML.toLowerCase() === pages[i].dataset.page) {
-        pages[i].classList.add("active");
-        navigationLinks[i].classList.add("active");
-        window.scrollTo(0, 0);
-      } else {
-        pages[i].classList.remove("active");
-        navigationLinks[i].classList.remove("active");
-      }
-    }
-
-  });
-}
-
-function sendToHome() {
-    for (let i = 0; i < pages.length; i++) {
-        if (pages[i].classList.contains("active")) {
-            pages[i].classList.remove("active");
-        }
-    }
-    pages[0].classList.add("active");
-}
-
-// implment submit form functionality
-form.addEventListener("submit", function (e) {
-
-  e.preventDefault();
-    // let [name, email, message] = [formInputs[0].value, formInputs[1].value, formInputs[2].value];
-  formBtn.setAttribute("disabled", "");
-  formBtn.innerText = "Sending...";
-    // alert("Thanks for contacting us! We will get back to you soon.");
-    const serviceID = 'service_okhl58i';
-    const templateID = 'template_k5j1ftq';
-    // const data = `Name: ${name}, Email: ${email}, Message: ${message}`;
-    emailjs.sendForm(serviceID, templateID, this)
-     .then(() => {
-       formBtn.innerText = 'Send Message';
-    //    alert('Sent!');
-     }, (err) => {
-       formBtn.innerText = 'Send Message';
-       alert(JSON.stringify(err));
-     });
-  formBtn.removeAttribute("disabled");
-  form.reset();
-});
