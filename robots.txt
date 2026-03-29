@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /home.html
+Disallow: /ollama.html
+Disallow: /error.html
+
+Sitemap: https://sarthakchhabra.com/sitemap.xml
