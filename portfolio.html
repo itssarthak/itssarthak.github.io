@@ -54,11 +54,16 @@
     <!-- routing script -->
     <script src="./assets/js/index.js"></script>
 
-    <!-- Icon test script -->
-    <script src="./assets/js/test-icons.js"></script>
+    <!-- Theme toggle (load early to prevent flash) -->
+    <script src="./assets/js/theme.js"></script>
 </head>
 
 <body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
 
     <!--
     - #MAIN
@@ -208,10 +213,6 @@
 
                     <li class="navbar-item">
                         <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/portfolio.html"><button class="navbar-link active" data-nav-link>Portfolio</button></a>
                     </li>
 
                     <li class="navbar-item">
