@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-9348686636896657">
     <title>Sarthak Chhabra - Tech Lead</title>
-    <meta name="description" content="The personal portfolio of Sarthak Chhabra, a Texh Lead based in Gurgaon, India, specializing in building robust and scalable systems.">
+    <meta name="description" content="The personal portfolio of Sarthak Chhabra, a Tech Lead based in Gurgaon, India, specializing in building robust and scalable systems.">
     <meta name="keywords" content="Sarthak Chhabra, Backend Developer, Software Engineer, Gurgaon, India, Node.js, AWS, MongoDB, System Architecture">
     
     <!-- Open Graph / Facebook -->
@@ -56,9 +56,17 @@
 
     <!-- Icon test script -->
     <script src="./assets/js/test-icons.js"></script>
+
+    <!-- Theme toggle (load early to prevent flash) -->
+    <script src="./assets/js/theme.js"></script>
 </head>
 
 <body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
 
     <!--
     - #MAIN
@@ -81,7 +89,7 @@
                 <div class="info-content">
                     <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
 
-                    <p class="title">Backend developer</p>
+                    <p class="title">Tech Lead</p>
                 </div>
 
                 <button class="info_more-btn" data-sidebar-btn>
@@ -211,10 +219,6 @@
                     </li>
 
                     <li class="navbar-item">
-                        <a href="/portfolio.html"><button class="navbar-link" data-nav-link>Portfolio</button></a>
-                    </li>
-
-                    <li class="navbar-item">
                         <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
                     </li>
 
@@ -238,10 +242,13 @@
 
                 <section class="about-text">
                     <p>
-                        As a Tech Lead based in Gurgaon, India, I specialize in turning complex challenges into seamless, intuitive solutions. 
+                        Tech Lead with 6+ years of experience building production systems across startups and enterprises — from Robert Bosch to scaling products at Dresma AI and now leading engineering at Zupee.
                     </p>
                     <p>
-                        Currently, I'm at the forefront of an early-stage startup, where I engineer robust and scalable systems designed to tackle the most demanding problems. My passion lies in building the backbone of digital experiences that are not only reliable but also effortlessly scalable.
+                        I work primarily with Node.js, TypeScript, AWS, and MongoDB, designing microservice architectures that handle real-world scale. More recently, I've been deep in Generative AI and RAG pipelines, bringing AI capabilities into production environments.
+                    </p>
+                    <p>
+                        I care about clean system design, mentoring engineers, and shipping things that actually work under pressure.
                     </p>
                 </section>
                 
@@ -253,7 +260,7 @@
 
                 <section class="service">
 
-                    <h3 class="h3 service-title">What i'm doing</h3>
+                    <h3 class="h3 service-title">What I'm doing</h3>
 
                     <ul class="service-list">
 
@@ -266,8 +273,7 @@
                             <div class="service-content-box">
                                 <h4 class="h4 service-item-title">Backend Development</h4>
 
-                                <p class="service-item-text"> Building robust and scalable server-side solutions.
-                                </p>
+                                <p class="service-item-text">Node.js and TypeScript services powering microservice architectures with MongoDB, PostgreSQL, and Kafka.</p>
                             </div>
 
                         </li>
@@ -279,10 +285,9 @@
                             </div>
 
                             <div class="service-content-box">
-                                <h4 class="h4 service-item-title">AWS Services</h4>
+                                <h4 class="h4 service-item-title">Cloud Infrastructure</h4>
 
-                                <p class="service-item-text"> Leveraging cloud infrastructure for optimal performance.
-                                </p>
+                                <p class="service-item-text">AWS-native solutions using Lambda, SQS, S3, EC2, and containerized deployments with Docker.</p>
                             </div>
 
                         </li>
@@ -294,10 +299,9 @@
                             </div>
 
                             <div class="service-content-box">
-                                <h4 class="h4 service-item-title">Technical Architecture</h4>
+                                <h4 class="h4 service-item-title">System Architecture</h4>
 
-                                <p class="service-item-text"> Designing resilient and efficient system blueprints.
-                                </p>
+                                <p class="service-item-text">Designing distributed systems, CI/CD pipelines, and event-driven architectures built for reliability at scale.</p>
                             </div>
 
                         </li>
@@ -309,218 +313,21 @@
                             </div>
 
                             <div class="service-content-box">
-                                <h4 class="h4 service-item-title">Nurturing</h4>
+                                <h4 class="h4 service-item-title">Team Leadership</h4>
 
-                                <p class="service-item-text"> Fostering growth through supportive mentorship and guidance.
-                                </p>
+                                <p class="service-item-text">Leading engineering teams, conducting code reviews, setting technical direction, and mentoring developers.</p>
                             </div>
 
                         </li>
 
                     </ul>
 
+                    <a href="/resume.html" class="section-cta">
+                        View my full resume
+                        <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </a>
+
                 </section>
-
-
-                <!--
-          - testimonials
-        -->
-
-                <!-- <section class="testimonials">
-
-          <h3 class="h3 testimonials-title">Testimonials</h3>
-
-          <ul class="testimonials-list has-scrollbar">
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-1.png" alt="Daniel lewis" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Daniel lewis</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-2.png" alt="Jessica miller" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Jessica miller</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-3.png" alt="Emily evans" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Emily evans</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-4.png" alt="Henry william" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class_="h4 testimonials-item-title" data-testimonials-title>Henry william</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Richard was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-          </ul>
-
-        </section> -->
-
-
-                <!--
-          - testimonials modal
-        -->
-
-                <div class="modal-container" data-modal-container>
-
-                    <div class="overlay" data-overlay></div>
-
-                    <section class="testimonials-modal">
-
-                        <button class="modal-close-btn" data-modal-close-btn>
-                            <ion-icon name="close-outline"></ion-icon>
-                        </button>
-
-                        <div class="modal-img-wrapper">
-                            <figure class="modal-avatar-box">
-                                <img src="./assets/images/avatar-1.png" alt="Daniel lewis" width="80" data-modal-img>
-                            </figure>
-
-                            <img src="./assets/images/icon-quote.svg" alt="quote icon">
-                        </div>
-
-                        <div class="modal-content">
-
-                            <h4 class="h3 modal-title" data-modal-title>Daniel lewis</h4>
-
-                            <time datetime="2021-06-14">14 June, 2021</time>
-
-                            <div data-modal-text>
-                                <p>
-                                    Richard was hired to create a corporate identity. We were very pleased with the work
-                                    done. She has a
-                                    lot of experience
-                                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet,
-                                    ullamcous cididt
-                                    consectetur adipiscing
-                                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                                </p>
-                            </div>
-
-                        </div>
-
-                    </section>
-
-                </div>
-
-
-                <!--
-          - clients
-        -->
-
-                <!-- <section class="clients">
-
-          <h3 class="h3 clients-title">Clients</h3>
-
-          <ul class="clients-list has-scrollbar">
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-1-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-2-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-3-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-4-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-5-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="./assets/images/logo-6-color.png" alt="client logo">
-              </a>
-            </li>
-
-          </ul>
-
-        </section> -->
 
             </article>
 
@@ -528,22 +335,6 @@
 
     </main>
 
-
-
-
-    <!--
-        EmailJS
-    -->
-    <script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-    </script>
-
-    <script type="text/javascript">
-        emailjs.init('LhqIBx9HdNrecNXa6')
-    </script>
-    <!--
-    - custom js link
-  -->
     <script src="./assets/js/script.js"></script>
     <script src="./assets/js/router.js"></script>
 
