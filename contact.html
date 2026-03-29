@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-9348686636896657">
     <title>Sarthak Chhabra - Tech Lead</title>
-    <meta name="description" content="The personal portfolio of Sarthak Chhabra, a Texh Lead based in Gurgaon, India, specializing in building robust and scalable systems.">
+    <meta name="description" content="The personal portfolio of Sarthak Chhabra, a Tech Lead based in Gurgaon, India, specializing in building robust and scalable systems.">
     <meta name="keywords" content="Sarthak Chhabra, Backend Developer, Software Engineer, Gurgaon, India, Node.js, AWS, MongoDB, System Architecture">
     
     <!-- Open Graph / Facebook -->
@@ -56,9 +56,17 @@
 
     <!-- Icon test script -->
     <script src="./assets/js/test-icons.js"></script>
+
+    <!-- Theme toggle (load early to prevent flash) -->
+    <script src="./assets/js/theme.js"></script>
 </head>
 
 <body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
 
     <!--
     - #MAIN
@@ -81,7 +89,7 @@
                 <div class="info-content">
                     <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
 
-                    <p class="title">Backend developer</p>
+                    <p class="title">Tech Lead</p>
                 </div>
 
                 <button class="info_more-btn" data-sidebar-btn>
@@ -210,17 +218,9 @@
                         <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
                     </li>
 
-                    <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Portfolio</button>
-          </li> -->
-
                     <li class="navbar-item">
                         <a href="/contact.html"><button class="navbar-link active" data-nav-link>Contact</button></a>
                     </li>
-
-                    <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Blog</button>
-          </li> -->
 
                 </ul>
 
@@ -280,22 +280,15 @@
 
     </main>
 
+    <div id="toast" class="toast"></div>
 
-
-
-    <!--
-        EmailJS
-    -->
     <script type="text/javascript"
         src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
     </script>
-
     <script type="text/javascript">
         emailjs.init('LhqIBx9HdNrecNXa6')
     </script>
-    <!--
-    - custom js link
-  -->
+
     <script src="./assets/js/script.js"></script>
     <script src="./assets/js/router.js"></script>
 
@@ -303,42 +296,46 @@
         const form = document.querySelector("[data-form]");
         const formInputs = document.querySelectorAll("[data-form-input]");
         const formBtn = document.querySelector("[data-form-btn]");
+        const toast = document.getElementById("toast");
 
-        // add event to all form input field
+        function showToast(message, type) {
+            toast.textContent = message;
+            toast.className = "toast " + type + " show";
+            setTimeout(function () {
+                toast.className = "toast";
+            }, 3000);
+        }
+
         for (let i = 0; i < formInputs.length; i++) {
             formInputs[i].addEventListener("input", function () {
-
-                // check form validation
                 if (form.checkValidity()) {
                     formBtn.removeAttribute("disabled");
                 } else {
                     formBtn.setAttribute("disabled", "");
                 }
-
             });
         }
 
-        // implment submit form functionality
         form.addEventListener("submit", function (e) {
-
             e.preventDefault();
-            // let [name, email, message] = [formInputs[0].value, formInputs[1].value, formInputs[2].value];
             formBtn.setAttribute("disabled", "");
-            formBtn.innerText = "Sending...";
-            // alert("Thanks for contacting us! We will get back to you soon.");
+            formBtn.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon><span>Sending...</span>';
+
             const serviceID = 'service_okhl58i';
             const templateID = 'template_k5j1ftq';
-            // const data = `Name: ${name}, Email: ${email}, Message: ${message}`;
+
             emailjs.sendForm(serviceID, templateID, this)
-                .then(() => {
-                    formBtn.innerText = 'Send Message';
-                    //    alert('Sent!');
-                }, (err) => {
-                    formBtn.innerText = 'Send Message';
-                    alert(JSON.stringify(err));
+                .then(function () {
+                    formBtn.innerHTML = '<ion-icon name="paper-plane"></ion-icon><span>Send Message</span>';
+                    formBtn.removeAttribute("disabled");
+                    form.reset();
+                    formBtn.setAttribute("disabled", "");
+                    showToast("Message sent! I'll get back to you soon.", "success");
+                }, function () {
+                    formBtn.innerHTML = '<ion-icon name="paper-plane"></ion-icon><span>Send Message</span>';
+                    formBtn.removeAttribute("disabled");
+                    showToast("Something went wrong. Please try again.", "error");
                 });
-            formBtn.removeAttribute("disabled");
-            form.reset();
         });
     </script>
 

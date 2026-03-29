@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-9348686636896657">
     <title>Sarthak Chhabra - Tech Lead</title>
-    <meta name="description" content="The personal portfolio of Sarthak Chhabra, a Texh Lead based in Gurgaon, India, specializing in building robust and scalable systems.">
+    <meta name="description" content="The personal portfolio of Sarthak Chhabra, a Tech Lead based in Gurgaon, India, specializing in building robust and scalable systems.">
     <meta name="keywords" content="Sarthak Chhabra, Backend Developer, Software Engineer, Gurgaon, India, Node.js, AWS, MongoDB, System Architecture">
     
     <!-- Open Graph / Facebook -->
@@ -56,9 +56,17 @@
 
     <!-- Icon test script -->
     <script src="./assets/js/test-icons.js"></script>
+
+    <!-- Theme toggle (load early to prevent flash) -->
+    <script src="./assets/js/theme.js"></script>
 </head>
 
 <body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
 
     <!--
     - #MAIN
@@ -81,7 +89,7 @@
                 <div class="info-content">
                     <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
 
-                    <p class="title">Backend developer</p>
+                    <p class="title">Tech Lead</p>
                 </div>
 
                 <button class="info_more-btn" data-sidebar-btn>
@@ -210,17 +218,9 @@
                         <a href="/resume.html"><button class="navbar-link  active" data-nav-link>Resume</button></a>
                     </li>
 
-                    <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Portfolio</button>
-          </li> -->
-
                     <li class="navbar-item">
                         <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
                     </li>
-
-                    <!-- <li class="navbar-item">
-            <button class="navbar-link" data-nav-link>Blog</button>
-          </li> -->
 
                 </ul>
 
@@ -349,62 +349,49 @@
 
                     <h3 class="h3 skills-title">My skills</h3>
 
-                    <ul class="skills-list content-card">
-                        <li class="skills-item">
-                            <div class="title-wrapper">
-                                <h5 class="h5">Node JS</h5>
-                                <data value="80">80%</data>
-                            </div>
-                            <div class="skill-progress-bg">
-                                <div class="skill-progress-fill" style="width: 80%;"></div>
-                            </div>
-                        </li>
-                        <li class="skills-item">
-                            <div class="title-wrapper">
-                                <h5 class="h5">AWS Services</h5>
-                                <data value="70">70%</data>
-                            </div>
-                            <div class="skill-progress-bg">
-                                <div class="skill-progress-fill" style="width: 70%;"></div>
-                            </div>
-                        </li>
-                        <li class="skills-item">
-                            <div class="title-wrapper">
-                                <h5 class="h5">MongoDB</h5>
-                                <data value="80">80%</data>
-                            </div>
-                            <div class="skill-progress-bg">
-                                <div class="skill-progress-fill" style="width: 80%;"></div>
-                            </div>
-                        </li>
-                        <li class="skills-item">
-                            <div class="title-wrapper">
-                                <h5 class="h5">System Design</h5>
-                                <data value="60">60%</data>
-                            </div>
-                            <div class="skill-progress-bg">
-                                <div class="skill-progress-fill" style="width: 60%;"></div>
-                            </div>
-                        </li>
-                        <li class="skills-item">
-                            <div class="title-wrapper">
-                                <h5 class="h5">Artificial Intelligence (AI)</h5>
-                                <data value="75">75%</data>
-                            </div>
-                            <div class="skill-progress-bg">
-                                <div class="skill-progress-fill" style="width: 75%;"></div>
-                            </div>
-                        </li>
-                        <li class="skills-item">
-                            <div class="title-wrapper">
-                                <h5 class="h5">Retrieval-Augmented Generation (RAG)</h5>
-                                <data value="70">70%</data>
-                            </div>
-                            <div class="skill-progress-bg">
-                                <div class="skill-progress-fill" style="width: 70%;"></div>
-                            </div>
-                        </li>
-                    </ul>
+                    <div class="skills-grouped">
+
+                        <div class="skill-group">
+                            <h4 class="skill-group-label">Expert</h4>
+                            <ul class="skill-tags">
+                                <li class="skill-tag expert">Node.js</li>
+                                <li class="skill-tag expert">TypeScript</li>
+                                <li class="skill-tag expert">MongoDB</li>
+                                <li class="skill-tag expert">Microservices</li>
+                                <li class="skill-tag expert">REST APIs</li>
+                            </ul>
+                        </div>
+
+                        <div class="skill-group">
+                            <h4 class="skill-group-label">Proficient</h4>
+                            <ul class="skill-tags">
+                                <li class="skill-tag proficient">AWS (SQS, Lambda, EC2, S3)</li>
+                                <li class="skill-tag proficient">System Design</li>
+                                <li class="skill-tag proficient">Docker</li>
+                                <li class="skill-tag proficient">Kafka</li>
+                                <li class="skill-tag proficient">Elasticsearch</li>
+                                <li class="skill-tag proficient">PostgreSQL</li>
+                                <li class="skill-tag proficient">Jenkins</li>
+                            </ul>
+                        </div>
+
+                        <div class="skill-group">
+                            <h4 class="skill-group-label">Familiar</h4>
+                            <ul class="skill-tags">
+                                <li class="skill-tag familiar">Generative AI</li>
+                                <li class="skill-tag familiar">RAG Pipelines</li>
+                                <li class="skill-tag familiar">React.js</li>
+                                <li class="skill-tag familiar">Vue.js</li>
+                                <li class="skill-tag familiar">Angular</li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <a href="/contact.html" class="section-cta">
+                        Get in touch
+                        <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </a>
 
                 </section>
         </div>
