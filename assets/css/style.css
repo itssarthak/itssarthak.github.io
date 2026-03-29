@@ -1323,6 +1323,14 @@ textarea.form-input::-webkit-resizer { display: none; }
   border-radius: inherit;
   z-index: -1;
   transition: var(--transition-1);
+  pointer-events: none;
+}
+
+.form-btn ion-icon,
+.form-btn span {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .form-btn ion-icon { font-size: 16px; }
