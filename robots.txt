@@ -3,5 +3,6 @@ Allow: /
 Disallow: /home.html
 Disallow: /ollama.html
 Disallow: /error.html
+Disallow: /404.html
 
 Sitemap: https://sarthakchhabra.com/sitemap.xml

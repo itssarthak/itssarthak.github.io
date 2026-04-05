@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-9348686636896657">
+    <title>Blog - Sarthak Chhabra | Node.js, AWS & AI Insights</title>
+    <meta name="description" content="Tech blog by Sarthak Chhabra covering Node.js microservices, AWS cloud architecture, Generative AI, and RAG pipelines. Insights from building production systems at Zupee and beyond.">
+    <meta name="keywords" content="Sarthak Chhabra blog, Node.js blog, AWS architecture, GenAI, RAG pipelines, microservices, tech lead blog">
+    <meta name="author" content="Sarthak Chhabra">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://sarthakchhabra.com/blog/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sarthakchhabra.com/blog/">
+    <meta property="og:title" content="Blog - Sarthak Chhabra | Node.js, AWS & AI Insights">
+    <meta property="og:description" content="Tech blog by Sarthak Chhabra covering Node.js microservices, AWS cloud architecture, Generative AI, and RAG pipelines.">
+    <meta property="og:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
+    <meta property="og:site_name" content="Sarthak Chhabra">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://sarthakchhabra.com/blog/">
+    <meta property="twitter:title" content="Blog - Sarthak Chhabra | Node.js, AWS & AI Insights">
+    <meta property="twitter:description" content="Tech blog by Sarthak Chhabra covering Node.js microservices, AWS cloud architecture, Generative AI, and RAG pipelines.">
+    <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        "name": "Sarthak Chhabra Blog",
+        "url": "https://sarthakchhabra.com/blog/",
+        "description": "Tech blog on Node.js microservices, AWS architecture, GenAI, and system design by Sarthak Chhabra.",
+        "author": {
+            "@type": "Person",
+            "name": "Sarthak Chhabra",
+            "url": "https://sarthakchhabra.com"
+        },
+        "blogPost": [
+            {
+                "@type": "BlogPosting",
+                "headline": "Scaling AWS for GenAI: RAG Pipelines in Production",
+                "url": "https://sarthakchhabra.com/blog/aws-genai-tips.html",
+                "datePublished": "2026-04-06",
+                "author": {
+                    "@type": "Person",
+                    "name": "Sarthak Chhabra"
+                }
+            },
+            {
+                "@type": "BlogPosting",
+                "headline": "Node.js Microservices: Best Practices for Scalable Architectures",
+                "url": "https://sarthakchhabra.com/blog/node-microservices.html",
+                "datePublished": "2026-04-06",
+                "author": {
+                    "@type": "Person",
+                    "name": "Sarthak Chhabra"
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- ionicon preconnect -->
+    <link rel="preconnect" href="https://unpkg.com">
+
+    <!-- ionicon scripts -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+    <link rel="shortcut icon" href="/assets/images/my-avatar.png" type="image/x-icon">
+    <link rel="stylesheet" href="/assets/css/style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script src="/assets/js/url-params-handler.js"></script>
+    <script src="/assets/js/index.js"></script>
+    <script src="/assets/js/theme.js"></script>
+</head>
+
+<body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
+
+    <main>
+
+        <aside class="sidebar" data-sidebar>
+
+            <div class="sidebar-info">
+
+                <figure class="avatar-box">
+                    <img src="/assets/images/my-avatar.png" alt="Sarthak Chhabra" width="80">
+                </figure>
+
+                <div class="info-content">
+                    <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
+                    <p class="title">Tech Lead</p>
+                </div>
+
+                <button class="info_more-btn" data-sidebar-btn>
+                    <span>Show Contacts</span>
+                    <ion-icon name="chevron-down"></ion-icon>
+                </button>
+
+            </div>
+
+            <div class="sidebar-info_more">
+
+                <div class="separator"></div>
+
+                <ul class="contacts-list">
+
+                    <li class="contact-item">
+                        <div class="icon-box">
+                            <ion-icon name="mail-outline"></ion-icon>
+                        </div>
+                        <div class="contact-info">
+                            <p class="contact-title">Email</p>
+                            <a href="mailto:hello@sarthakchhabra.com" class="contact-link">hello@sarthakchhabra.com</a>
+                        </div>
+                    </li>
+
+                    <li class="contact-item">
+                        <div class="icon-box">
+                            <ion-icon name="phone-portrait-outline"></ion-icon>
+                        </div>
+                        <div class="contact-info">
+                            <p class="contact-title">Phone</p>
+                            <a href="tel:+919557722510" class="contact-link">+91 9557722510</a>
+                        </div>
+                    </li>
+
+                    <li class="contact-item">
+                        <div class="icon-box">
+                            <ion-icon name="calendar-outline"></ion-icon>
+                        </div>
+                        <div class="contact-info">
+                            <p class="contact-title">Birthday</p>
+                            <time class="contact-link" datetime="1996-11-22">November 22, 1996</time>
+                        </div>
+                    </li>
+
+                    <li class="contact-item">
+                        <div class="icon-box">
+                            <ion-icon name="location-outline"></ion-icon>
+                        </div>
+                        <div class="contact-info">
+                            <p class="contact-title">Location</p>
+                            <address class="contact-link">Gurgaon, Haryana, India</address>
+                        </div>
+                    </li>
+
+                </ul>
+
+                <div class="separator"></div>
+
+                <ul class="social-list">
+                    <li class="social-item">
+                        <a href="https://www.facebook.com/itssarthakchhabra" target="_blank" class="social-link">
+                            <ion-icon name="logo-facebook"></ion-icon>
+                        </a>
+                    </li>
+                    <li class="social-item">
+                        <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" class="social-link">
+                            <ion-icon name="logo-linkedin"></ion-icon>
+                        </a>
+                    </li>
+                    <li class="social-item">
+                        <a href="https://www.instagram.com/its_sarthak/" target="_blank" class="social-link">
+                            <ion-icon name="logo-instagram"></ion-icon>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+
+        </aside>
+
+        <div class="main-content">
+
+            <nav class="navbar">
+                <ul class="navbar-list">
+                    <li class="navbar-item">
+                        <a href="/"><button class="navbar-link" data-nav-link>About</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/portfolio.html"><button class="navbar-link" data-nav-link>Portfolio</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/blog/"><button class="navbar-link active" data-nav-link>Blog</button></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <article class="blog active" data-page="blog">
+
+                <header>
+                    <h2 class="h2 article-title">Blog</h2>
+                </header>
+
+                <section class="about-text">
+                    <p>
+                        Welcome to my blog. I write about backend engineering, cloud architecture, and AI — the topics I work with every day as a Tech Lead. These posts are based on real production experience building systems at Zupee, Dresma AI, and Robert Bosch.
+                    </p>
+                </section>
+
+                <section class="blog-posts">
+
+                    <h3 class="h3">Recent Posts</h3>
+
+                    <ul class="blog-posts-list">
+
+                        <li class="blog-post-item">
+                            <a href="/blog/aws-genai-tips.html">
+                                <figure class="blog-banner-box">
+                                    <img src="/assets/images/blog-1.jpg" alt="Scaling AWS for GenAI: RAG Pipelines in Production" loading="lazy">
+                                </figure>
+
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <p class="blog-category">AWS / GenAI</p>
+                                        <span class="dot"></span>
+                                        <time datetime="2026-04-06">Apr 6, 2026</time>
+                                    </div>
+
+                                    <h3 class="h3 blog-item-title">Scaling AWS for GenAI: RAG Pipelines in Production (2026 Guide)</h3>
+
+                                    <p class="blog-text">
+                                        Practical tips for building production-grade RAG systems on AWS with Node.js. Covers S3 data ingestion, Lambda orchestration, vector embeddings, and the caching strategies that helped us reduce latency by 40% at Zupee.
+                                    </p>
+                                </div>
+                            </a>
+                        </li>
+
+                        <li class="blog-post-item">
+                            <a href="/blog/node-microservices.html">
+                                <figure class="blog-banner-box">
+                                    <img src="/assets/images/blog-2.jpg" alt="Node.js Microservices: Best Practices for Scalable Architectures" loading="lazy">
+                                </figure>
+
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <p class="blog-category">Node.js / Architecture</p>
+                                        <span class="dot"></span>
+                                        <time datetime="2026-04-06">Apr 6, 2026</time>
+                                    </div>
+
+                                    <h3 class="h3 blog-item-title">Node.js Microservices: Best Practices for Scalable Architectures</h3>
+
+                                    <p class="blog-text">
+                                        How to design event-driven microservices with Node.js, TypeScript, and Kafka. Lessons from building distributed systems at Zupee and Dresma AI that handle millions of daily requests.
+                                    </p>
+                                </div>
+                            </a>
+                        </li>
+
+                    </ul>
+
+                    <p class="about-text" style="margin-top: 20px;">
+                        More posts coming soon. Topics I'm planning to cover include Docker deployment strategies, PostgreSQL performance tuning, and building AI agents with RAG. <a href="/contact.html">Get in touch</a> if there's a topic you'd like me to write about.
+                    </p>
+
+                </section>
+
+            </article>
+
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <nav class="footer-nav">
+            <a href="/">Home</a>
+            <a href="/resume.html">Resume</a>
+            <a href="/portfolio.html">Portfolio</a>
+            <a href="/blog/">Blog</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/assets/docs/SarthakResume.pdf" target="_blank">Download Resume (PDF)</a>
+        </nav>
+        <p class="footer-copy">&copy; 2026 Sarthak Chhabra | Tech Lead | Gurgaon, India</p>
+    </footer>
+
+    <script src="/assets/js/script.js"></script>
+    <script src="/assets/js/router.js"></script>
+
+</body>
+
+</html>

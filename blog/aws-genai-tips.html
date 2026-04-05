@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-9348686636896657">
+    <title>Scaling AWS for GenAI: RAG Pipelines in Production (2026 Guide) - Sarthak Chhabra</title>
+    <meta name="description" content="Tips for building production RAG systems on AWS with Node.js: From Lambda to embeddings. By Sarthak Chhabra, Tech Lead at Zupee. Learn how we reduced latency by 40%.">
+    <meta name="keywords" content="AWS GenAI, RAG pipelines, Node.js AWS Lambda, vector embeddings, Sarthak Chhabra, production AI systems, AWS S3, retrieval augmented generation">
+    <meta name="author" content="Sarthak Chhabra">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://sarthakchhabra.com/blog/aws-genai-tips.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://sarthakchhabra.com/blog/aws-genai-tips.html">
+    <meta property="og:title" content="Scaling AWS for GenAI: RAG Pipelines in Production (2026 Guide)">
+    <meta property="og:description" content="Tips for building production RAG systems on AWS with Node.js. By Sarthak Chhabra, Tech Lead at Zupee.">
+    <meta property="og:image" content="https://sarthakchhabra.com/assets/images/blog-1.jpg">
+    <meta property="og:site_name" content="Sarthak Chhabra">
+    <meta property="article:published_time" content="2026-04-06">
+    <meta property="article:author" content="Sarthak Chhabra">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://sarthakchhabra.com/blog/aws-genai-tips.html">
+    <meta property="twitter:title" content="Scaling AWS for GenAI: RAG Pipelines in Production (2026 Guide)">
+    <meta property="twitter:description" content="Tips for building production RAG systems on AWS with Node.js. By Sarthak Chhabra, Tech Lead at Zupee.">
+    <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/blog-1.jpg">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Scaling AWS for GenAI: RAG Pipelines in Production (2026 Guide)",
+        "description": "Practical tips for building production-grade RAG systems on AWS with Node.js, covering S3, Lambda, vector embeddings, and caching strategies.",
+        "url": "https://sarthakchhabra.com/blog/aws-genai-tips.html",
+        "datePublished": "2026-04-06",
+        "dateModified": "2026-04-06",
+        "author": {
+            "@type": "Person",
+            "name": "Sarthak Chhabra",
+            "url": "https://sarthakchhabra.com",
+            "jobTitle": "Tech Lead"
+        },
+        "publisher": {
+            "@type": "Person",
+            "name": "Sarthak Chhabra",
+            "url": "https://sarthakchhabra.com"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://sarthakchhabra.com/blog/aws-genai-tips.html"
+        },
+        "keywords": ["AWS", "GenAI", "RAG", "Node.js", "Lambda", "vector embeddings", "production AI"]
+    }
+    </script>
+
+    <!-- ionicon preconnect -->
+    <link rel="preconnect" href="https://unpkg.com">
+
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+    <link rel="shortcut icon" href="/assets/images/my-avatar.png" type="image/x-icon">
+    <link rel="stylesheet" href="/assets/css/style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script src="/assets/js/url-params-handler.js"></script>
+    <script src="/assets/js/index.js"></script>
+    <script src="/assets/js/theme.js"></script>
+</head>
+
+<body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
+
+    <main>
+
+        <aside class="sidebar" data-sidebar>
+
+            <div class="sidebar-info">
+                <figure class="avatar-box">
+                    <img src="/assets/images/my-avatar.png" alt="Sarthak Chhabra" width="80">
+                </figure>
+                <div class="info-content">
+                    <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
+                    <p class="title">Tech Lead</p>
+                </div>
+                <button class="info_more-btn" data-sidebar-btn>
+                    <span>Show Contacts</span>
+                    <ion-icon name="chevron-down"></ion-icon>
+                </button>
+            </div>
+
+            <div class="sidebar-info_more">
+                <div class="separator"></div>
+                <ul class="contacts-list">
+                    <li class="contact-item">
+                        <div class="icon-box"><ion-icon name="mail-outline"></ion-icon></div>
+                        <div class="contact-info">
+                            <p class="contact-title">Email</p>
+                            <a href="mailto:hello@sarthakchhabra.com" class="contact-link">hello@sarthakchhabra.com</a>
+                        </div>
+                    </li>
+                    <li class="contact-item">
+                        <div class="icon-box"><ion-icon name="phone-portrait-outline"></ion-icon></div>
+                        <div class="contact-info">
+                            <p class="contact-title">Phone</p>
+                            <a href="tel:+919557722510" class="contact-link">+91 9557722510</a>
+                        </div>
+                    </li>
+                    <li class="contact-item">
+                        <div class="icon-box"><ion-icon name="location-outline"></ion-icon></div>
+                        <div class="contact-info">
+                            <p class="contact-title">Location</p>
+                            <address class="contact-link">Gurgaon, Haryana, India</address>
+                        </div>
+                    </li>
+                </ul>
+                <div class="separator"></div>
+                <ul class="social-list">
+                    <li class="social-item">
+                        <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" class="social-link">
+                            <ion-icon name="logo-linkedin"></ion-icon>
+                        </a>
+                    </li>
+                    <li class="social-item">
+                        <a href="https://www.instagram.com/its_sarthak/" target="_blank" class="social-link">
+                            <ion-icon name="logo-instagram"></ion-icon>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </aside>
+
+        <div class="main-content">
+
+            <nav class="navbar">
+                <ul class="navbar-list">
+                    <li class="navbar-item">
+                        <a href="/"><button class="navbar-link" data-nav-link>About</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/portfolio.html"><button class="navbar-link" data-nav-link>Portfolio</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/blog/"><button class="navbar-link active" data-nav-link>Blog</button></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <article class="blog-post active" data-page="blog">
+
+                <header>
+                    <h2 class="h2 article-title">Scaling AWS for GenAI: RAG Pipelines in Production</h2>
+                    <div class="blog-meta" style="margin-bottom: 20px; color: var(--light-gray-70); font-size: var(--fs-6);">
+                        <time datetime="2026-04-06">April 6, 2026</time> &middot; 8 min read &middot; By Sarthak Chhabra
+                    </div>
+                </header>
+
+                <section class="about-text">
+
+                    <p>
+                        Retrieval-Augmented Generation (RAG) has gone from a research curiosity to a production necessity in 2026. At Zupee, we built a RAG pipeline that handles over one million queries per day, and the journey taught us a lot about what works (and what doesn't) when you're running GenAI workloads on AWS at scale.
+                    </p>
+
+                    <p>
+                        This guide covers the practical, battle-tested patterns we use. If you're building a RAG system with Node.js on AWS, these tips should save you weeks of trial and error.
+                    </p>
+
+                    <h3 class="h3">Step 1: Setting Up S3 for Data Ingestion</h3>
+
+                    <p>
+                        Every RAG pipeline starts with data. At Zupee, our knowledge base consists of structured documents, FAQ databases, and real-time game rules. We store all raw documents in S3, organized by source and version.
+                    </p>
+
+                    <p>
+                        The key insight is to treat S3 as your single source of truth. We use S3 event notifications to trigger Lambda functions whenever new documents are uploaded. The Lambda function handles parsing (PDF, JSON, HTML), chunking the text into semantically meaningful segments (typically 500-800 tokens), and pushing those chunks to our embedding pipeline.
+                    </p>
+
+                    <p>
+                        For chunking, we found that overlapping windows (with 100-token overlap) significantly improve retrieval quality compared to naive splitting. We built a custom Node.js chunking service that respects paragraph boundaries and section headers.
+                    </p>
+
+                    <h3 class="h3">Step 2: Vector Embeddings and Storage</h3>
+
+                    <p>
+                        Once documents are chunked, we generate vector embeddings using a managed embedding model via API calls. Each chunk gets a 1536-dimensional vector that captures its semantic meaning.
+                    </p>
+
+                    <p>
+                        We store these vectors in a dedicated vector database alongside metadata (source document, chunk index, last modified date). The metadata is critical for filtering at query time — you often want to restrict retrieval to specific document categories or recency windows.
+                    </p>
+
+                    <p>
+                        One optimization that made a huge difference: we pre-compute and cache embeddings for frequently asked queries. At Zupee, about 30% of incoming queries are variations of the same 500 questions. By caching the top-k retrieval results for these queries in ElastiCache (Redis), we eliminated the vector search entirely for a significant portion of traffic.
+                    </p>
+
+                    <h3 class="h3">Step 3: Integrating RAG with the Application Layer</h3>
+
+                    <p>
+                        Our retrieval and generation pipeline is orchestrated through AWS Lambda functions written in TypeScript. The flow is straightforward:
+                    </p>
+
+                    <p>
+                        1. The user query arrives via API Gateway. 2. A Lambda function generates the query embedding. 3. We perform a similarity search against our vector store (top-k=5). 4. Retrieved chunks are combined with the user query into a prompt. 5. The prompt is sent to the language model. 6. The response is streamed back to the client.
+                    </p>
+
+                    <p>
+                        For step 2-4, latency is everything. We run these in a single Lambda function to avoid cross-function networking overhead. The Lambda is provisioned with 1024MB of memory (which also increases CPU allocation) and we use connection pooling for our vector database.
+                    </p>
+
+                    <h3 class="h3">Case Study: Achieving 40% Latency Reduction</h3>
+
+                    <p>
+                        When we first launched the pipeline, our P95 latency was around 3.2 seconds. Users expect near-instant responses, especially in a gaming context. Here's what we did to bring it down to 1.9 seconds:
+                    </p>
+
+                    <p>
+                        <strong>Caching layer:</strong> As mentioned, Redis caching for frequent queries eliminated vector search for ~30% of requests. This alone dropped average latency by 15%.
+                    </p>
+
+                    <p>
+                        <strong>Embedding model optimization:</strong> We switched from a general-purpose embedding model to a smaller, domain-fine-tuned model. The vectors are slightly less "universal" but retrieval quality actually improved for our specific use case, and inference time dropped by 40%.
+                    </p>
+
+                    <p>
+                        <strong>Provisioned concurrency:</strong> Cold starts were killing our P95 numbers. We use provisioned concurrency on the main Lambda functions to keep 10 warm instances available at all times. This costs more, but the latency improvement justified it.
+                    </p>
+
+                    <p>
+                        <strong>Streaming responses:</strong> Instead of waiting for the full LLM response, we stream tokens back to the client using API Gateway WebSocket connections. The perceived latency drops dramatically because users see text appearing within 200ms of their query.
+                    </p>
+
+                    <h3 class="h3">Monitoring and Observability</h3>
+
+                    <p>
+                        You cannot run a production RAG system without proper monitoring. We track several key metrics in CloudWatch: retrieval relevance scores, LLM response quality (via automated evaluation), end-to-end latency percentiles, cache hit rates, and embedding pipeline lag.
+                    </p>
+
+                    <p>
+                        We also built a simple feedback loop: when users indicate a response was unhelpful, we log the query, retrieved chunks, and generated response. This data feeds into weekly quality reviews where we identify gaps in our knowledge base and fine-tune our chunking strategy.
+                    </p>
+
+                    <h3 class="h3">Key Takeaways</h3>
+
+                    <p>
+                        Building RAG on AWS is not just about plugging models together. The real work is in data engineering (chunking, embeddings, caching), infrastructure optimization (Lambda sizing, provisioned concurrency, connection pooling), and operational excellence (monitoring, feedback loops, quality evaluation).
+                    </p>
+
+                    <p>
+                        If you're starting a RAG project in 2026, invest heavily in your data pipeline before worrying about model selection. The quality of your retrieval step determines 80% of the output quality.
+                    </p>
+
+                    <p>
+                        Have questions about building RAG pipelines on AWS? I'm happy to chat — <a href="/contact.html">reach out here</a> or connect with me on <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank">LinkedIn</a>.
+                    </p>
+
+                    <a href="/blog/" class="section-cta" style="margin-top: 20px;">
+                        Back to all posts
+                        <ion-icon name="arrow-back-outline"></ion-icon>
+                    </a>
+
+                </section>
+
+            </article>
+
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <nav class="footer-nav">
+            <a href="/">Home</a>
+            <a href="/resume.html">Resume</a>
+            <a href="/portfolio.html">Portfolio</a>
+            <a href="/blog/">Blog</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/assets/docs/SarthakResume.pdf" target="_blank">Download Resume (PDF)</a>
+        </nav>
+        <p class="footer-copy">&copy; 2026 Sarthak Chhabra | Tech Lead | Gurgaon, India</p>
+    </footer>
+
+    <script src="/assets/js/script.js"></script>
+    <script src="/assets/js/router.js"></script>
+
+</body>
+
+</html>

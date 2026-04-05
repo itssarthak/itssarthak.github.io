@@ -28,9 +28,34 @@
     <meta property="twitter:description" content="Contact Sarthak Chhabra, Tech Lead based in Gurgaon, India. Reach out for collaboration or engineering opportunities.">
     <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
 
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "name": "Contact Sarthak Chhabra",
+        "url": "https://sarthakchhabra.com/contact.html",
+        "description": "Contact Sarthak Chhabra, Tech Lead based in Gurgaon, India.",
+        "mainEntity": {
+            "@type": "Person",
+            "name": "Sarthak Chhabra",
+            "jobTitle": "Tech Lead",
+            "email": "hello@sarthakchhabra.com",
+            "telephone": "+919557722510",
+            "url": "https://sarthakchhabra.com",
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "professional",
+                "email": "hello@sarthakchhabra.com",
+                "url": "https://sarthakchhabra.com/contact.html"
+            }
+        }
+    }
+    </script>
+
     <!-- ionicon preconnect -->
     <link rel="preconnect" href="https://unpkg.com">
-    
+
     <!-- ionicon scripts -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
@@ -54,7 +79,7 @@
 
     <!-- URL parameters handler (must load first) -->
     <script src="./assets/js/url-params-handler.js"></script>
-    
+
     <!-- routing script -->
     <script src="./assets/js/index.js"></script>
 
@@ -220,7 +245,15 @@
                     </li>
 
                     <li class="navbar-item">
+                        <a href="/portfolio.html"><button class="navbar-link" data-nav-link>Portfolio</button></a>
+                    </li>
+
+                    <li class="navbar-item">
                         <a href="/contact.html"><button class="navbar-link active" data-nav-link>Contact</button></a>
+                    </li>
+
+                    <li class="navbar-item">
+                        <a href="/blog/"><button class="navbar-link" data-nav-link>Blog</button></a>
                     </li>
 
                 </ul>
@@ -280,6 +313,18 @@
         </div>
 
     </main>
+
+    <footer class="site-footer">
+        <nav class="footer-nav">
+            <a href="/">Home</a>
+            <a href="/resume.html">Resume</a>
+            <a href="/portfolio.html">Portfolio</a>
+            <a href="/blog/">Blog</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/assets/docs/SarthakResume.pdf" target="_blank">Download Resume (PDF)</a>
+        </nav>
+        <p class="footer-copy">&copy; 2026 Sarthak Chhabra | Tech Lead | Gurgaon, India</p>
+    </footer>
 
     <div id="toast" class="toast"></div>
 

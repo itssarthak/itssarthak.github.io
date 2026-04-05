@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-9348686636896657">
+    <title>Node.js Microservices: Best Practices for Scalable Architectures - Sarthak Chhabra</title>
+    <meta name="description" content="How to design event-driven microservices with Node.js, TypeScript, and Kafka. Insights from building distributed systems at Zupee and Dresma AI by Sarthak Chhabra.">
+    <meta name="keywords" content="Node.js microservices, TypeScript backend, Kafka event-driven, microservice architecture, Sarthak Chhabra, scalable Node.js, Docker deployment">
+    <meta name="author" content="Sarthak Chhabra">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://sarthakchhabra.com/blog/node-microservices.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://sarthakchhabra.com/blog/node-microservices.html">
+    <meta property="og:title" content="Node.js Microservices: Best Practices for Scalable Architectures">
+    <meta property="og:description" content="How to design event-driven microservices with Node.js, TypeScript, and Kafka. By Sarthak Chhabra, Tech Lead.">
+    <meta property="og:image" content="https://sarthakchhabra.com/assets/images/blog-2.jpg">
+    <meta property="og:site_name" content="Sarthak Chhabra">
+    <meta property="article:published_time" content="2026-04-06">
+    <meta property="article:author" content="Sarthak Chhabra">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://sarthakchhabra.com/blog/node-microservices.html">
+    <meta property="twitter:title" content="Node.js Microservices: Best Practices for Scalable Architectures">
+    <meta property="twitter:description" content="How to design event-driven microservices with Node.js, TypeScript, and Kafka. By Sarthak Chhabra, Tech Lead.">
+    <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/blog-2.jpg">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Node.js Microservices: Best Practices for Scalable Architectures",
+        "description": "How to design event-driven microservices with Node.js, TypeScript, and Kafka for production-grade distributed systems.",
+        "url": "https://sarthakchhabra.com/blog/node-microservices.html",
+        "datePublished": "2026-04-06",
+        "dateModified": "2026-04-06",
+        "author": {
+            "@type": "Person",
+            "name": "Sarthak Chhabra",
+            "url": "https://sarthakchhabra.com",
+            "jobTitle": "Tech Lead"
+        },
+        "publisher": {
+            "@type": "Person",
+            "name": "Sarthak Chhabra",
+            "url": "https://sarthakchhabra.com"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://sarthakchhabra.com/blog/node-microservices.html"
+        },
+        "keywords": ["Node.js", "microservices", "TypeScript", "Kafka", "Docker", "event-driven architecture"]
+    }
+    </script>
+
+    <!-- ionicon preconnect -->
+    <link rel="preconnect" href="https://unpkg.com">
+
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+    <link rel="shortcut icon" href="/assets/images/my-avatar.png" type="image/x-icon">
+    <link rel="stylesheet" href="/assets/css/style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script src="/assets/js/url-params-handler.js"></script>
+    <script src="/assets/js/index.js"></script>
+    <script src="/assets/js/theme.js"></script>
+</head>
+
+<body>
+
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
+        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
+        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
+    </button>
+
+    <main>
+
+        <aside class="sidebar" data-sidebar>
+
+            <div class="sidebar-info">
+                <figure class="avatar-box">
+                    <img src="/assets/images/my-avatar.png" alt="Sarthak Chhabra" width="80">
+                </figure>
+                <div class="info-content">
+                    <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
+                    <p class="title">Tech Lead</p>
+                </div>
+                <button class="info_more-btn" data-sidebar-btn>
+                    <span>Show Contacts</span>
+                    <ion-icon name="chevron-down"></ion-icon>
+                </button>
+            </div>
+
+            <div class="sidebar-info_more">
+                <div class="separator"></div>
+                <ul class="contacts-list">
+                    <li class="contact-item">
+                        <div class="icon-box"><ion-icon name="mail-outline"></ion-icon></div>
+                        <div class="contact-info">
+                            <p class="contact-title">Email</p>
+                            <a href="mailto:hello@sarthakchhabra.com" class="contact-link">hello@sarthakchhabra.com</a>
+                        </div>
+                    </li>
+                    <li class="contact-item">
+                        <div class="icon-box"><ion-icon name="phone-portrait-outline"></ion-icon></div>
+                        <div class="contact-info">
+                            <p class="contact-title">Phone</p>
+                            <a href="tel:+919557722510" class="contact-link">+91 9557722510</a>
+                        </div>
+                    </li>
+                    <li class="contact-item">
+                        <div class="icon-box"><ion-icon name="location-outline"></ion-icon></div>
+                        <div class="contact-info">
+                            <p class="contact-title">Location</p>
+                            <address class="contact-link">Gurgaon, Haryana, India</address>
+                        </div>
+                    </li>
+                </ul>
+                <div class="separator"></div>
+                <ul class="social-list">
+                    <li class="social-item">
+                        <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" class="social-link">
+                            <ion-icon name="logo-linkedin"></ion-icon>
+                        </a>
+                    </li>
+                    <li class="social-item">
+                        <a href="https://www.instagram.com/its_sarthak/" target="_blank" class="social-link">
+                            <ion-icon name="logo-instagram"></ion-icon>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </aside>
+
+        <div class="main-content">
+
+            <nav class="navbar">
+                <ul class="navbar-list">
+                    <li class="navbar-item">
+                        <a href="/"><button class="navbar-link" data-nav-link>About</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/portfolio.html"><button class="navbar-link" data-nav-link>Portfolio</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
+                    </li>
+                    <li class="navbar-item">
+                        <a href="/blog/"><button class="navbar-link active" data-nav-link>Blog</button></a>
+                    </li>
+                </ul>
+            </nav>
+
+            <article class="blog-post active" data-page="blog">
+
+                <header>
+                    <h2 class="h2 article-title">Node.js Microservices: Best Practices for Scalable Architectures</h2>
+                    <div class="blog-meta" style="margin-bottom: 20px; color: var(--light-gray-70); font-size: var(--fs-6);">
+                        <time datetime="2026-04-06">April 6, 2026</time> &middot; 7 min read &middot; By Sarthak Chhabra
+                    </div>
+                </header>
+
+                <section class="about-text">
+
+                    <p>
+                        Over the past six years, I've built and maintained microservice architectures at four different companies. The patterns that work at scale are surprisingly consistent, regardless of whether you're processing gaming transactions at Zupee or handling AI image pipelines at Dresma. Here are the practices I've found most valuable.
+                    </p>
+
+                    <h3 class="h3">Architecture Overview: Event-Driven by Default</h3>
+
+                    <p>
+                        The single biggest architectural decision that pays off in microservices is committing to event-driven communication as the default. At Dresma AI, we used Kafka as our central event bus, and at Zupee we use a combination of AWS SQS and Kafka depending on the latency requirements.
+                    </p>
+
+                    <p>
+                        The principle is simple: services communicate by publishing events, not by making synchronous HTTP calls to each other. When Service A completes an operation, it publishes an event to Kafka. Services B, C, and D each consume that event independently and react accordingly. This gives you loose coupling, natural retry semantics, and the ability to add new consumers without modifying the producer.
+                    </p>
+
+                    <p>
+                        We use TypeScript for all our services. The type safety at service boundaries — especially for event schemas — prevents an enormous category of bugs that would otherwise only surface in production. We define shared event type definitions in a common package that all services depend on.
+                    </p>
+
+                    <h3 class="h3">Service Boundaries: Domain-Driven Decomposition</h3>
+
+                    <p>
+                        The hardest part of microservices isn't the technology — it's deciding where to draw the boundaries. We follow Domain-Driven Design (DDD) principles: each service owns a bounded context with its own data store.
+                    </p>
+
+                    <p>
+                        At Zupee, our core services include: User Service (authentication, profiles, preferences), Game Engine (match logic, scoring, state machines), Payment Service (transactions, wallet, payouts), and Notification Service (push, email, SMS). Each owns its database and never reads from another service's data store directly.
+                    </p>
+
+                    <p>
+                        When services need data from each other, they either consume events to maintain local read-replicas (eventual consistency) or make explicit API calls through well-defined contracts. The local replica pattern is preferable for read-heavy scenarios because it eliminates runtime coupling.
+                    </p>
+
+                    <h3 class="h3">Error Handling at Scale</h3>
+
+                    <p>
+                        In a distributed system, partial failures are the norm, not the exception. Every external call — database queries, API requests, Kafka publishes — can fail, and your service needs to handle that gracefully.
+                    </p>
+
+                    <p>
+                        We follow three rules religiously:
+                    </p>
+
+                    <p>
+                        <strong>Circuit breakers everywhere.</strong> We use a custom lightweight circuit breaker implementation in Node.js. When a downstream service starts failing, the circuit breaker trips after a configurable threshold (typically 5 failures in 30 seconds) and immediately returns an error for subsequent calls rather than waiting for timeouts. After a cooldown period, it lets a single request through to test if the service has recovered.
+                    </p>
+
+                    <p>
+                        <strong>Idempotent operations.</strong> Every message consumer and API endpoint is designed to be safely retried. We use unique request IDs and database-level deduplication to ensure that processing the same event twice doesn't cause data corruption. This is non-negotiable when you're using at-least-once message delivery (which Kafka and SQS both provide).
+                    </p>
+
+                    <p>
+                        <strong>Dead letter queues for everything.</strong> When a message fails processing after the configured retry count (we use 3 retries with exponential backoff), it goes to a dead letter queue. We have automated alerts on DLQ depth and a simple admin tool for replaying failed messages after the root cause is fixed.
+                    </p>
+
+                    <h3 class="h3">Deployment with Docker</h3>
+
+                    <p>
+                        All our services are containerized with Docker and deployed to AWS ECS (Elastic Container Service). Each service has a Dockerfile that follows a multi-stage build pattern: the first stage compiles TypeScript and runs tests, the second stage copies only the compiled JavaScript and production dependencies into a minimal Node.js Alpine image.
+                    </p>
+
+                    <p>
+                        This approach gives us images under 150MB, fast startup times (under 3 seconds), and consistent environments from development through production. We use Docker Compose locally so developers can spin up the entire service mesh with a single command.
+                    </p>
+
+                    <p>
+                        Our CI/CD pipeline (Jenkins at Dresma, GitHub Actions at Zupee) runs on every PR: lint, type-check, unit tests, build Docker image, run integration tests against the containerized service, then push to ECR. Deployment to staging is automatic; production requires manual approval.
+                    </p>
+
+                    <h3 class="h3">Observability: The Non-Negotiables</h3>
+
+                    <p>
+                        With dozens of services communicating asynchronously, you need three things to maintain sanity: structured logging with correlation IDs (we use Pino for high-performance JSON logging in Node.js), distributed tracing (AWS X-Ray), and metric dashboards (CloudWatch with custom metrics for business-level events).
+                    </p>
+
+                    <p>
+                        The correlation ID pattern is especially important: every incoming request gets a unique trace ID that propagates through every downstream service call and Kafka event. When something goes wrong, you can reconstruct the entire request flow across services by searching for that single ID.
+                    </p>
+
+                    <h3 class="h3">Key Takeaways</h3>
+
+                    <p>
+                        Microservices with Node.js and TypeScript can scale remarkably well if you invest in the fundamentals: event-driven communication, clear service boundaries, defensive error handling, containerized deployments, and thorough observability. The technology choices matter less than the architectural principles behind them.
+                    </p>
+
+                    <p>
+                        If you're working on microservices and want to discuss architecture patterns, <a href="/contact.html">drop me a message</a>. I'm also available for consulting on backend architecture and distributed systems design.
+                    </p>
+
+                    <a href="/blog/" class="section-cta" style="margin-top: 20px;">
+                        Back to all posts
+                        <ion-icon name="arrow-back-outline"></ion-icon>
+                    </a>
+
+                </section>
+
+            </article>
+
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <nav class="footer-nav">
+            <a href="/">Home</a>
+            <a href="/resume.html">Resume</a>
+            <a href="/portfolio.html">Portfolio</a>
+            <a href="/blog/">Blog</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/assets/docs/SarthakResume.pdf" target="_blank">Download Resume (PDF)</a>
+        </nav>
+        <p class="footer-copy">&copy; 2026 Sarthak Chhabra | Tech Lead | Gurgaon, India</p>
+    </footer>
+
+    <script src="/assets/js/script.js"></script>
+    <script src="/assets/js/router.js"></script>
+
+</body>
+
+</html>
