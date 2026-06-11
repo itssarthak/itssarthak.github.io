@@ -3,416 +3,166 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-adsense-account" content="ca-pub-9348686636896657">
-    <title>Resume - Sarthak Chhabra | Tech Lead Experience & Skills</title>
-    <meta name="description" content="Resume of Sarthak Chhabra - Tech Lead with 6+ years experience at Zupee, Robert Bosch, Dresma AI. Skills: Node.js, TypeScript, AWS, MongoDB, Microservices, Generative AI.">
-    <meta name="keywords" content="Sarthak Chhabra resume, Sarthak Chhabra experience, Tech Lead resume, Backend Developer, Node.js, AWS, Zupee, Robert Bosch, Dresma AI">
+    <title>Résumé — Sarthak Chhabra | Technical Lead · AI Systems</title>
+    <meta name="description" content="Résumé of Sarthak Chhabra — Technical Lead with 7+ years across Stashfin, Zupee, Dresma AI, Gigforce, Signcatch and Bosch. AI agent platforms, LLM infrastructure, Node.js, TypeScript, AWS.">
     <meta name="author" content="Sarthak Chhabra">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#050608">
     <link rel="canonical" href="https://sarthakchhabra.com/resume.html">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="profile">
     <meta property="og:url" content="https://sarthakchhabra.com/resume.html">
-    <meta property="og:title" content="Resume - Sarthak Chhabra | Tech Lead">
-    <meta property="og:description" content="Resume of Sarthak Chhabra - Tech Lead with 6+ years experience at Zupee, Robert Bosch, Dresma AI.">
+    <meta property="og:title" content="Résumé — Sarthak Chhabra | Technical Lead · AI Systems">
+    <meta property="og:description" content="7+ years of experience: AI agent platforms, LLM routing infrastructure, distributed backend systems.">
     <meta property="og:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
-    <meta property="og:site_name" content="Sarthak Chhabra">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://sarthakchhabra.com/resume.html">
-    <meta property="twitter:title" content="Resume - Sarthak Chhabra | Tech Lead">
-    <meta property="twitter:description" content="Resume of Sarthak Chhabra - Tech Lead with 6+ years experience at Zupee, Robert Bosch, Dresma AI.">
-    <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
+    <meta property="twitter:title" content="Résumé — Sarthak Chhabra | Technical Lead · AI Systems">
+    <meta property="twitter:description" content="7+ years of experience: AI agent platforms, LLM routing infrastructure, distributed backend systems.">
 
-    <!-- ionicon preconnect -->
-    <link rel="preconnect" href="https://unpkg.com">
-    
-    <!-- ionicon scripts -->
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
-    <!--
-    - favicon
-    -->
-    <link rel="shortcut icon" href="./assets/images/my-avatar.png" type="image/x-icon">
-
-    <!--
-    - custom css link
-    -->
-    <link rel="stylesheet" href="./assets/css/style.css">
-
-    <!--
-    - google font link
-    -->
+    <link rel="icon" href="./assets/images/logo.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <!-- URL parameters handler (must load first) -->
-    <script src="./assets/js/url-params-handler.js"></script>
-    
-    <!-- routing script -->
-    <script src="./assets/js/index.js"></script>
-
-    <!-- Theme toggle (load early to prevent flash) -->
-    <script src="./assets/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/site.css">
 </head>
 
-<body>
+<body class="noise">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas id="constellation" aria-hidden="true"></canvas>
+    <div class="scroll-progress" aria-hidden="true"></div>
 
-    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
-        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
-        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
-    </button>
-
-    <!--
-    - #MAIN
-  -->
-
-    <main>
-
-        <!--
-      - #SIDEBAR
-    -->
-
-        <aside class="sidebar" data-sidebar>
-
-            <div class="sidebar-info">
-
-                <figure class="avatar-box">
-                    <img src="./assets/images/my-avatar.png" alt="Sarthak Chhabra" width="80">
-                </figure>
-
-                <div class="info-content">
-                    <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
-
-                    <p class="title">Tech Lead</p>
-                </div>
-
-                <button class="info_more-btn" data-sidebar-btn>
-                    <span>Show Contacts</span>
-
-                    <ion-icon name="chevron-down"></ion-icon>
+    <header class="nav scrolled">
+        <div class="nav-inner">
+            <a href="/" class="logo" aria-label="Sarthak Chhabra — home">
+                <span class="prompt">~/</span>sarthak<span class="blink" aria-hidden="true"></span>
+            </a>
+            <nav aria-label="Primary">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
                 </button>
-
-            </div>
-
-            <div class="sidebar-info_more">
-
-                <div class="separator"></div>
-
-                <ul class="contacts-list">
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="mail-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Email</p>
-
-                            <a href="mailto:hello@sarthakchhabra.com" class="contact-link">hello@sarthakchhabra.com</a>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="phone-portrait-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Phone</p>
-
-                            <a href="tel:+919557722510" class="contact-link">+91 9557722510</a>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="calendar-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Birthday</p>
-
-                            <time class="contact-link" datetime="1996-11-22">November 22, 1996</time>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="location-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Location</p>
-
-                            <address class="contact-link" >Gurgaon, Haryana, India</address>
-                        </div>
-
-                    </li>
-
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/portfolio.html">Portfolio</a></li>
+                    <li><a href="/resume.html" class="active">Résumé</a></li>
+                    <li><a class="nav-cta" href="/contact.html">get in touch()</a></li>
                 </ul>
-
-                <div class="separator"></div>
-
-                <ul class="social-list">
-
-                    <li class="social-item">
-                        <a href="https://www.facebook.com/itssarthakchhabra" target="_blank" class="social-link">
-                            <ion-icon name="logo-facebook"></ion-icon>
-                        </a>
-                    </li>
-
-                    <li class="social-item">
-                        <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" class="social-link">
-                            <ion-icon name="logo-linkedin"></ion-icon>
-                        </a>
-                    </li>
-
-                    <li class="social-item">
-                        <a href="https://www.instagram.com/its_sarthak/" target="_blank" class="social-link">
-                            <ion-icon name="logo-instagram"></ion-icon>
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </aside>
-
-
-
-
-
-        <!--
-      - #main-content
-    -->
-
-        <div class="main-content">
-
-            <!--
-        - #NAVBAR
-      -->
-
-            <nav class="navbar">
-
-                <ul class="navbar-list">
-
-                    <li class="navbar-item">
-                        <a href="/"><button class="navbar-link" data-nav-link>About</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/resume.html"><button class="navbar-link  active" data-nav-link>Resume</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
-                    </li>
-
-                </ul>
-
             </nav>
-            <!--
-        - #RESUME
-      -->
+        </div>
+    </header>
 
-            <article class="resume active" data-page="resume">
-
-                <a target="_blank" href="./assets/docs/SarthakResume.pdf">
-                    <header>
-                        <h2 class="h2 article-title">Resume</h2>
-                    </header>
+    <main id="main" class="page">
+        <div class="subpage-hero container">
+            <p class="kicker">curriculum vitae</p>
+            <h1>Résumé<span class="grad-text">.</span></h1>
+            <p class="section-sub">Technical Lead · 7+ years · AI agent platforms, LLM infrastructure &amp; distributed systems.</p>
+            <div class="btn-row" style="justify-content:flex-start; margin-top:32px">
+                <a class="btn btn-primary" href="/Sarthak%20Resume.pdf" target="_blank" rel="noopener">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download PDF
                 </a>
-
-                <section class="timeline">
-
-                    <div class="title-wrapper">
-                        <div class="icon-box">
-                            <ion-icon name="book-outline"></ion-icon>
-                        </div>
-
-                        <h3 class="h3">Experience</h3>
-                    </div>
-
-                    <ol class="timeline-list">
-
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Technical Lead <span style="color: #b8b8b8;">Zupee</span></h4>
-                            <span>2025</span>
-                            <address class="timeline-text">Gurugram, Haryana, India · On-site</address>
-                            <p class="timeline-text">
-                                Skills: NodeJS, Typescript, AWS Services, Postgres, Generative AI, Docker, Microservices, Technology Leadership, Amazon Web Services (AWS)
-                            </p>
-
-                        </li>
-
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Senior Software Engineer <span style="color: #b8b8b8;">Dresma AI</span></h4>
-                            <span>2022 - 2025</span>
-                            <address class="timeline-text">Gurugram, Haryana, India · On-site</address>
-                            <p class="timeline-text">
-                                Skills: NodeJS, Typescript, AWS Services, MongoDB, Kafka, Technical Architecture, Microservices, Jenkins, Elasticsearch
-                            </p>
-
-                        </li>
-
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Full Stack Developer <span style="color: #b8b8b8;">Gigforce</span></h4>
-                            <span>2021 - 2022</span>
-                            <address class="timeline-text">Delhi, India</address>
-                            <p class="timeline-text">
-                                Skills: NodeJS, AWS SQS, MongoDB, VueJS, System Design, Design Patterns, Node.js, MongoDB
-                            </p>
-
-                        </li>
-
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Software Developer <span style="color: #b8b8b8;">Signcatch</span></h4>
-                            <span>2020 - 2021</span>
-                            <address class="timeline-text">Delhi, India</address>
-                            <p class="timeline-text">
-                                Skills: ReactJS, Angular, SQL, PHP, Postman, Agile, React.js, AngularJS
-                            </p>
-
-                        </li>
-
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Associate Software Engineer <span style="color: #b8b8b8;">Robert Bosch Engineering and Business Solutions Private Limited</span></h4>
-                            <span>2019 - 2020</span>
-                            <address class="timeline-text">Greater Hyderabad Area</address>
-                            <p class="timeline-text">
-                                Skills: Angular, C Sharp, SQL
-                            </p>
-
-                        </li>
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Intern (Project Trainee) <span style="color: #b8b8b8;">Robert Bosch Engineering and Business Solutions Private Limited</span></h4>
-                            <span>2019</span>
-                            <address class="timeline-text">Coimbatore Area, India</address>
-                        </li>
-
-                    </ol>
-
-                </section>
-
-                <section class="timeline">
-
-                    <div class="title-wrapper">
-                        <div class="icon-box">
-                            <ion-icon name="book-outline"></ion-icon>
-                        </div>
-
-                        <h3 class="h3">Education</h3>
-                    </div>
-
-                    <ol class="timeline-list">
-
-                        <li class="timeline-item">
-
-                            <h4 class="h4 timeline-item-title">Lovely Professional University</h4>
-
-                            <span>2015 - 2019</span>
-
-                            <p class="timeline-text">
-                                Bachelor of Technology in Computer Science and Engineering (8.7 CGPA)
-                            </p>
-                            <p class="timeline-text">
-                                Activities and societies: SkillMaker
-                            </p>
-
-                        </li>
-
-                    </ol>
-
-                </section>
-
-                <section class="skill">
-
-                    <h3 class="h3 skills-title">My skills</h3>
-
-                    <div class="skills-grouped">
-
-                        <div class="skill-group">
-                            <h4 class="skill-group-label">Expert</h4>
-                            <ul class="skill-tags">
-                                <li class="skill-tag expert">Node.js</li>
-                                <li class="skill-tag expert">TypeScript</li>
-                                <li class="skill-tag expert">MongoDB</li>
-                                <li class="skill-tag expert">Microservices</li>
-                                <li class="skill-tag expert">REST APIs</li>
-                            </ul>
-                        </div>
-
-                        <div class="skill-group">
-                            <h4 class="skill-group-label">Proficient</h4>
-                            <ul class="skill-tags">
-                                <li class="skill-tag proficient">AWS (SQS, Lambda, EC2, S3)</li>
-                                <li class="skill-tag proficient">System Design</li>
-                                <li class="skill-tag proficient">Docker</li>
-                                <li class="skill-tag proficient">Kafka</li>
-                                <li class="skill-tag proficient">Elasticsearch</li>
-                                <li class="skill-tag proficient">PostgreSQL</li>
-                                <li class="skill-tag proficient">Jenkins</li>
-                                <li class="skill-tag proficient">Generative AI</li>
-                                <li class="skill-tag proficient">RAG Pipelines</li>
-                            </ul>
-                        </div>
-
-                        <div class="skill-group">
-                            <h4 class="skill-group-label">Familiar</h4>
-                            <ul class="skill-tags">
-                                <li class="skill-tag familiar">React.js</li>
-                                <li class="skill-tag familiar">Vue.js</li>
-                                <li class="skill-tag familiar">Angular</li>
-                            </ul>
-                        </div>
-
-                    </div>
-
-                    <a href="/contact.html" class="section-cta">
-                        Get in touch
-                        <ion-icon name="arrow-forward-outline"></ion-icon>
-                    </a>
-
-                </section>
-
-            </article>
-
+                <a class="btn btn-ghost" href="mailto:hello@sarthakchhabra.com">Email me</a>
+            </div>
         </div>
 
+        <section aria-label="Work experience" style="padding-top:70px">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="kicker">experience</p>
+                    <h2 class="section-title">Where I've <span class="grad-text">shipped</span>.</h2>
+                </div>
+
+                <div class="timeline">
+                    <div class="tl-item current reveal">
+                        <p class="tl-date">FEB 2026 — PRESENT <span class="tl-badge">CURRENT</span></p>
+                        <h3>Technical Lead · <span class="company">Stashfin</span></h3>
+                        <p class="tl-stack">NodeJS · TypeScript · AWS · Postgres · GenAI · Docker · Microservices</p>
+                        <ul>
+                            <li>Architected and led a <b>no-code platform for production AI agents</b> — delivery cut from days to minutes; runs a support agent handling <b>~30K messages / 44M tokens daily</b> across 6,000+ users.</li>
+                            <li>Designed a dynamic tool framework that turns <b>any REST API into an agent-callable tool</b> via live test calls and schema annotation — no hand-written integrations.</li>
+                            <li>Built a cross-channel contact system unifying email, phone &amp; Slack identities into <b>one persistent agent memory</b>.</li>
+                            <li>Developed an end-to-end <b>RAG ingestion pipeline</b> (upload → chunk → embed → store) usable by non-technical teams.</li>
+                            <li>Implemented multi-channel delivery (Slack, Telegram &amp; more) — one agent config deploys everywhere.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tl-item reveal">
+                        <p class="tl-date">JUL 2025 — FEB 2026</p>
+                        <h3>Technical Lead · <span class="company">Zupee</span></h3>
+                        <p class="tl-stack">NodeJS · Postgres · Qdrant · MongoDB · LangGraph · GenAI · Microservices</p>
+                        <ul>
+                            <li>Architected a centralized <b>LLM routing engine</b> — 300K+ req/day, 15–20ms latency, 99% uptime, with budget tracking, rate limiting, multi-provider fallbacks &amp; circuit breakers.</li>
+                            <li>Developed an AI companion chatbot achieving <b>46% D15 retention</b> via LangGraph multi-agent architecture and RAG memory on Qdrant.</li>
+                            <li>Built automated promo generation: production time <b>1 week → 3 hours</b>, parallel-processing 50–100 microseries.</li>
+                            <li>Created a no-code bot management platform — 2-click model swaps and behavior changes for product managers.</li>
+                            <li><b>Led a team of 4 engineers</b> across AI products including an astrology chatbot and routing infrastructure.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tl-item reveal">
+                        <p class="tl-date">MAR 2022 — APR 2025</p>
+                        <h3>Senior Software Engineer · <span class="company">Dresma AI</span></h3>
+                        <p class="tl-stack">NodeJS · TypeScript · AWS · MongoDB · Kafka · Technical Architecture</p>
+                        <ul>
+                            <li>Reduced response time by <b>40%</b> and improved system efficiency by 30% through optimization and debugging.</li>
+                            <li>Engineered near-fail-proof architectures for heavy computation: −30% processing time, +50% stability.</li>
+                            <li>Mentored junior engineers across backend, frontend and AWS — +20% delivery efficiency, −30% error rates.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tl-item reveal">
+                        <p class="tl-date">MAY 2021 — MAR 2022</p>
+                        <h3>Full Stack Developer · <span class="company">Gigforce</span></h3>
+                        <p class="tl-stack">NodeJS · AWS SQS · MongoDB · VueJS · System Design</p>
+                        <ul>
+                            <li>End-to-end ownership of new modules: +25% stability, fewer post-launch bugs.</li>
+                            <li>Scaled backend services for operational growth: <b>−40% peak-load latency</b>, −30% query response time.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tl-item reveal">
+                        <p class="tl-date">OCT 2020 — MAY 2021</p>
+                        <h3>Software Developer · <span class="company">Signcatch</span></h3>
+                        <p class="tl-stack">ReactJS · Angular · SQL · PHP · Agile</p>
+                        <ul>
+                            <li>Maintained new + legacy modules: +25% positive user feedback, −15% churn, −20% time-to-market.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tl-item reveal">
+                        <p class="tl-date">JAN 2019 — OCT 2020</p>
+                        <h3>Associate Software Engineer · <span class="company">Bosch</span></h3>
+                        <p class="tl-stack">Angular · C# · SQL</p>
+                        <ul>
+                            <li>Cross-platform applications, close product-owner collaboration: −20% rework, −25% ticket resolution time.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tl-item reveal">
+                        <p class="tl-date">AUG 2015 — JUL 2019</p>
+                        <h3>B.E. Computer Science · <span class="company">Lovely Professional University</span></h3>
+                        <p class="tl-stack">8.7 CGPA</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container footer-inner">
+                <span>© <span id="yr">2026</span> Sarthak Chhabra</span>
+                <div class="footer-links">
+                    <a href="/">home</a>
+                    <a href="/portfolio.html">portfolio</a>
+                    <a href="/contact.html">contact</a>
+                </div>
+                <span>$ open resume.pdf → 200 OK</span>
+            </div>
+        </footer>
     </main>
 
-
-
-
-
-
-    <!--
-    - custom js link
-  -->
-    <script src="./assets/js/script.js"></script>
-    <script src="./assets/js/router.js"></script>
-
+    <script src="./assets/js/site.js" defer></script>
 </body>
 
 </html>

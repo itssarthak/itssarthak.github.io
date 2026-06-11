@@ -3,343 +3,212 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-adsense-account" content="ca-pub-9348686636896657">
-    <title>Contact Sarthak Chhabra - Tech Lead | Get in Touch</title>
-    <meta name="description" content="Contact Sarthak Chhabra, Tech Lead based in Gurgaon, India. Reach out for collaboration, consulting, or engineering opportunities. Email: hello@sarthakchhabra.com">
-    <meta name="keywords" content="contact Sarthak Chhabra, Sarthak Chhabra email, hire Sarthak Chhabra, Tech Lead contact, Backend Developer contact">
+    <title>Contact — Sarthak Chhabra | Technical Lead · AI Systems</title>
+    <meta name="description" content="Contact Sarthak Chhabra, Technical Lead based in Gurgaon, India. Reach out for AI infrastructure, agent platforms, consulting or engineering opportunities. Email: hello@sarthakchhabra.com">
     <meta name="author" content="Sarthak Chhabra">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#050608">
     <link rel="canonical" href="https://sarthakchhabra.com/contact.html">
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://sarthakchhabra.com/contact.html">
-    <meta property="og:title" content="Contact Sarthak Chhabra - Tech Lead">
-    <meta property="og:description" content="Contact Sarthak Chhabra, Tech Lead based in Gurgaon, India. Reach out for collaboration or engineering opportunities.">
+    <meta property="og:title" content="Contact — Sarthak Chhabra | Technical Lead · AI Systems">
+    <meta property="og:description" content="Reach out for AI infrastructure, agent platforms, consulting or engineering opportunities.">
     <meta property="og:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
-    <meta property="og:site_name" content="Sarthak Chhabra">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://sarthakchhabra.com/contact.html">
-    <meta property="twitter:title" content="Contact Sarthak Chhabra - Tech Lead">
-    <meta property="twitter:description" content="Contact Sarthak Chhabra, Tech Lead based in Gurgaon, India. Reach out for collaboration or engineering opportunities.">
-    <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
+    <meta property="twitter:title" content="Contact — Sarthak Chhabra | Technical Lead · AI Systems">
+    <meta property="twitter:description" content="Reach out for AI infrastructure, agent platforms, consulting or engineering opportunities.">
 
-    <!-- ionicon preconnect -->
-    <link rel="preconnect" href="https://unpkg.com">
-    
-    <!-- ionicon scripts -->
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
-    <!--
-    - favicon
-    -->
-    <link rel="shortcut icon" href="./assets/images/my-avatar.png" type="image/x-icon">
-
-    <!--
-    - custom css link
-    -->
-    <link rel="stylesheet" href="./assets/css/style.css">
-
-    <!--
-    - google font link
-    -->
+    <link rel="icon" href="./assets/images/logo.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <!-- URL parameters handler (must load first) -->
-    <script src="./assets/js/url-params-handler.js"></script>
-    
-    <!-- routing script -->
-    <script src="./assets/js/index.js"></script>
-
-    <!-- Theme toggle (load early to prevent flash) -->
-    <script src="./assets/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/site.css">
 </head>
 
-<body>
+<body class="noise">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas id="constellation" aria-hidden="true"></canvas>
+    <div class="scroll-progress" aria-hidden="true"></div>
 
-    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
-        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
-        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
-    </button>
-
-    <!--
-    - #MAIN
-  -->
-
-    <main>
-
-        <!--
-      - #SIDEBAR
-    -->
-
-        <aside class="sidebar" data-sidebar>
-
-            <div class="sidebar-info">
-
-                <figure class="avatar-box">
-                    <img src="./assets/images/my-avatar.png" alt="Sarthak Chhabra" width="80">
-                </figure>
-
-                <div class="info-content">
-                    <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
-
-                    <p class="title">Tech Lead</p>
-                </div>
-
-                <button class="info_more-btn" data-sidebar-btn>
-                    <span>Show Contacts</span>
-
-                    <ion-icon name="chevron-down"></ion-icon>
+    <header class="nav scrolled">
+        <div class="nav-inner">
+            <a href="/" class="logo" aria-label="Sarthak Chhabra — home">
+                <span class="prompt">~/</span>sarthak<span class="blink" aria-hidden="true"></span>
+            </a>
+            <nav aria-label="Primary">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
                 </button>
-
-            </div>
-
-            <div class="sidebar-info_more">
-
-                <div class="separator"></div>
-
-                <ul class="contacts-list">
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="mail-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Email</p>
-
-                            <a href="mailto:hello@sarthakchhabra.com" class="contact-link">hello@sarthakchhabra.com</a>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="phone-portrait-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Phone</p>
-
-                            <a href="tel:+919557722510" class="contact-link">+91 9557722510</a>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="calendar-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Birthday</p>
-
-                            <time class="contact-link" datetime="1996-11-22">November 22, 1996</time>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="location-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Location</p>
-
-                            <address class="contact-link" >Gurgaon, Haryana, India</address>
-                        </div>
-
-                    </li>
-
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/portfolio.html">Portfolio</a></li>
+                    <li><a href="/resume.html">Résumé</a></li>
+                    <li><a class="nav-cta" href="/contact.html">get in touch()</a></li>
                 </ul>
-
-                <div class="separator"></div>
-
-                <ul class="social-list">
-
-                    <li class="social-item">
-                        <a href="https://www.facebook.com/itssarthakchhabra" target="_blank" class="social-link">
-                            <ion-icon name="logo-facebook"></ion-icon>
-                        </a>
-                    </li>
-
-                    <li class="social-item">
-                        <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" class="social-link">
-                            <ion-icon name="logo-linkedin"></ion-icon>
-                        </a>
-                    </li>
-
-                    <li class="social-item">
-                        <a href="https://www.instagram.com/its_sarthak/" target="_blank" class="social-link">
-                            <ion-icon name="logo-instagram"></ion-icon>
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </aside>
-
-
-
-
-
-        <!--
-      - #main-content
-    -->
-
-        <div class="main-content">
-
-            <!--
-        - #NAVBAR
-      -->
-
-            <nav class="navbar">
-
-                <ul class="navbar-list">
-
-                    <li class="navbar-item">
-                        <a href="/"><button class="navbar-link" data-nav-link>About</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/contact.html"><button class="navbar-link active" data-nav-link>Contact</button></a>
-                    </li>
-
-                </ul>
-
             </nav>
+        </div>
+    </header>
 
-
-
-
-
-            <!--
-        - #CONTACT
-      -->
-
-            <article class="contact active" data-page="contact">
-
-                <header>
-                    <h2 class="h2 article-title">Contact</h2>
-                </header>
-
-                <section class="mapbox" data-mapbox>
-                    <figure>
-                        <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112283.94133042762!2d76.9073483177971!3d28.42308372147299!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d19d582e38859%3A0x2cf5fe8e5c64b1e!2sGurugram%2C%20Haryana%2C%20India!5e0!3m2!1sen!2ssg!4v1723541663477!5m2!1sen!2ssg"
-                            width="400" height="300" loading="lazy"></iframe>
-                    </figure>
-                </section>
-
-                <section class="contact-form">
-
-                    <h3 class="h3 form-title">Contact Form</h3>
-
-                    <form action="#" class="form" data-form>
-
-                        <div class="input-wrapper">
-                            <input type="text" name="fullname" class="form-input" placeholder="Full name" required
-                                data-form-input>
-
-                            <input type="email" name="email" class="form-input" placeholder="Email address" required
-                                data-form-input>
-                        </div>
-
-                        <textarea name="message" class="form-input" placeholder="Your Message" required
-                            data-form-input></textarea>
-
-                        <button class="form-btn" type="submit" disabled data-form-btn>
-                            <ion-icon name="paper-plane"></ion-icon>
-                            <span>Send Message</span>
-                        </button>
-
-                    </form>
-
-                </section>
-
-            </article>
-
+    <main id="main" class="page">
+        <div class="subpage-hero container">
+            <p class="kicker">open channel</p>
+            <h1>Say <span class="grad-text">hello</span>.</h1>
+            <p class="section-sub">AI infrastructure, agent platforms, hard scaling problems, or just a good conversation about systems — pick a channel below. I usually respond within a day.</p>
         </div>
 
+        <section aria-label="Send a message" style="padding-top:60px; padding-bottom:0">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="kicker">direct line</p>
+                    <h2 class="section-title">Drop a <span class="grad-text">message</span>.</h2>
+                    <p class="section-sub">Lands straight in my inbox — no mail client needed.</p>
+                </div>
+
+                <form class="contact-form-card reveal" data-form novalidate>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="cf-name">name <span class="req" aria-hidden="true">*</span></label>
+                            <input class="form-input" id="cf-name" type="text" name="fullname" placeholder="Ada Lovelace" autocomplete="name" required data-form-input>
+                        </div>
+                        <div class="form-field">
+                            <label for="cf-email">email <span class="req" aria-hidden="true">*</span></label>
+                            <input class="form-input" id="cf-email" type="email" name="email" placeholder="ada@analytical.engine" autocomplete="email" required data-form-input>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label for="cf-message">message <span class="req" aria-hidden="true">*</span></label>
+                        <textarea class="form-input" id="cf-message" name="message" placeholder="Tell me about the system you want to build…" required data-form-input></textarea>
+                    </div>
+                    <button class="btn btn-primary form-btn" type="submit" disabled data-form-btn>
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        <span>Send message</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section aria-label="Contact channels" style="padding-top:80px">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="kicker">other channels</p>
+                    <h2 class="section-title">Or find me <span class="grad-text">here</span>.</h2>
+                </div>
+                <div class="contact-cards">
+                    <a class="contact-card reveal" href="mailto:hello@sarthakchhabra.com">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <h3>Email</h3>
+                        <span class="value">hello@sarthakchhabra.com</span>
+                    </a>
+                    <a class="contact-card reveal" style="--d:.05s" href="tel:+919557722510">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <h3>Phone</h3>
+                        <span class="value">+91 95577 22510</span>
+                    </a>
+                    <a class="contact-card reveal" style="--d:.1s" href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" rel="noopener">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                        <h3>LinkedIn</h3>
+                        <span class="value">linkedin.com/in/sarthak-chhabra</span>
+                    </a>
+                    <div class="contact-card reveal" style="--d:.15s">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <h3>Location</h3>
+                        <span class="value">Gurgaon, India · IST (UTC+5:30)</span>
+                    </div>
+                    <a class="contact-card reveal" style="--d:.2s" href="https://www.instagram.com/its_sarthak/" target="_blank" rel="noopener">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                        <h3>Instagram</h3>
+                        <span class="value">@its_sarthak</span>
+                    </a>
+                    <a class="contact-card reveal" style="--d:.25s" href="/Sarthak%20Resume.pdf" target="_blank" rel="noopener">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                        <h3>Résumé</h3>
+                        <span class="value">Sarthak_Chhabra.pdf — download</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="contact-cta" aria-label="Email call to action" style="padding-top:40px">
+            <div class="container reveal">
+                <h2>One email away from<br><span class="grad-text">shipping together.</span></h2>
+                <div class="btn-row" style="margin-top:36px">
+                    <a class="btn btn-primary" href="mailto:hello@sarthakchhabra.com">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        hello@sarthakchhabra.com
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container footer-inner">
+                <span>© <span id="yr">2026</span> Sarthak Chhabra</span>
+                <div class="footer-links">
+                    <a href="/">home</a>
+                    <a href="/portfolio.html">portfolio</a>
+                    <a href="/resume.html">résumé</a>
+                </div>
+                <span>$ ping sarthak → reply in &lt;24h</span>
+            </div>
+        </footer>
     </main>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-    </script>
-    <script type="text/javascript">
-        emailjs.init('LhqIBx9HdNrecNXa6')
-    </script>
-
-    <script src="./assets/js/script.js"></script>
-    <script src="./assets/js/router.js"></script>
-
+    <script src="./assets/js/site.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-        const form = document.querySelector("[data-form]");
-        const formInputs = document.querySelectorAll("[data-form-input]");
-        const formBtn = document.querySelector("[data-form-btn]");
-        const toast = document.getElementById("toast");
+        emailjs.init('LhqIBx9HdNrecNXa6');
 
-        function showToast(message, type) {
-            toast.textContent = message;
-            toast.className = "toast " + type + " show";
-            setTimeout(function () {
-                toast.className = "toast";
-            }, 3000);
-        }
+        (function () {
+            var form = document.querySelector("[data-form]");
+            var inputs = document.querySelectorAll("[data-form-input]");
+            var btn = document.querySelector("[data-form-btn]");
+            var btnLabel = btn.querySelector("span");
+            var toast = document.getElementById("toast");
+            var toastTimer;
 
-        for (let i = 0; i < formInputs.length; i++) {
-            formInputs[i].addEventListener("input", function () {
-                if (form.checkValidity()) {
-                    formBtn.removeAttribute("disabled");
-                } else {
-                    formBtn.setAttribute("disabled", "");
-                }
+            function showToast(message, type) {
+                toast.textContent = message;
+                toast.className = "toast " + type + " show";
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () {
+                    toast.className = "toast";
+                }, 4000);
+            }
+
+            function checkValidity() {
+                var ok = true;
+                inputs.forEach(function (i) { if (!i.checkValidity()) ok = false; });
+                if (ok) btn.removeAttribute("disabled");
+                else btn.setAttribute("disabled", "");
+            }
+
+            inputs.forEach(function (i) { i.addEventListener("input", checkValidity); });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                btn.setAttribute("disabled", "");
+                btnLabel.textContent = "Sending…";
+
+                emailjs.sendForm("service_okhl58i", "template_k5j1ftq", this)
+                    .then(function () {
+                        btnLabel.textContent = "Send message";
+                        form.reset();
+                        btn.setAttribute("disabled", "");
+                        showToast("Message sent! I'll get back to you soon.", "success");
+                    }, function () {
+                        btnLabel.textContent = "Send message";
+                        btn.removeAttribute("disabled");
+                        showToast("Something went wrong. Please try again.", "error");
+                    });
             });
-        }
-
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
-            formBtn.setAttribute("disabled", "");
-            formBtn.innerHTML = '<ion-icon name="hourglass-outline"></ion-icon><span>Sending...</span>';
-
-            const serviceID = 'service_okhl58i';
-            const templateID = 'template_k5j1ftq';
-
-            emailjs.sendForm(serviceID, templateID, this)
-                .then(function () {
-                    formBtn.innerHTML = '<ion-icon name="paper-plane"></ion-icon><span>Send Message</span>';
-                    formBtn.removeAttribute("disabled");
-                    form.reset();
-                    formBtn.setAttribute("disabled", "");
-                    showToast("Message sent! I'll get back to you soon.", "success");
-                }, function () {
-                    formBtn.innerHTML = '<ion-icon name="paper-plane"></ion-icon><span>Send Message</span>';
-                    formBtn.removeAttribute("disabled");
-                    showToast("Something went wrong. Please try again.", "error");
-                });
-        });
+        })();
     </script>
-
 </body>
 
 </html>

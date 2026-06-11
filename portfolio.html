@@ -3,481 +3,181 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-adsense-account" content="ca-pub-9348686636896657">
-    <title>Portfolio - Sarthak Chhabra | Projects & Work</title>
-    <meta name="description" content="Portfolio of Sarthak Chhabra - Browse projects and work by Sarthak Chhabra, Tech Lead specializing in backend development, cloud infrastructure, and system architecture.">
-    <meta name="keywords" content="Sarthak Chhabra portfolio, Sarthak Chhabra projects, Tech Lead projects, Backend Developer portfolio, software engineering projects">
+    <title>Portfolio — Sarthak Chhabra | AI Platforms & Systems</title>
+    <meta name="description" content="Portfolio of Sarthak Chhabra — AI agent platforms, LLM routing engines, RAG pipelines and distributed backend systems built at Stashfin, Zupee and Dresma AI.">
     <meta name="author" content="Sarthak Chhabra">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#050608">
     <link rel="canonical" href="https://sarthakchhabra.com/portfolio.html">
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://sarthakchhabra.com/portfolio.html">
-    <meta property="og:title" content="Portfolio - Sarthak Chhabra | Projects & Work">
-    <meta property="og:description" content="Browse projects and work by Sarthak Chhabra, Tech Lead specializing in backend development, cloud infrastructure, and system architecture.">
+    <meta property="og:title" content="Portfolio — Sarthak Chhabra | AI Platforms & Systems">
+    <meta property="og:description" content="AI agent platforms, LLM routing engines, RAG pipelines and distributed backend systems.">
     <meta property="og:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
-    <meta property="og:site_name" content="Sarthak Chhabra">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://sarthakchhabra.com/portfolio.html">
-    <meta property="twitter:title" content="Portfolio - Sarthak Chhabra | Projects & Work">
-    <meta property="twitter:description" content="Browse projects and work by Sarthak Chhabra, Tech Lead specializing in backend development, cloud infrastructure, and system architecture.">
-    <meta property="twitter:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
+    <meta property="twitter:title" content="Portfolio — Sarthak Chhabra | AI Platforms & Systems">
+    <meta property="twitter:description" content="AI agent platforms, LLM routing engines, RAG pipelines and distributed backend systems.">
 
-    <!-- ionicon preconnect -->
-    <link rel="preconnect" href="https://unpkg.com">
-    
-    <!-- ionicon scripts -->
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
-    <!--
-    - favicon
-    -->
-    <link rel="shortcut icon" href="./assets/images/my-avatar.png" type="image/x-icon">
-
-    <!--
-    - custom css link
-    -->
-    <link rel="stylesheet" href="./assets/css/style.css">
-
-    <!--
-    - google font link
-    -->
+    <link rel="icon" href="./assets/images/logo.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <!-- URL parameters handler (must load first) -->
-    <script src="./assets/js/url-params-handler.js"></script>
-    
-    <!-- routing script -->
-    <script src="./assets/js/index.js"></script>
-
-    <!-- Theme toggle (load early to prevent flash) -->
-    <script src="./assets/js/theme.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/site.css">
 </head>
 
-<body>
+<body class="noise">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas id="constellation" aria-hidden="true"></canvas>
+    <div class="scroll-progress" aria-hidden="true"></div>
 
-    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark theme">
-        <ion-icon name="sunny-outline" class="sun-icon"></ion-icon>
-        <ion-icon name="moon-outline" class="moon-icon"></ion-icon>
-    </button>
-
-    <!--
-    - #MAIN
-  -->
-
-    <main>
-
-        <!--
-      - #SIDEBAR
-    -->
-
-        <aside class="sidebar" data-sidebar>
-
-            <div class="sidebar-info">
-
-                <figure class="avatar-box">
-                    <img src="./assets/images/my-avatar.png" alt="Sarthak Chhabra" width="80">
-                </figure>
-
-                <div class="info-content">
-                    <h1 class="name" title="Sarthak Chhabra">Sarthak Chhabra</h1>
-
-                    <p class="title">Tech Lead</p>
-                </div>
-
-                <button class="info_more-btn" data-sidebar-btn>
-                    <span>Show Contacts</span>
-
-                    <ion-icon name="chevron-down"></ion-icon>
+    <header class="nav scrolled">
+        <div class="nav-inner">
+            <a href="/" class="logo" aria-label="Sarthak Chhabra — home">
+                <span class="prompt">~/</span>sarthak<span class="blink" aria-hidden="true"></span>
+            </a>
+            <nav aria-label="Primary">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
                 </button>
-
-            </div>
-
-            <div class="sidebar-info_more">
-
-                <div class="separator"></div>
-
-                <ul class="contacts-list">
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="mail-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Email</p>
-
-                            <a href="mailto:hello@sarthakchhabra.com" class="contact-link">hello@sarthakchhabra.com</a>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="phone-portrait-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Phone</p>
-
-                            <a href="tel:+919557722510" class="contact-link">+91 9557722510</a>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="calendar-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Birthday</p>
-
-                            <time class="contact-link" datetime="1996-11-22">November 22, 1996</time>
-                        </div>
-
-                    </li>
-
-                    <li class="contact-item">
-
-                        <div class="icon-box">
-                            <ion-icon name="location-outline"></ion-icon>
-                        </div>
-
-                        <div class="contact-info">
-                            <p class="contact-title">Location</p>
-
-                            <address class="contact-link" >Gurgaon, Haryana, India</address>
-                        </div>
-
-                    </li>
-
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/portfolio.html" class="active">Portfolio</a></li>
+                    <li><a href="/resume.html">Résumé</a></li>
+                    <li><a class="nav-cta" href="/contact.html">get in touch()</a></li>
                 </ul>
-
-                <div class="separator"></div>
-
-                <ul class="social-list">
-
-                    <li class="social-item">
-                        <a href="https://www.facebook.com/itssarthakchhabra" target="_blank" class="social-link">
-                            <ion-icon name="logo-facebook"></ion-icon>
-                        </a>
-                    </li>
-
-                    <li class="social-item">
-                        <a href="https://www.linkedin.com/in/sarthak-chhabra/" target="_blank" class="social-link">
-                            <ion-icon name="logo-linkedin"></ion-icon>
-                        </a>
-                    </li>
-
-                    <li class="social-item">
-                        <a href="https://www.instagram.com/its_sarthak/" target="_blank" class="social-link">
-                            <ion-icon name="logo-instagram"></ion-icon>
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </aside>
-
-
-
-
-
-        <!--
-      - #main-content
-    -->
-
-        <div class="main-content">
-
-            <!--
-        - #NAVBAR
-      -->
-
-            <nav class="navbar">
-
-                <ul class="navbar-list">
-
-                    <li class="navbar-item">
-                        <a href="/"><button class="navbar-link" data-nav-link>About</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/resume.html"><button class="navbar-link" data-nav-link>Resume</button></a>
-                    </li>
-
-                    <li class="navbar-item">
-                        <a href="/contact.html"><button class="navbar-link" data-nav-link>Contact</button></a>
-                    </li>
-
-                </ul>
-
             </nav>
-
-            <!--
-        - #PORTFOLIO
-      -->
-
-            <article class="portfolio active" data-page="portfolio">
-
-                <header>
-                    <h2 class="h2 article-title">Portfolio</h2>
-                </header>
-
-                <section class="projects">
-
-                    <ul class="filter-list">
-
-                        <li class="filter-item">
-                            <button class="active" data-filter-btn>All</button>
-                        </li>
-
-                        <li class="filter-item">
-                            <button data-filter-btn>Web design</button>
-                        </li>
-
-                        <li class="filter-item">
-                            <button data-filter-btn>Applications</button>
-                        </li>
-
-                        <li class="filter-item">
-                            <button data-filter-btn>Web development</button>
-                        </li>
-
-                    </ul>
-
-                    <div class="filter-select-box">
-
-                        <button class="filter-select" data-select>
-
-                            <div class="select-value" data-selecct-value>Select category</div>
-
-                            <div class="select-icon">
-                                <ion-icon name="chevron-down"></ion-icon>
-                            </div>
-
-                        </button>
-
-                        <ul class="select-list">
-
-                            <li class="select-item">
-                                <button data-select-item>All</button>
-                            </li>
-
-                            <li class="select-item">
-                                <button data-select-item>Web design</button>
-                            </li>
-
-                            <li class="select-item">
-                                <button data-select-item>Applications</button>
-                            </li>
-
-                            <li class="select-item">
-                                <button data-select-item>Web development</button>
-                            </li>
-
-                        </ul>
-
-                    </div>
-
-                    <ul class="project-list">
-
-                        <li class="project-item  active" data-filter-item data-category="web development">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-1.jpg" alt="finance" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Finance</h3>
-
-                                <p class="project-category">Web development</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="web development">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-2.png" alt="orizon" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Orizon</h3>
-
-                                <p class="project-category">Web development</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="web design">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-3.jpg" alt="fundo" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Fundo</h3>
-
-                                <p class="project-category">Web design</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="applications">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-4.png" alt="brawlhalla" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Brawlhalla</h3>
-
-                                <p class="project-category">Applications</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="web design">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-5.png" alt="dsm." loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">DSM.</h3>
-
-                                <p class="project-category">Web design</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="web design">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-6.png" alt="metaspark" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">MetaSpark</h3>
-
-                                <p class="project-category">Web design</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="web development">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-7.png" alt="summary" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Summary</h3>
-
-                                <p class="project-category">Web development</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="applications">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-8.jpg" alt="task manager" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Task Manager</h3>
-
-                                <p class="project-category">Applications</p>
-
-                            </a>
-                        </li>
-
-                        <li class="project-item  active" data-filter-item data-category="web development">
-                            <a href="#">
-
-                                <figure class="project-img">
-                                    <div class="project-item-icon-box">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </div>
-
-                                    <img src="./assets/images/project-9.png" alt="arrival" loading="lazy">
-                                </figure>
-
-                                <h3 class="project-title">Arrival</h3>
-
-                                <p class="project-category">Web development</p>
-
-                            </a>
-                        </li>
-
-                    </ul>
-
-                </section>
-
-            </article>
-
-
-
+        </div>
+    </header>
+
+    <main id="main" class="page">
+        <div class="subpage-hero container">
+            <p class="kicker">selected work</p>
+            <h1>Systems in <span class="grad-text">production</span>.</h1>
+            <p class="section-sub">Not side projects — platforms with real users, real traffic and real numbers. Built at Stashfin, Zupee and Dresma AI.</p>
         </div>
 
+        <section aria-label="Production systems" style="padding-top:60px">
+            <div class="container">
+                <div class="systems-grid">
+                    <article class="system-card featured reveal">
+                        <span class="system-index">SYS-001 / STASHFIN · 2026</span>
+                        <h3>No-Code AI Agent Platform</h3>
+                        <p>A self-serve platform for building and deploying production AI agents — prompt, tools, model and channels configured from a UI. Cut agent delivery from days to minutes. Today it runs multiple production agents, including a customer-support agent handling ~30,000 messages and 44M tokens per day across 6,000+ daily users.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            agent delivery: days → minutes · 44M tokens/day
+                        </p>
+                        <div class="tags"><span class="tag">NodeJS</span><span class="tag">TypeScript</span><span class="tag">Postgres</span><span class="tag">AWS</span><span class="tag">Docker</span><span class="tag">GenAI</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.05s">
+                        <span class="system-index">SYS-002 / ZUPEE · 2025</span>
+                        <h3>Centralized LLM Routing Engine</h3>
+                        <p>One gateway for every LLM call — budget tracking, rate limiting, multi-provider fallbacks and circuit breaker patterns so product teams survive provider outages without noticing them.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            300K+ req/day · 15–20ms · 99% uptime
+                        </p>
+                        <div class="tags"><span class="tag">NodeJS</span><span class="tag">Postgres</span><span class="tag">Circuit Breakers</span><span class="tag">Rate Limiting</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.1s">
+                        <span class="system-index">SYS-003 / ZUPEE · 2025</span>
+                        <h3>AI Companion Chatbot</h3>
+                        <p>LangGraph multi-agent architecture for response planning and conflict resolution, RAG memory retrieval with Qdrant, and dynamic response timing that simulates human conversation patterns.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            46% D15 retention
+                        </p>
+                        <div class="tags"><span class="tag">LangGraph</span><span class="tag">Qdrant</span><span class="tag">RAG</span><span class="tag">MongoDB</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.05s">
+                        <span class="system-index">SYS-004 / STASHFIN · 2026</span>
+                        <h3>Dynamic Tool Framework</h3>
+                        <p>Turns any REST API into an agent-callable tool: configure the request, fire a live test call to capture the real response shape, annotate the keys — and the LLM tool schema writes itself. Hand-written integrations: eliminated.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            any API → agent tool, zero code
+                        </p>
+                        <div class="tags"><span class="tag">Tool Calling</span><span class="tag">Schema Inference</span><span class="tag">REST</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.1s">
+                        <span class="system-index">SYS-005 / STASHFIN · 2026</span>
+                        <h3>RAG Pipeline + Cross-Channel Memory</h3>
+                        <p>End-to-end knowledge ingestion — upload, chunk, embed, store — plus a contact system unifying each user's email, phone and Slack identities into a single record with persistent memory across channels.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            custom knowledge bases without engineering
+                        </p>
+                        <div class="tags"><span class="tag">Embeddings</span><span class="tag">Vector Store</span><span class="tag">Slack</span><span class="tag">Telegram</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.15s">
+                        <span class="system-index">SYS-006 / ZUPEE · 2025</span>
+                        <h3>Automated Promo Generation</h3>
+                        <p>Parallel processing of 50–100 microseries for ad creative, plus a no-code bot management console giving product managers 2-click control over models and behavior.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            1 week → 3 hours production time
+                        </p>
+                        <div class="tags"><span class="tag">Parallel Processing</span><span class="tag">No-code Console</span><span class="tag">GenAI</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.2s">
+                        <span class="system-index">SYS-007 / DRESMA AI · 2022–25</span>
+                        <h3>High-Throughput Processing Architecture</h3>
+                        <p>Near-fail-proof architectures for heavy computation workloads on AWS with Kafka-driven microservices — engineered for stability under load.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            −40% response time · +50% stability
+                        </p>
+                        <div class="tags"><span class="tag">Kafka</span><span class="tag">AWS</span><span class="tag">Microservices</span><span class="tag">MongoDB</span></div>
+                    </article>
+
+                    <article class="system-card reveal" style="--d:.25s">
+                        <span class="system-index">SYS-008 / OPEN NOTES</span>
+                        <h3>Running LLMs Locally with Ollama</h3>
+                        <p>A practical write-up on self-hosting open-weight models — hardware, quantization and serving trade-offs from hands-on experimentation.</p>
+                        <p class="system-impact">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            <a href="/ollama.html" style="color:inherit; text-decoration:underline">read the guide</a>
+                        </p>
+                        <div class="tags"><span class="tag">Ollama</span><span class="tag">Local LLMs</span><span class="tag">Writing</span></div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="contact-cta" aria-label="Contact call to action" style="padding-top:30px">
+            <div class="container reveal">
+                <h2>Want one of these<br><span class="grad-text">at your company?</span></h2>
+                <div class="btn-row" style="margin-top:36px">
+                    <a class="btn btn-primary" href="/contact.html">Get in touch</a>
+                    <a class="btn btn-ghost" href="/resume.html">View résumé</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container footer-inner">
+                <span>© <span id="yr">2026</span> Sarthak Chhabra</span>
+                <div class="footer-links">
+                    <a href="/">home</a>
+                    <a href="/resume.html">résumé</a>
+                    <a href="/contact.html">contact</a>
+                </div>
+                <span>$ ls ./systems → 8 results</span>
+            </div>
+        </footer>
     </main>
 
-
-
-
-    <!--
-    - custom js link
-  -->
-    <script src="./assets/js/script.js"></script>
-    <script src="./assets/js/router.js"></script>
-
+    <script src="./assets/js/site.js" defer></script>
 </body>
 
 </html>
