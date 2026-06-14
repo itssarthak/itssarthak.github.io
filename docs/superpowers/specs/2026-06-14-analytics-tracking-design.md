@@ -132,4 +132,3 @@ Google account; Sheet not shared.
 - Form: type in fields, switch tabs → confirm a row lands in the Sheet and `form_abandon` in
   GA4 DebugView; then submit normally → confirm `form_submit` fires and **no** abandon row is
   written.
-```
