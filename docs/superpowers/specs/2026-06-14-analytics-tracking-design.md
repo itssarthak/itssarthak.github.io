@@ -82,14 +82,27 @@ already wires EmailJS submit via `[data-form]` / `[data-form-input]`.
   meaningful content, build a payload and `navigator.sendBeacon(SHEET_ENDPOINT, blob)` where
   blob is a `Blob([...], { type: 'text/plain' })` containing JSON (text/plain avoids a CORS
   preflight that would break sendBeacon to Apps Script).
-- Payload: `{ ts, name, email, message, fields_filled, page, referrer }`.
+- Payload: `{ token, ts, name, email, message, fields_filled, page, referrer }`.
 - `submitted` flag (set in the EmailJS success path) suppresses the beacon, so only genuine
   abandonments are logged — one row, reflecting the latest typed state.
 
-`Code.gs` (kept in repo for reference): `doPost(e)` parses `e.postData.contents` as JSON and
-`appendRow` to the bound Sheet with a header row (`timestamp, name, email, message,
-fields_filled, page, referrer`). Deployed as a web app executing as the owner, accessible to
-"Anyone" (required for the beacon; URL is unguessable and only ever receives writes).
+`Code.gs` (kept in repo for reference): `doPost(e)` parses `e.postData.contents` as JSON, then:
+1. **rejects** if `token` !== the expected shared secret (returns 200 but writes nothing);
+2. **validates** payload shape and caps lengths (e.g. message ≤ 5000 chars) — over-long or
+   malformed fields are truncated/dropped, not appended;
+3. `appendRow` to the bound Sheet with a header row (`timestamp, name, email, message,
+   fields_filled, page, referrer`).
+Deployed as a web app executing as the owner, accessible to "Anyone" (required for the beacon).
+
+**Security posture (explicit):** "Anyone" access is unavoidable for an anonymous visitor's
+`sendBeacon` to reach Apps Script — the alternatives require the caller to be logged into the
+owner's Google account. The shared secret lives in `analytics.js`, which is public on a static
+site, so it is **not** a true secret: it stops opportunistic abuse (anyone who scrapes the bare
+URL without reading the JS) but not a determined attacker who reads the source. This is accepted
+as good-enough because the endpoint is **write-only** (`doPost` never returns Sheet contents),
+the URL is unpublished, and the worst case is junk rows in a private Sheet that are trivially
+deleted. Token + validation chosen over a Cloudflare Worker gateway to avoid extra infrastructure
+for a low-stakes, spam-only threat.
 
 ## Files
 
@@ -105,8 +118,10 @@ fields_filled, page, referrer`). Deployed as a web app executing as the owner, a
   email delivery) — done from `analytics.js`, ideally with no edit to the inline handler if the
   submit event can be observed; otherwise a minimal hook.
 
-**Config constant**
-- `SHEET_ENDPOINT` in `analytics.js` — the deployed Apps Script web-app URL (owner pastes after deploy).
+**Config constants** (in `analytics.js`)
+- `SHEET_ENDPOINT` — the deployed Apps Script web-app URL (owner pastes after deploy).
+- `SHEET_TOKEN` — shared secret, must match the constant in `Code.gs`. Sent in every beacon
+  payload and verified server-side. Not a true secret (public in client JS); spam deterrent only.
 
 ## Owner setup steps (documented, not code)
 1. GA4 → Admin → Custom definitions → register dimensions `section`, `percent`, `target`,
