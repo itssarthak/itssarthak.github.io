@@ -13,6 +13,9 @@ After the code is deployed, two manual steps make everything live.
 5. **Deploy → New deployment → Type: Web app.** Execute as **Me**, Who has access **Anyone**. Deploy.
 6. Copy the **Web app URL** (ends in `/exec`).
 7. Paste it into `assets/js/analytics.js` → `SHEET_ENDPOINT`. Commit and push.
+8. **Verify:** open the live contact page, type into the form, switch tabs, then check the
+   Sheet for a new row. No row = the two `SHEET_TOKEN` values don't match, or `SHEET_ENDPOINT`
+   is wrong/empty. (A bad token is rejected silently, so this test is the only signal.)
 
 > Security note: "Anyone" access is required for a visitor's `sendBeacon` to reach the script.
 > The token lives in public client JS so it is a spam deterrent, not a true secret. The endpoint

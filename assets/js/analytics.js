@@ -19,7 +19,8 @@
   function gtag() { window.dataLayer.push(arguments); }
   window.gtag = gtag;
   gtag('js', new Date());
-  gtag('config', GA_ID);
+  // transport_type 'beacon' makes unload-time events (section_engagement, form_abandon) reliable.
+  gtag('config', GA_ID, { transport_type: 'beacon' });
 
   function track(name, params) { gtag('event', name, params || {}); }
   function nowMs() {
