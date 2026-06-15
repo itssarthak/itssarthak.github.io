@@ -36,9 +36,11 @@
       var doc = document.documentElement;
       var scrollable = doc.scrollHeight - window.innerHeight;
       if (scrollable <= 0) return;
+      // -0.5 epsilon: sub-pixel rounding can leave pct at ~99.97 at the bottom,
+      // which would otherwise never trip the 100% mark.
       var pct = (window.scrollY / scrollable) * 100;
       for (var i = 0; i < marks.length; i++) {
-        if (pct >= marks[i] && !sent[marks[i]]) {
+        if (pct >= marks[i] - 0.5 && !sent[marks[i]]) {
           sent[marks[i]] = true;
           track('scroll_depth', { percent: marks[i] });
         }
@@ -113,6 +115,7 @@
 
     var started = false;
     var submitted = false;
+    var abandonReported = false;
     function val(el) { return el ? (el.value || '').replace(/^\s+|\s+$/g, '') : ''; }
     function hasContent() { return !!(val(nameEl) || val(emailEl) || val(msgEl)); }
 
@@ -126,6 +129,8 @@
     });
 
     // Button is disabled until valid, so a real submit means valid data was sent.
+    // NOTE: form_submit means "user clicked send with valid fields", NOT delivery
+    // confirmation — EmailJS delivery success/failure is not observable from here.
     form.addEventListener('submit', function () {
       if (form.checkValidity && !form.checkValidity()) return;
       submitted = true;
@@ -133,7 +138,9 @@
     });
 
     function reportAbandon() {
-      if (!started || submitted || !hasContent()) return;
+      // Tab close fires BOTH visibilitychange-hidden and pagehide; latch to fire once.
+      if (abandonReported || !started || submitted || !hasContent()) return;
+      abandonReported = true;
       var name = val(nameEl), email = val(emailEl), message = val(msgEl);
       track('form_abandon', {
         name_filled: !!name,
