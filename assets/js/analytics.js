@@ -7,8 +7,8 @@
   var GA_ID = 'G-T4EHKQYQE3';
 
   // --- Filled in by the owner after deploying the Apps Script (see docs/analytics-setup.md) ---
-  var SHEET_ENDPOINT = '';            // e.g. https://script.google.com/macros/s/AKfy.../exec
-  var SHEET_TOKEN = 'CHANGE_ME';      // must match SHEET_TOKEN in Code.gs
+  var SHEET_ENDPOINT = 'https://script.google.com/a/macros/sarthakchhabra.com/s/AKfycbzMIfNGNnj626MXalMZrhFiOZvFgr7fx6fJtj7KRcttJj2gf0amK2--g_7oSZRtMAho/exec';            // e.g. https://script.google.com/macros/s/AKfy.../exec
+  var SHEET_TOKEN = '1_d5tjJjreVHbGrPlGwtWkr3aqpuD2HWU1GQAdOEf5D4';      // must match SHEET_TOKEN in Code.gs
 
   // ---- GA4 bootstrap ----
   var ga = document.createElement('script');
