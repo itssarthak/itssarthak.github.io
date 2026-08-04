@@ -67,9 +67,9 @@ JSON values.
 
 ### 4. `portfolio.html` — new standalone "personal projects" section
 
-Personal products are independent from office projects (owner decision,
-2026-08-04): they get their own section after the employer systems grid and
-before the contact CTA, using the existing `section-head` + `kicker` +
+Personal products are independent from office projects and come FIRST (owner
+decisions, 2026-08-04): their own section sits between the subpage hero and
+the employer systems grid, using the existing `section-head` + `kicker` +
 `section-title` pattern and a `systems-grid` of their own.
 
 - Section heading: kicker `personal projects · live`, title with `grad-text`
@@ -81,11 +81,20 @@ before the contact CTA, using the existing `section-head` + `kicker` +
   https://filedownloader.in. Impact line headline: `540K+ downloads · 5.9K users
   · all-time`.
 
-The employer grid and hero copy are untouched. Footer counter becomes
-`$ ls ./systems ./live → 10 results`. Card copy drafted by Claude, corrected
-by owner.
+Because personal now leads, the hero sub-line ("Not side projects — …") is
+generalized to cover both halves, and the employer grid gains its own
+`section-head` (kicker `company work`) so it stays introduced. Footer counter
+becomes `$ ls ./live ./systems → 10 results`. Card copy drafted by Claude,
+corrected by owner.
 
-### 5. Rendering (in `site.js`, guarded to run only when `[data-stat]` elements exist)
+### 5. Favicon swap (owner request, 2026-08-04)
+
+The browser-tab icon becomes the portrait from the about section: every page
+currently linking `./assets/images/logo.ico` (index, portfolio, resume,
+contact, 404) switches to `<link rel="icon" type="image/png"
+href="./assets/images/my-avatar.png">`. The header wordmark is unchanged.
+
+### 6. Rendering (in `site.js`, guarded to run only when `[data-stat]` elements exist)
 
 On the portfolio page, fetch `./assets/data/live-stats.json` (same-origin static
 file), format numbers (1101 → "1.1K+"), and replace the text of `[data-stat]` spans.

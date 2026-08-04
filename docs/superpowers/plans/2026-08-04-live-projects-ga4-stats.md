@@ -255,22 +255,22 @@ git commit -m "ci(stats): daily workflow to refresh live project stats"
 ### Task 3: Standalone personal-projects section
 
 **Files:**
-- Modify: `portfolio.html` (new section between the systems section closing `</section>` at line ~156 and the contact CTA section at line ~158; footer counter at line 176)
+- Modify: `portfolio.html` (new section between the subpage-hero closing `</div>` at line ~62 and the `<section aria-label="Production systems">` opening at line ~64; footer counter at line ~176)
 
 **Interfaces:**
 - Consumes: nothing yet (fallback numbers are hardcoded text).
 - Produces: two `<span data-stat="askmyastro">` / `<span data-stat="filedownloader">` elements whose text Task 4's renderer replaces; `.live-dot` and `.live-badge` class names Task 4 styles.
 
-Personal projects are independent from office work: they live in their own
-section, NOT inside the employer systems grid. The employer grid and the hero
-sub-line stay untouched.
+Personal projects are independent from office work AND come first: their own
+section sits between the subpage hero and the employer systems grid. The
+employer grid and the hero sub-line stay untouched.
 
 - [ ] **Step 1: Insert the personal-projects section**
 
-In `portfolio.html`, between the closing `</section>` of the "Production systems" section and the opening of the `contact-cta` section, insert:
+In `portfolio.html`, between the closing `</div>` of `subpage-hero` and the opening `<section aria-label="Production systems" ...>`, insert:
 
 ```html
-        <section aria-label="Personal projects, live" style="padding-top:90px">
+        <section aria-label="Personal projects, live" style="padding-top:60px">
             <div class="container">
                 <div class="section-head reveal">
                     <p class="kicker">personal projects · live</p>
@@ -304,25 +304,45 @@ In `portfolio.html`, between the closing `</section>` of the "Production systems
         </section>
 ```
 
-- [ ] **Step 2: Update the footer counter**
+- [ ] **Step 2: Generalize the hero sub-line and introduce the company grid**
 
-Line ~176, replace `$ ls ./systems → 8 results` with `$ ls ./systems ./live → 10 results`.
+Replace the hero sub-line:
+```html
+<p class="section-sub">Not side projects — platforms with real users, real traffic and real numbers. Built at Stashfin, Zupee and Dresma AI.</p>
+```
+with:
+```html
+<p class="section-sub">Real users, real traffic, real numbers — my own live products, and platforms built at Stashfin, Zupee and Dresma AI.</p>
+```
 
-- [ ] **Step 3: Verify structure**
+Inside `<section aria-label="Production systems" style="padding-top:60px">`, immediately after `<div class="container">` and before `<div class="systems-grid">`, insert:
+```html
+                <div class="section-head reveal">
+                    <p class="kicker">company work</p>
+                    <h2 class="section-title">Platforms built <span class="grad-text">on the job</span>.</h2>
+                </div>
+```
+
+- [ ] **Step 3: Update the footer counter**
+
+Line ~176, replace `$ ls ./systems → 8 results` with `$ ls ./live ./systems → 10 results`.
+
+- [ ] **Step 4: Verify structure**
 
 Run:
 ```bash
 grep -c "system-card" portfolio.html
 grep -c "data-stat" portfolio.html
 grep -c "section-head" portfolio.html
+grep -c "Not side projects" portfolio.html
 ```
-Expected: `10` system-card lines, `2` data-stat spans, `1` section-head. The hero sub-line at line 61 must be unchanged (`grep -c "Not side projects" portfolio.html` → `1`).
+Expected: `10` system-card lines, `2` data-stat spans, `2` section-heads, `0` "Not side projects". The personal-projects section must appear BEFORE the Production systems section in the file.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add portfolio.html
-git commit -m "feat(portfolio): add standalone personal-projects section with live cards"
+git commit -m "feat(portfolio): personal projects section leads, company grid follows"
 ```
 
 ---
@@ -444,7 +464,46 @@ git commit -m "feat(portfolio): render daily-refreshed GA4 stats on live product
 
 ---
 
-### Task 5: Deploy + secret + end-to-end verification
+### Task 5: Favicon swap to portrait
+
+**Files:**
+- Modify: `index.html`, `portfolio.html`, `resume.html`, `contact.html`, `404.html` (the `<link rel="icon" ...>` line in each head)
+
+**Interfaces:**
+- Consumes: existing `assets/images/my-avatar.png` (the about-section portrait; already in the repo).
+- Produces: nothing downstream.
+
+- [ ] **Step 1: Swap the favicon on all five pages**
+
+In each of `index.html`, `portfolio.html`, `resume.html`, `contact.html`, `404.html`, replace:
+```html
+<link rel="icon" href="./assets/images/logo.ico">
+```
+with:
+```html
+<link rel="icon" type="image/png" href="./assets/images/my-avatar.png">
+```
+(`home.html`, `error.html`, `ollama.html` have no favicon link — leave them alone. Do not delete `logo.ico`.)
+
+- [ ] **Step 2: Verify**
+
+Run:
+```bash
+grep -l "my-avatar.png" index.html portfolio.html resume.html contact.html 404.html | wc -l
+grep -rln "logo.ico" *.html | wc -l
+```
+Expected: `5` and `0`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html portfolio.html resume.html contact.html 404.html
+git commit -m "feat(site): use portrait as favicon on all pages"
+```
+
+---
+
+### Task 6: Deploy + secret + end-to-end verification
 
 **Files:** none (operational)
 
