@@ -309,7 +309,7 @@
           if (s.downloads) parts.push(fmtStat(s.downloads) + "+ downloads");
           parts.push(fmtStat(s.users) + "+ users");
           if (!s.downloads && s.pageviews) parts.push(fmtStat(s.pageviews) + " views");
-          el.textContent = parts.join(" · ") + " · all-time";
+          el.textContent = parts.join(" · ");
           if (stats.updated) el.title = "updated " + stats.updated;
         });
       })
