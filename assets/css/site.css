@@ -587,6 +587,17 @@ section { padding: 110px 0; position: relative; }
 
 .system-impact svg { flex: none; }
 
+/* highlighted figures inside impact lines */
+.stat {
+  color: var(--text);
+  font-weight: 700;
+  background: rgba(74, 222, 128, 0.11);
+  border: 1px solid rgba(74, 222, 128, 0.22);
+  border-radius: 5px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
 .tags { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .tag {
