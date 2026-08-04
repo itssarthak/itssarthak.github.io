@@ -105,7 +105,8 @@
       { cls: "t-out", text: "loading profile … done (12ms)" },
       { cls: "t-out", text: "" },
       { cls: "t-cmd", html: '<span class="t-accent">»</span> 7+ years shipping production systems' },
-      { cls: "t-cmd", html: '<span class="t-accent">»</span> currently: architecting a no-code AI agent platform @ Stashfin' },
+      { cls: "t-cmd", html: '<span class="t-accent">»</span> recently: architected a no-code AI agent platform @ Stashfin' },
+      { cls: "t-cmd", html: '<span class="t-accent">»</span> status: open to new opportunities' },
       { cls: "t-cmd", html: '<span class="t-accent">»</span> previously: LLM infra @ Zupee · 300K req/day @ 15–20ms' },
       { cls: "t-cmd", html: '<span class="t-accent">»</span> obsession: systems that let anyone deploy intelligence' }
     ];
