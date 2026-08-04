@@ -91,17 +91,17 @@ async function main() {
   } catch {}
   const token = await getAccessToken();
   const out = { updated: new Date().toISOString().slice(0, 10) };
-  let fetched = 0;
   for (const [site, id] of Object.entries(PROPERTIES)) {
     try {
       out[site] = await fetchSite(token, id, site === "filedownloader");
-      fetched++;
     } catch (err) {
       console.warn(`WARN keeping previous stats for ${site}: ${err.message}`);
       if (previous[site]) out[site] = previous[site];
     }
   }
-  if (fetched === 0) throw new Error("no properties fetched");
+  for (const site of Object.keys(PROPERTIES)) {
+    if (!out[site]) throw new Error(`no data for ${site} and no previous value to fall back on`);
+  }
   await mkdir(new URL("./", OUT_URL), { recursive: true });
   await writeFile(OUT_URL, JSON.stringify(out, null, 2) + "\n");
   console.log("wrote", JSON.stringify(out));
