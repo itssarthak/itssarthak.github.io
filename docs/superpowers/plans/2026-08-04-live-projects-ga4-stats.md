@@ -203,6 +203,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: live-stats
@@ -223,6 +224,8 @@ jobs:
           GA4_SA_KEY: ${{ secrets.GA4_SA_KEY }}
         run: node scripts/fetch-live-stats.mjs
       - name: Commit if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if git diff --quiet assets/data/live-stats.json; then
             echo "stats unchanged, nothing to commit"
@@ -233,7 +236,13 @@ jobs:
           git add assets/data/live-stats.json
           git commit -m "chore(stats): refresh live project stats"
           git push
+          gh workflow run pages.yml --ref main
 ```
+
+Note: pushes made with the default `GITHUB_TOKEN` do not fire other workflows'
+`on: push` triggers (anti-recursion), so the job dispatches `pages.yml`
+explicitly after pushing — hence `actions: write` in permissions (owner ruling,
+2026-08-04).
 
 - [ ] **Step 2: Sanity-check the YAML parses**
 

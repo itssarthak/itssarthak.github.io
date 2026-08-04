@@ -61,9 +61,11 @@ JSON values.
 
 - Triggers: daily cron (`30 2 * * *` ≈ 8:00 IST) + `workflow_dispatch`.
 - Steps: checkout → run script with `GA4_SA_KEY` secret → if `git diff` shows changes
-  to `live-stats.json`, commit ("chore(stats): refresh live project stats") and push
-  to main. Push triggers the existing Pages deploy workflow.
-- Uses `permissions: contents: write`; commits as github-actions bot.
+  to `live-stats.json`, commit ("chore(stats): refresh live project stats"), push
+  to main, then dispatch `pages.yml` explicitly via `gh workflow run` — required
+  because GITHUB_TOKEN pushes do not fire `on: push` workflows (owner ruling,
+  2026-08-04).
+- Uses `permissions: contents: write` + `actions: write`; commits as github-actions bot.
 
 ### 4. `portfolio.html` — new standalone "personal projects" section
 
