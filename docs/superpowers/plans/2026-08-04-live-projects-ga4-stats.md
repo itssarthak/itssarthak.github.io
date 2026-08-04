@@ -252,55 +252,61 @@ git commit -m "ci(stats): daily workflow to refresh live project stats"
 
 ---
 
-### Task 3: Portfolio cards + copy changes
+### Task 3: Standalone personal-projects section
 
 **Files:**
-- Modify: `portfolio.html` (systems grid at lines ~66–154, hero sub-line at line 61, footer counter at line 176)
+- Modify: `portfolio.html` (new section between the systems section closing `</section>` at line ~156 and the contact CTA section at line ~158; footer counter at line 176)
 
 **Interfaces:**
 - Consumes: nothing yet (fallback numbers are hardcoded text).
 - Produces: two `<span data-stat="askmyastro">` / `<span data-stat="filedownloader">` elements whose text Task 4's renderer replaces; `.live-dot` and `.live-badge` class names Task 4 styles.
 
-- [ ] **Step 1: Insert the two live cards**
+Personal projects are independent from office work: they live in their own
+section, NOT inside the employer systems grid. The employer grid and the hero
+sub-line stay untouched.
 
-In `portfolio.html`, immediately after the closing `</article>` of the featured SYS-001 card (line 76), insert:
+- [ ] **Step 1: Insert the personal-projects section**
+
+In `portfolio.html`, between the closing `</section>` of the "Production systems" section and the opening of the `contact-cta` section, insert:
 
 ```html
-                    <article class="system-card reveal" style="--d:.03s">
-                        <span class="system-index">SYS-009 / ASKMYASTRO.IN · <span class="live-badge">LIVE</span></span>
+        <section aria-label="Personal projects, live" style="padding-top:90px">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="kicker">personal projects · live</p>
+                    <h2 class="section-title">Built solo. Running <span class="grad-text">right now</span>.</h2>
+                    <p class="section-sub">Side products I design, ship and operate myself — with real traffic and live numbers straight from analytics.</p>
+                </div>
+                <div class="systems-grid">
+                    <article class="system-card reveal">
+                        <span class="system-index">LIVE-001 / ASKMYASTRO.IN · <span class="live-badge">LIVE</span></span>
                         <h3><a href="https://askmyastro.in" target="_blank" rel="noopener" class="card-link">AskMyAstro</a></h3>
-                        <p>My own live product — an AI astrologer that reads your birth chart and answers real questions over chat. LLM prompt pipeline, chart computation and payments, built and operated solo end to end.</p>
+                        <p>An AI astrologer that reads your birth chart and answers real questions over chat. LLM prompt pipeline, chart computation and the full product around it — built and operated solo, end to end.</p>
                         <p class="system-impact">
                             <span class="live-dot" aria-hidden="true"></span>
                             <span data-stat="askmyastro">1.1K+ users · 4.7K views · all-time</span>
                         </p>
-                        <div class="tags"><span class="tag">GenAI</span><span class="tag">React</span><span class="tag">GA4</span><span class="tag">Side Product</span></div>
+                        <div class="tags"><span class="tag">GenAI</span><span class="tag">Vite</span><span class="tag">GA4</span><span class="tag">Solo Build</span></div>
                     </article>
 
-                    <article class="system-card reveal" style="--d:.06s">
-                        <span class="system-index">SYS-010 / FILEDOWNLOADER.IN · <span class="live-badge">LIVE</span></span>
+                    <article class="system-card reveal" style="--d:.05s">
+                        <span class="system-index">LIVE-002 / FILEDOWNLOADER.IN · <span class="live-badge">LIVE</span></span>
                         <h3><a href="https://filedownloader.in" target="_blank" rel="noopener" class="card-link">FileDownloader</a></h3>
                         <p>A bulk file-download utility serving real traffic on the open internet — paste URLs, get files. Simple tool, sticky usage: over half a million downloads served and counting.</p>
                         <p class="system-impact">
                             <span class="live-dot" aria-hidden="true"></span>
                             <span data-stat="filedownloader">540K+ downloads · 5.9K+ users · all-time</span>
                         </p>
-                        <div class="tags"><span class="tag">Utility</span><span class="tag">High Volume</span><span class="tag">Side Product</span></div>
+                        <div class="tags"><span class="tag">Utility</span><span class="tag">High Volume</span><span class="tag">Solo Build</span></div>
                     </article>
+                </div>
+            </div>
+        </section>
 ```
 
-- [ ] **Step 2: Amend hero sub-line and footer counter**
+- [ ] **Step 2: Update the footer counter**
 
-Line 61, replace:
-```html
-<p class="section-sub">Not side projects — platforms with real users, real traffic and real numbers. Built at Stashfin, Zupee and Dresma AI.</p>
-```
-with:
-```html
-<p class="section-sub">Platforms with real users, real traffic and real numbers — built at Stashfin, Zupee and Dresma AI, plus my own products running live on the open internet.</p>
-```
-
-Line 176, replace `$ ls ./systems → 8 results` with `$ ls ./systems → 10 results`.
+Line ~176, replace `$ ls ./systems → 8 results` with `$ ls ./systems ./live → 10 results`.
 
 - [ ] **Step 3: Verify structure**
 
@@ -308,14 +314,15 @@ Run:
 ```bash
 grep -c "system-card" portfolio.html
 grep -c "data-stat" portfolio.html
+grep -c "section-head" portfolio.html
 ```
-Expected: `10` cards (9 `system-card` + 1 `system-card featured` both match the class; count is 10) and `2` data-stat spans.
+Expected: `10` system-card lines, `2` data-stat spans, `1` section-head. The hero sub-line at line 61 must be unchanged (`grep -c "Not side projects" portfolio.html` → `1`).
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add portfolio.html
-git commit -m "feat(portfolio): add AskMyAstro and FileDownloader live product cards"
+git commit -m "feat(portfolio): add standalone personal-projects section with live cards"
 ```
 
 ---

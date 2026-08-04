@@ -65,19 +65,25 @@ JSON values.
   to main. Push triggers the existing Pages deploy workflow.
 - Uses `permissions: contents: write`; commits as github-actions bot.
 
-### 4. `portfolio.html` — two new cards
+### 4. `portfolio.html` — new standalone "personal projects" section
 
-Inserted after the featured SYS-001 card:
+Personal products are independent from office projects (owner decision,
+2026-08-04): they get their own section after the employer systems grid and
+before the contact CTA, using the existing `section-head` + `kicker` +
+`section-title` pattern and a `systems-grid` of their own.
 
-- **SYS-009 / ASKMYASTRO.IN · LIVE** — "AskMyAstro" — AI astrology Q&A product,
+- Section heading: kicker `personal projects · live`, title with `grad-text`
+  accent, one-line sub-copy claiming solo-built products with real traffic.
+- **LIVE-001 / ASKMYASTRO.IN** — "AskMyAstro" — AI astrology Q&A product,
   link to https://askmyastro.in. Impact line: `<span data-stat="askmyastro">1.1K+ users
   · 4.7K views · all-time</span>` with a pulsing LIVE dot.
-- **SYS-010 / FILEDOWNLOADER.IN · LIVE** — same treatment, link to
+- **LIVE-002 / FILEDOWNLOADER.IN** — same treatment, link to
   https://filedownloader.in. Impact line headline: `540K+ downloads · 5.9K users
   · all-time`.
 
-Copy adjustments: hero sub-line amended to claim personal live products; footer
-counter `8 results` → `10 results`. Card copy drafted by Claude, corrected by owner.
+The employer grid and hero copy are untouched. Footer counter becomes
+`$ ls ./systems ./live → 10 results`. Card copy drafted by Claude, corrected
+by owner.
 
 ### 5. Rendering (in `site.js`, guarded to run only when `[data-stat]` elements exist)
 
