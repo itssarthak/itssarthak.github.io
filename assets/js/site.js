@@ -288,6 +288,32 @@
     sections.forEach(function (s) { sio.observe(s); });
   }
 
+  /* ---------- live project stats (portfolio only) ---------- */
+  var statEls = document.querySelectorAll("[data-stat]");
+  if (statEls.length && "fetch" in window) {
+    var fmtStat = function (n) {
+      if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+      if (n >= 1e5) return Math.round(n / 1e3) + "K";
+      if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
+      return String(n);
+    };
+    fetch("/assets/data/live-stats.json", { cache: "no-cache" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (stats) {
+        if (!stats) return;
+        statEls.forEach(function (el) {
+          var s = stats[el.getAttribute("data-stat")];
+          if (!s || !s.users) return;
+          var parts = [];
+          if (s.downloads) parts.push(fmtStat(s.downloads) + "+ downloads");
+          parts.push(fmtStat(s.users) + "+ users");
+          if (!s.downloads && s.pageviews) parts.push(fmtStat(s.pageviews) + " views");
+          el.textContent = parts.join(" · ") + " · all-time";
+        });
+      })
+      .catch(function () {});
+  }
+
   /* ---------- footer year ---------- */
   var yr = document.getElementById("yr");
   if (yr) yr.textContent = new Date().getFullYear();
