@@ -1,7 +1,7 @@
 # Live Projects on Portfolio — Design
 
 **Date:** 2026-08-04
-**Status:** Approved approach; pending filedownloader.in GA access grant
+**Status:** Approved approach; both GA4 properties verified accessible
 
 ## Goal
 
@@ -21,10 +21,14 @@ real usage numbers pulled from GA4 and refreshed automatically once a day.
   `id-claude-marketing-readonly@wide-strength-502813-f8.iam.gserviceaccount.com`.
   Its key JSON becomes a GitHub Actions repo secret `GA4_SA_KEY`. Verified working
   against the askmyastro property via the Data API.
-- **Property IDs:** askmyastro.in = `properties/541034254`. filedownloader.in — not
-  yet visible to the service account; owner must add the SA as **Viewer** under
-  GA Admin → Property access management on that property. The pipeline tolerates the
-  missing grant (see Error handling).
+- **Property IDs:** askmyastro.in = `properties/541034254`; filedownloader.in =
+  `properties/214739151` (access granted 2026-08-04, verified via Data API).
+- **Filedownloader headline metric:** the property tracks a `file_download` event
+  (539,901 all-time as of 2026-08-04) — shown as "540K+ downloads", far stronger
+  than users/pageviews. The fetch script pulls `eventCount` filtered to
+  `eventName = file_download` for this property in addition to users/pageviews.
+- **GA4 date-range floor:** the Data API rejects startDate earlier than 2015-08-14;
+  the script uses `2016-01-01` as the "all-time" start for both properties.
 
 ## Components
 
@@ -34,12 +38,13 @@ real usage numbers pulled from GA4 and refreshed automatically once a day.
 {
   "updated": "2026-08-04",
   "askmyastro": { "users": 1101, "pageviews": 4696 },
-  "filedownloader": { "users": 0, "pageviews": 0 }
+  "filedownloader": { "users": 5933, "pageviews": 25820, "downloads": 539901 }
 }
 ```
 
-Numbers are all-time totals (GA4 `activeUsers`, `screenPageViews`, date range
-2020-01-01 → today). A site absent from the file (or with zero users) means "no data
+Numbers are all-time totals (GA4 `activeUsers`, `screenPageViews`, plus
+`eventCount` for `file_download` on the filedownloader property; date range
+2016-01-01 → today). A site absent from the file (or with zero users) means "no data
 yet" and triggers the frontend fallback.
 
 ### 2. `scripts/fetch-live-stats.mjs`
@@ -48,8 +53,8 @@ Node 20+, zero npm dependencies. Reads the service-account JSON from env
 `GA4_SA_KEY`, self-signs a JWT (RS256 via node:crypto), exchanges it for an access
 token, calls `runReport` for each configured property, writes
 `assets/data/live-stats.json`. Property config lives at the top of the script:
-`{ askmyastro: '541034254', filedownloader: null /* TODO: fill after grant */ }`.
-A `null`/failing property is skipped with a warning, preserving that site's previous
+`{ askmyastro: '541034254', filedownloader: '214739151' }`.
+A failing property is skipped with a warning, preserving that site's previous
 JSON values.
 
 ### 3. `.github/workflows/live-stats.yml`
@@ -68,8 +73,8 @@ Inserted after the featured SYS-001 card:
   link to https://askmyastro.in. Impact line: `<span data-stat="askmyastro">1.1K+ users
   · 4.7K views · all-time</span>` with a pulsing LIVE dot.
 - **SYS-010 / FILEDOWNLOADER.IN · LIVE** — same treatment, link to
-  https://filedownloader.in. Until GA access lands, impact line shows a static
-  "live on the open internet" line instead of numbers.
+  https://filedownloader.in. Impact line headline: `540K+ downloads · 5.9K users
+  · all-time`.
 
 Copy adjustments: hero sub-line amended to claim personal live products; footer
 counter `8 results` → `10 results`. Card copy drafted by Claude, corrected by owner.
@@ -86,8 +91,6 @@ just means numbers are as fresh as the last deploy — never blank.
 - **API/auth failure in the Action:** script exits non-zero for total failure (no
   properties fetched) so the run is visibly red; per-property failure only warns and
   keeps the previous committed values for that property.
-- **Missing filedownloader grant:** property configured as `null` → skipped silently
-  until the owner grants access and the ID is filled in.
 - **Browser:** fallback text is baked into the HTML; the JSON fetch failing changes
   nothing visible.
 
@@ -103,6 +106,6 @@ just means numbers are as fresh as the last deploy — never blank.
 
 ## Owner setup checklist
 
-1. Add SA as Viewer on filedownloader.in GA4 property (only remaining data blocker).
+1. ~~Add SA as Viewer on filedownloader.in GA4 property~~ — done 2026-08-04.
 2. Add repo secret `GA4_SA_KEY` = contents of `~/.claude/secrets/ga-service-account.json`.
 3. Review card copy for both products.
