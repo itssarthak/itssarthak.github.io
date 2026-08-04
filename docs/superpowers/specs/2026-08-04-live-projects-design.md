@@ -101,11 +101,29 @@ file), format numbers (1101 → "1.1K+"), and replace the text of `[data-stat]` 
 The HTML ships with baked-in numbers from the latest committed JSON, so JS failure
 just means numbers are as fresh as the last deploy — never blank.
 
+### 7. Employment status update (owner request, 2026-08-04)
+
+Owner left Stashfin; last working day 2026-07-28. Presentation ruling: "open to
+opportunities" — no current-employer claim anywhere.
+
+- `index.html`: hero status line becomes `open to opportunities · Gurgaon, India`;
+  hero role drops "at Stashfin"; JSON-LD `worksFor` removed; bento metric tag
+  `stashfin · live` → `stashfin · production`; timeline Stashfin entry becomes
+  `FEB 2026 — JUL 2026` with the CURRENT badge and `current` class removed.
+- `resume.html`: same timeline change.
+- `assets/js/site.js`: terminal stream line "currently: … @ Stashfin" becomes
+  "recently: architected a no-code AI agent platform @ Stashfin", followed by a
+  new line "status: open to new opportunities".
+- Historical mentions (meta descriptions, SYS-00x card labels) stay — they
+  describe past work.
+
 ## Error handling
 
-- **API/auth failure in the Action:** script exits non-zero for total failure (no
-  properties fetched) so the run is visibly red; per-property failure only warns and
-  keeps the previous committed values for that property.
+- **API/auth failure in the Action:** per-property failure warns and keeps the
+  previous committed values for that property; if ANY configured site would end
+  up with no data at all (fetch failed and no previous value exists), the script
+  exits non-zero and writes nothing (owner ruling, 2026-08-04), so the committed
+  JSON always contains both sites.
 - **Browser:** fallback text is baked into the HTML; the JSON fetch failing changes
   nothing visible.
 

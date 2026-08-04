@@ -132,17 +132,17 @@ async function main() {
   } catch {}
   const token = await getAccessToken();
   const out = { updated: new Date().toISOString().slice(0, 10) };
-  let fetched = 0;
   for (const [site, id] of Object.entries(PROPERTIES)) {
     try {
       out[site] = await fetchSite(token, id, site === "filedownloader");
-      fetched++;
     } catch (err) {
       console.warn(`WARN keeping previous stats for ${site}: ${err.message}`);
       if (previous[site]) out[site] = previous[site];
     }
   }
-  if (fetched === 0) throw new Error("no properties fetched");
+  for (const site of Object.keys(PROPERTIES)) {
+    if (!out[site]) throw new Error(`no data for ${site} and no previous value to fall back on`);
+  }
   await mkdir(new URL("./", OUT_URL), { recursive: true });
   await writeFile(OUT_URL, JSON.stringify(out, null, 2) + "\n");
   console.log("wrote", JSON.stringify(out));
@@ -503,7 +503,95 @@ git commit -m "feat(site): use portrait as favicon on all pages"
 
 ---
 
-### Task 6: Deploy + secret + end-to-end verification
+### Task 6: Employment status update — open to opportunities
+
+**Files:**
+- Modify: `index.html` (hero status ~line 113, hero role ~line 120, JSON-LD ~line 40, bento metric tag ~line 159, timeline ~lines 274-276)
+- Modify: `resume.html` (timeline ~lines 79-80)
+- Modify: `assets/js/site.js` (terminal stream lines ~line 107-108)
+
+**Interfaces:**
+- Consumes: nothing from other tasks (independent content change).
+- Produces: nothing downstream.
+
+Owner left Stashfin; last working day 2026-07-28. Ruling: present as "open to
+opportunities" — remove every current-employer claim, keep historical mentions
+(meta descriptions, SYS-00x labels, past-tense copy) untouched.
+
+- [ ] **Step 1: index.html edits**
+
+Replace:
+```html
+<p class="hero-status"><span class="pulse-dot" aria-hidden="true"></span> systems online · Gurgaon, India</p>
+```
+with:
+```html
+<p class="hero-status"><span class="pulse-dot" aria-hidden="true"></span> open to opportunities · Gurgaon, India</p>
+```
+
+In the hero role paragraph, replace:
+```html
+                    Technical Lead at <strong>Stashfin</strong> — I architect the platforms that put
+```
+with:
+```html
+                    Technical Lead — I architect the platforms that put
+```
+
+In the JSON-LD script block, delete this line entirely:
+```
+        "worksFor": { "@type": "Organization", "name": "Stashfin" },
+```
+
+Replace `<span class="metric-tag">stashfin · live</span>` with `<span class="metric-tag">stashfin · production</span>`.
+
+In the timeline, replace:
+```html
+                    <div class="tl-item current reveal">
+                        <p class="tl-date">FEB 2026 — PRESENT <span class="tl-badge">CURRENT</span></p>
+```
+with:
+```html
+                    <div class="tl-item reveal">
+                        <p class="tl-date">FEB 2026 — JUL 2026</p>
+```
+
+- [ ] **Step 2: resume.html edit**
+
+Apply the identical timeline replacement (same two lines: `tl-item current reveal` → `tl-item reveal`, `FEB 2026 — PRESENT <span class="tl-badge">CURRENT</span>` → `FEB 2026 — JUL 2026`).
+
+- [ ] **Step 3: site.js terminal stream edit**
+
+Replace:
+```js
+      { cls: "t-cmd", html: '<span class="t-accent">»</span> currently: architecting a no-code AI agent platform @ Stashfin' },
+```
+with:
+```js
+      { cls: "t-cmd", html: '<span class="t-accent">»</span> recently: architected a no-code AI agent platform @ Stashfin' },
+      { cls: "t-cmd", html: '<span class="t-accent">»</span> status: open to new opportunities' },
+```
+
+- [ ] **Step 4: Verify**
+
+Run:
+```bash
+grep -c "PRESENT\|CURRENT" index.html resume.html
+grep -c "worksFor" index.html
+grep -c "open to" index.html assets/js/site.js
+```
+Expected: `0` for PRESENT/CURRENT in both files, `0` worksFor, `1` "open to" in each of index.html and site.js.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html resume.html assets/js/site.js
+git commit -m "feat(site): reflect departure from Stashfin, open to opportunities"
+```
+
+---
+
+### Task 7: Deploy + secret + end-to-end verification
 
 **Files:** none (operational)
 
