@@ -98,7 +98,7 @@ href="./assets/images/my-avatar.png">`. The header wordmark is unchanged.
 
 ### 6. Rendering (in `site.js`, guarded to run only when `[data-stat]` elements exist)
 
-On the portfolio page, fetch `./assets/data/live-stats.json` (same-origin static
+On the portfolio page, fetch `/assets/data/live-stats.json` (same-origin static
 file), format numbers (1101 → "1.1K+"), and replace the text of `[data-stat]` spans.
 The HTML ships with baked-in numbers from the latest committed JSON, so JS failure
 just means numbers are as fresh as the last deploy — never blank.

@@ -50,3 +50,25 @@ Allow up to 24–48h for these to populate in standard reports. Use **Admin → 
 
 `page_view` (auto), `session_start` (auto), `scroll_depth`, `section_engagement`,
 `outbound_click`, `form_start`, `form_submit`, `form_abandon`.
+
+## C. Live project stats pipeline (daily GA4 pull)
+
+`scripts/fetch-live-stats.mjs` pulls all-time usage numbers for the two live
+personal projects and writes them to `assets/data/live-stats.json`, which
+`portfolio.html` renders via `assets/js/site.js`.
+
+1. Create a Google Cloud service account with access to the GA4 Data API and
+   download its JSON key.
+2. In GA4, grant that service account **Viewer** access on both properties:
+   - askmyastro — property `541034254`
+   - filedownloader — property `214739151`
+3. Add the key JSON as a repo secret named `GA4_SA_KEY`:
+   ```bash
+   gh secret set GA4_SA_KEY < path/to/service-account.json
+   ```
+4. `.github/workflows/live-stats.yml` runs the script daily at 02:30 UTC and
+   can also be triggered manually (`workflow_dispatch` / **Run workflow** in
+   the Actions tab). It commits `assets/data/live-stats.json` only when the
+   numbers actually changed, then dispatches `pages.yml` to redeploy.
+5. Locally, the script reads the same key from `GA4_SA_KEY_FILE` (a path) or
+   `GA4_SA_KEY` (raw JSON) instead of the repo secret.

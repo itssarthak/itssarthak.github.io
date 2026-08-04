@@ -293,7 +293,7 @@
   var statEls = document.querySelectorAll("[data-stat]");
   if (statEls.length && "fetch" in window) {
     var fmtStat = function (n) {
-      if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+      if (n >= 9.95e5) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
       if (n >= 1e5) return Math.round(n / 1e3) + "K";
       if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
       return String(n);
@@ -310,6 +310,7 @@
           parts.push(fmtStat(s.users) + "+ users");
           if (!s.downloads && s.pageviews) parts.push(fmtStat(s.pageviews) + " views");
           el.textContent = parts.join(" · ") + " · all-time";
+          if (stats.updated) el.title = "updated " + stats.updated;
         });
       })
       .catch(function () {});

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /* Fetches all-time GA4 stats for live projects and writes assets/data/live-stats.json.
    Auth: service-account JSON from $GA4_SA_KEY (raw JSON) or $GA4_SA_KEY_FILE (path). */
 import { createSign } from "node:crypto";
@@ -71,6 +70,7 @@ async function fetchSite(token, propertyId, withDownloads) {
     metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }],
   });
   const site = { users: metric(totals, 0), pageviews: metric(totals, 1) };
+  if (!site.users) throw new Error(`empty report for property ${propertyId}`);
   if (withDownloads) {
     const dl = await runReport(token, propertyId, {
       dateRanges: [{ startDate: START_DATE, endDate: "today" }],
@@ -80,6 +80,7 @@ async function fetchSite(token, propertyId, withDownloads) {
       },
     });
     site.downloads = metric(dl, 0);
+    if (!site.downloads) throw new Error(`empty download report for property ${propertyId}`);
   }
   return site;
 }
@@ -90,7 +91,7 @@ async function main() {
     previous = JSON.parse(await readFile(OUT_URL, "utf8"));
   } catch {}
   const token = await getAccessToken();
-  const out = { updated: new Date().toISOString().slice(0, 10) };
+  const out = {};
   for (const [site, id] of Object.entries(PROPERTIES)) {
     try {
       out[site] = await fetchSite(token, id, site === "filedownloader");
@@ -102,9 +103,15 @@ async function main() {
   for (const site of Object.keys(PROPERTIES)) {
     if (!out[site]) throw new Error(`no data for ${site} and no previous value to fall back on`);
   }
+  const sitesUnchanged = Object.keys(PROPERTIES).every(
+    (site) => JSON.stringify(out[site]) === JSON.stringify(previous[site])
+  );
+  const updated =
+    sitesUnchanged && previous.updated ? previous.updated : new Date().toISOString().slice(0, 10);
+  const final = { updated, ...out };
   await mkdir(new URL("./", OUT_URL), { recursive: true });
-  await writeFile(OUT_URL, JSON.stringify(out, null, 2) + "\n");
-  console.log("wrote", JSON.stringify(out));
+  await writeFile(OUT_URL, JSON.stringify(final, null, 2) + "\n");
+  console.log("wrote", JSON.stringify(final));
 }
 
 main().catch((err) => {

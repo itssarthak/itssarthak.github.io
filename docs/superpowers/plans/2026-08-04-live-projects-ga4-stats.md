@@ -34,7 +34,7 @@
   `{ "updated": "YYYY-MM-DD", "askmyastro": { "users": N, "pageviews": N }, "filedownloader": { "users": N, "pageviews": N, "downloads": N } }`.
   Tasks 3–4 rely on the exact keys `askmyastro`, `filedownloader`, `users`, `pageviews`, `downloads`.
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 Create `scripts/fetch-live-stats.mjs`:
 
@@ -154,7 +154,7 @@ main().catch((err) => {
 });
 ```
 
-- [ ] **Step 2: Run it locally against the real key**
+- [x] **Step 2: Run it locally against the real key**
 
 Run:
 ```bash
@@ -163,7 +163,7 @@ GA4_SA_KEY_FILE=~/.claude/secrets/ga-service-account.json node scripts/fetch-liv
 ```
 Expected: prints `wrote {...}` with askmyastro users ≥ 1101, pageviews ≥ 4696; filedownloader users ≥ 5933, downloads ≥ 540103. File `assets/data/live-stats.json` exists and is valid JSON.
 
-- [ ] **Step 3: Verify failure modes**
+- [x] **Step 3: Verify failure modes**
 
 Run (no key env at all):
 ```bash
@@ -171,7 +171,7 @@ node scripts/fetch-live-stats.mjs; echo "exit=$?"
 ```
 Expected: `ERROR: set GA4_SA_KEY (json) or GA4_SA_KEY_FILE (path)` and `exit=1`. The previously written `live-stats.json` is untouched.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/fetch-live-stats.mjs assets/data/live-stats.json
@@ -189,7 +189,7 @@ git commit -m "feat(stats): GA4 fetch script + initial live project stats"
 - Consumes: `scripts/fetch-live-stats.mjs` (Task 1), repo secret `GA4_SA_KEY` (owner adds in Task 5).
 - Produces: daily bot commits touching only `assets/data/live-stats.json`, which trigger the existing `pages.yml` deploy on push to main.
 
-- [ ] **Step 1: Write the workflow**
+- [x] **Step 1: Write the workflow**
 
 Create `.github/workflows/live-stats.yml`:
 
@@ -244,7 +244,7 @@ Note: pushes made with the default `GITHUB_TOKEN` do not fire other workflows'
 explicitly after pushing — hence `actions: write` in permissions (owner ruling,
 2026-08-04).
 
-- [ ] **Step 2: Sanity-check the YAML parses**
+- [x] **Step 2: Sanity-check the YAML parses**
 
 Run:
 ```bash
@@ -252,7 +252,7 @@ python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/live-stats.y
 ```
 Expected: `yaml ok`. (Full end-to-end run happens in Task 5 after the secret exists.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/live-stats.yml
@@ -274,7 +274,7 @@ Personal projects are independent from office work AND come first: their own
 section sits between the subpage hero and the employer systems grid. The
 employer grid and the hero sub-line stay untouched.
 
-- [ ] **Step 1: Insert the personal-projects section**
+- [x] **Step 1: Insert the personal-projects section**
 
 In `portfolio.html`, between the closing `</div>` of `subpage-hero` and the opening `<section aria-label="Production systems" ...>`, insert:
 
@@ -313,7 +313,7 @@ In `portfolio.html`, between the closing `</div>` of `subpage-hero` and the open
         </section>
 ```
 
-- [ ] **Step 2: Generalize the hero sub-line and introduce the company grid**
+- [x] **Step 2: Generalize the hero sub-line and introduce the company grid**
 
 Replace the hero sub-line:
 ```html
@@ -332,11 +332,11 @@ Inside `<section aria-label="Production systems" style="padding-top:60px">`, imm
                 </div>
 ```
 
-- [ ] **Step 3: Update the footer counter**
+- [x] **Step 3: Update the footer counter**
 
 Line ~176, replace `$ ls ./systems → 8 results` with `$ ls ./live ./systems → 10 results`.
 
-- [ ] **Step 4: Verify structure**
+- [x] **Step 4: Verify structure**
 
 Run:
 ```bash
@@ -347,7 +347,7 @@ grep -c "Not side projects" portfolio.html
 ```
 Expected: `10` system-card lines, `2` data-stat spans, `2` section-heads, `0` "Not side projects". The personal-projects section must appear BEFORE the Production systems section in the file.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add portfolio.html
@@ -366,7 +366,7 @@ git commit -m "feat(portfolio): personal projects section leads, company grid fo
 - Consumes: `[data-stat]` spans and `.live-dot`/`.live-badge` markup (Task 3); `assets/data/live-stats.json` (Task 1) with keys `users`, `pageviews`, `downloads`.
 - Produces: nothing downstream.
 
-- [ ] **Step 1: Add CSS**
+- [x] **Step 1: Add CSS**
 
 Append to `assets/css/site.css` after the `.tag` rule block:
 
@@ -405,7 +405,7 @@ Append to `assets/css/site.css` after the `.tag` rule block:
 }
 ```
 
-- [ ] **Step 2: Add the renderer to site.js**
+- [x] **Step 2: Add the renderer to site.js**
 
 In `assets/js/site.js`, insert before the `/* ---------- footer year ---------- */` comment (still inside the IIFE):
 
@@ -439,7 +439,7 @@ In `assets/js/site.js`, insert before the `/* ---------- footer year ---------- 
 
 Formatting expectations: `1101 → "1.1K"`, `4696 → "4.7K"`, `5933 → "5.9K"`, `540103 → "540K"`.
 
-- [ ] **Step 3: Verify formatting logic in isolation**
+- [x] **Step 3: Verify formatting logic in isolation**
 
 Run:
 ```bash
@@ -455,7 +455,7 @@ console.log([1101, 4696, 5933, 540103, 999, 1000000].map(fmtStat).join(" "));
 ```
 Expected: `1.1K 4.7K 5.9K 540K 999 1M`
 
-- [ ] **Step 4: Verify in a local browser**
+- [x] **Step 4: Verify in a local browser**
 
 Run:
 ```bash
@@ -464,7 +464,7 @@ sleep 1 && curl -s http://localhost:8123/assets/data/live-stats.json
 ```
 Expected: JSON served. Then open `http://localhost:8123/portfolio.html` (browser tools or manually) and confirm: two new cards render with pulsing green dots, metric text matches the JSON numbers, no console errors. Kill the server afterwards.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add assets/css/site.css assets/js/site.js
@@ -482,7 +482,7 @@ git commit -m "feat(portfolio): render daily-refreshed GA4 stats on live product
 - Consumes: existing `assets/images/my-avatar.png` (the about-section portrait; already in the repo).
 - Produces: nothing downstream.
 
-- [ ] **Step 1: Swap the favicon on all five pages**
+- [x] **Step 1: Swap the favicon on all five pages**
 
 In each of `index.html`, `portfolio.html`, `resume.html`, `contact.html`, `404.html`, replace:
 ```html
@@ -494,7 +494,7 @@ with:
 ```
 (`home.html`, `error.html`, `ollama.html` have no favicon link — leave them alone. Do not delete `logo.ico`.)
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run:
 ```bash
@@ -503,7 +503,7 @@ grep -rln "logo.ico" *.html | wc -l
 ```
 Expected: `5` and `0`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add index.html portfolio.html resume.html contact.html 404.html
@@ -527,7 +527,7 @@ Owner left Stashfin; last working day 2026-07-28. Ruling: present as "open to
 opportunities" — remove every current-employer claim, keep historical mentions
 (meta descriptions, SYS-00x labels, past-tense copy) untouched.
 
-- [ ] **Step 1: index.html edits**
+- [x] **Step 1: index.html edits**
 
 Replace:
 ```html
@@ -565,11 +565,11 @@ with:
                         <p class="tl-date">FEB 2026 — JUL 2026</p>
 ```
 
-- [ ] **Step 2: resume.html edit**
+- [x] **Step 2: resume.html edit**
 
 Apply the identical timeline replacement (same two lines: `tl-item current reveal` → `tl-item reveal`, `FEB 2026 — PRESENT <span class="tl-badge">CURRENT</span>` → `FEB 2026 — JUL 2026`).
 
-- [ ] **Step 3: site.js terminal stream edit**
+- [x] **Step 3: site.js terminal stream edit**
 
 Replace:
 ```js
@@ -581,7 +581,7 @@ with:
       { cls: "t-cmd", html: '<span class="t-accent">»</span> status: open to new opportunities' },
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 ```bash
@@ -591,7 +591,7 @@ grep -c "open to" index.html assets/js/site.js
 ```
 Expected: `0` for PRESENT/CURRENT in both files, `0` worksFor, `1` "open to" in each of index.html and site.js.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add index.html resume.html assets/js/site.js
