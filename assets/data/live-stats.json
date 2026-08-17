@@ -1,12 +1,12 @@
 {
-  "updated": "2026-08-16",
+  "updated": "2026-08-17",
   "askmyastro": {
     "users": 2280,
-    "pageviews": 8615
+    "pageviews": 8618
   },
   "filedownloader": {
-    "users": 6127,
-    "pageviews": 26163,
+    "users": 6129,
+    "pageviews": 26164,
     "downloads": 554341
   }
 }
