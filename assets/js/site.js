@@ -469,18 +469,27 @@
       day.textContent = dayLabel(series.from, offset + i);
       tip.appendChild(val);
       tip.appendChild(day);
-      tip.style.left = (x(i) / VB_W) * 100 + "%";
+      /* Show first, then measure: a centred tooltip on the first or last day would
+         hang off the card, so clamp it to the plot once its real width is known. */
       tip.classList.add("is-on");
+      var wrapW = wrap.clientWidth;
+      var half = tip.offsetWidth / 2;
+      var px = (x(i) / VB_W) * wrapW;
+      tip.style.left = Math.max(half, Math.min(wrapW - half, px)) + "px";
     }
     function hide() {
       active = -1;
       svg.classList.remove("is-hovered");
       tip.classList.remove("is-on");
     }
+    /* Clamp rather than reject: the pointer spends real time in the y-label gutter
+       and past the last point, and mapping those to no-index left the first and last
+       day unreadable while the tooltip kept showing a stale one. */
     function nearest(evt) {
       var box = svg.getBoundingClientRect();
       var vx = ((evt.clientX - box.left) / box.width) * VB_W;
-      return Math.round(((vx - PAD_L) / innerW) * (values.length - 1));
+      var i = Math.round(((vx - PAD_L) / innerW) * (values.length - 1));
+      return Math.max(0, Math.min(values.length - 1, i));
     }
     svg.addEventListener("pointermove", function (e) { show(nearest(e)); });
     svg.addEventListener("pointerleave", hide);
@@ -493,26 +502,6 @@
         (e.key === "ArrowRight" ? 1 : -1))));
     });
 
-    /* Tooltips enhance but never gate: every plotted value is also in the table. */
-    var det = document.createElement("details");
-    det.className = "chart-table";
-    var sum = document.createElement("summary");
-    sum.textContent = "View as table";
-    det.appendChild(sum);
-    var tbl = document.createElement("table");
-    var head = tbl.insertRow();
-    ["Date", meta.unit.charAt(0).toUpperCase() + meta.unit.slice(1)].forEach(function (h) {
-      var th = document.createElement("th");
-      th.textContent = h;
-      head.appendChild(th);
-    });
-    values.forEach(function (v, i) {
-      var row = tbl.insertRow();
-      row.insertCell().textContent = dayLabel(series.from, offset + i);
-      row.insertCell().textContent = v.toLocaleString();
-    });
-    det.appendChild(tbl);
-    figure.appendChild(det);
   }
 
   function renderTraffic(stats) {

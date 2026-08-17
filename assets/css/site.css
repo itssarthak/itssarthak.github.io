@@ -753,38 +753,6 @@ section { padding: 110px 0; position: relative; }
 .chart-tip b { font-size: 0.8rem; color: var(--text); font-weight: 600; }
 .chart-tip span { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-faint); }
 
-.chart-table { margin-top: 12px; }
-
-.chart-table summary {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--text-faint);
-  cursor: pointer;
-}
-
-.chart-table summary:hover { color: var(--text-dim); }
-
-.chart-table table {
-  width: 100%;
-  margin-top: 10px;
-  border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-variant-numeric: tabular-nums;
-  max-height: 240px;
-  display: block;
-  overflow-y: auto;
-}
-
-.chart-table th, .chart-table td {
-  text-align: left;
-  padding: 3px 8px 3px 0;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-dim);
-}
-
-.chart-table th { color: var(--text-faint); font-weight: 500; }
-
 @media (max-width: 860px) {
   .traffic-panel { padding: 24px 20px 20px; }
   .traffic-charts { grid-template-columns: 1fr; }
