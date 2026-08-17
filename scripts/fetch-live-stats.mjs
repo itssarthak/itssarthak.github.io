@@ -10,6 +10,11 @@ const PROPERTIES = {
 const START_DATE = "2016-01-01"; // GA4 Data API rejects anything before 2015-08-14
 const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 
+/* Daily trend series: each product charts its own headline metric, so the two are
+   never plotted on a shared axis. 30 days is the widest window the UI offers. */
+const SERIES_DAYS = 30;
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads" };
+
 function b64url(str) {
   return Buffer.from(str).toString("base64url");
 }
@@ -64,6 +69,45 @@ async function runReport(token, propertyId, body) {
 
 const metric = (report, i) => Number(report.rows?.[0]?.metricValues?.[i]?.value ?? 0);
 
+const ymd = (d) => d.toISOString().slice(0, 10);
+const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+
+/* Daily values for one product's headline metric, densified: GA4 omits rows for days
+   with no activity, and a chart needs one slot per day or the x-axis lies. */
+async function fetchSeries(token, propertyId, name) {
+  const isDownloads = SERIES_METRIC[name] === "downloads";
+  const report = await runReport(token, propertyId, {
+    dateRanges: [{ startDate: `${SERIES_DAYS}daysAgo`, endDate: "yesterday" }],
+    dimensions: [{ name: "date" }],
+    metrics: [{ name: isDownloads ? "eventCount" : "activeUsers" }],
+    ...(isDownloads && {
+      dimensionFilter: {
+        filter: { fieldName: "eventName", stringFilter: { value: "file_download" } },
+      },
+    }),
+  });
+  if (!report.rows?.length) throw new Error(`empty series for property ${propertyId}`);
+
+  const byDate = new Map(
+    report.rows.map((r) => {
+      const raw = r.dimensionValues[0].value; // GA4 returns YYYYMMDD
+      const iso = `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+      return [iso, Number(r.metricValues[0].value) || 0];
+    })
+  );
+  /* Anchor the window to the newest row GA4 actually returned, not to this machine's
+     clock: "yesterday" resolves in the property's timezone, which can be a day ahead
+     of UTC here, and anchoring locally would silently truncate the newest day. Fall
+     back to the local yesterday when the last days were quiet enough to have no rows. */
+  const newestRow = [...byDate.keys()].sort().pop();
+  const localYesterday = ymd(addDays(new Date(), -1));
+  const end = new Date(newestRow > localYesterday ? newestRow : localYesterday);
+  const from = addDays(end, -(SERIES_DAYS - 1));
+  const values = [];
+  for (let i = 0; i < SERIES_DAYS; i++) values.push(byDate.get(ymd(addDays(from, i))) ?? 0);
+  return { metric: SERIES_METRIC[name], from: ymd(from), values };
+}
+
 async function fetchSite(token, propertyId, withDownloads) {
   const totals = await runReport(token, propertyId, {
     dateRanges: [{ startDate: START_DATE, endDate: "today" }],
@@ -98,6 +142,16 @@ async function main() {
     } catch (err) {
       console.warn(`WARN keeping previous stats for ${site}: ${err.message}`);
       if (previous[site]) out[site] = previous[site];
+    }
+    /* The trend falls back on its own: a bad series report must not discard totals
+       that fetched fine, and a stale chart beats an empty one. */
+    if (out[site]) {
+      try {
+        out[site].series = await fetchSeries(token, id, site);
+      } catch (err) {
+        console.warn(`WARN keeping previous series for ${site}: ${err.message}`);
+        if (previous[site]?.series) out[site].series = previous[site].series;
+      }
     }
   }
   for (const site of Object.keys(PROPERTIES)) {

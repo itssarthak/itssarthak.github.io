@@ -320,8 +320,236 @@
           });
           if (stats.updated) el.title = "updated " + stats.updated;
         });
+        renderTraffic(stats);
       })
       .catch(function () {});
+  }
+
+  /* ---------- daily traffic charts ---------- */
+  /* Each product charts its own headline metric, so the two never share a y-axis:
+     downloads run ~1000x users and would flatten the smaller series to the floor. */
+  var CHART_META = {
+    askmyastro: { label: "AskMyAstro", unit: "users", color: "#0891b2" },
+    filedownloader: { label: "FileDownloader", unit: "downloads", color: "#7c3aed" },
+  };
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var VB_W = 560, VB_H = 150, PAD_L = 46, PAD_R = 14, PAD_T = 14, PAD_B = 26;
+
+  function svgEl(name, attrs) {
+    var node = document.createElementNS(SVG_NS, name);
+    for (var k in attrs) node.setAttribute(k, attrs[k]);
+    return node;
+  }
+
+  /* Round the axis top to a clean number so ticks read 0 / 3k / 6k. The ladder is
+     deliberately fine-grained: a coarse one sends 514 up to 1000 and wastes half the
+     plot height, flattening the very shape the chart exists to show. Steps stay
+     halvable so the midpoint tick is clean too. */
+  function niceCeil(v) {
+    if (v <= 5) return 5;
+    var mag = Math.pow(10, Math.floor(Math.log10(v)));
+    var n = v / mag;
+    var steps = [1, 1.2, 1.6, 2, 2.4, 3, 4, 5, 6, 8, 10];
+    for (var i = 0; i < steps.length; i++) if (n <= steps[i]) return steps[i] * mag;
+    return 10 * mag;
+  }
+
+  function dayLabel(from, i) {
+    var d = new Date(from + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + i);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  }
+
+  function drawChart(figure, key, series, range) {
+    var meta = CHART_META[key];
+    var all = series.values || [];
+    var values = all.slice(-range);
+    var offset = all.length - values.length; // day index of the first plotted value
+    if (values.length < 2) return;
+
+    var top = niceCeil(Math.max.apply(null, values)) || 5;
+    var innerW = VB_W - PAD_L - PAD_R;
+    var innerH = VB_H - PAD_T - PAD_B;
+    var x = function (i) { return PAD_L + (i * innerW) / (values.length - 1); };
+    var y = function (v) { return PAD_T + (1 - v / top) * innerH; };
+
+    figure.textContent = "";
+
+    var cap = document.createElement("figcaption");
+    cap.className = "chart-cap";
+    var strong = document.createElement("span");
+    strong.className = "chart-name";
+    strong.textContent = meta.label;
+    var dim = document.createElement("span");
+    dim.className = "chart-metric";
+    dim.textContent = meta.unit + " per day · " + dayLabel(series.from, offset) +
+      " – " + dayLabel(series.from, all.length - 1);
+    cap.appendChild(strong);
+    cap.appendChild(dim);
+    figure.appendChild(cap);
+
+    var wrap = document.createElement("div");
+    wrap.className = "chart-plot";
+
+    var total = values.reduce(function (a, b) { return a + b; }, 0);
+    var svg = svgEl("svg", {
+      viewBox: "0 0 " + VB_W + " " + VB_H,
+      class: "chart-svg",
+      role: "img",
+      tabindex: "0",
+      "aria-label": meta.label + ": " + meta.unit + " per day over the last " + values.length +
+        " days, " + total.toLocaleString() + " total. Latest day " +
+        values[values.length - 1].toLocaleString() + ".",
+    });
+
+    /* Gridlines and their ticks are recessive — hairline, one step off the surface. */
+    [0, top / 2, top].forEach(function (tick) {
+      svg.appendChild(svgEl("line", {
+        x1: PAD_L, x2: VB_W - PAD_R, y1: y(tick), y2: y(tick), class: "chart-grid",
+      }));
+      var t = svgEl("text", { x: PAD_L - 8, y: y(tick) + 4, class: "chart-tick" });
+      /* A tick label must state where its line actually sits: rounding 2400 to "2k"
+         or the 2.5 midpoint to "3" prints a number the gridline does not mark. */
+      t.textContent = tick >= 1000
+        ? (tick / 1000).toFixed(tick % 1000 ? 1 : 0) + "k"
+        : tick % 1 ? tick.toFixed(1) : String(tick);
+      svg.appendChild(t);
+    });
+
+    var line = values.map(function (v, i) { return (i ? "L" : "M") + x(i) + " " + y(v); }).join(" ");
+    svg.appendChild(svgEl("path", {
+      d: line + " L" + x(values.length - 1) + " " + y(0) + " L" + x(0) + " " + y(0) + " Z",
+      fill: meta.color, "fill-opacity": ".1", stroke: "none",
+    }));
+    svg.appendChild(svgEl("path", { d: line, class: "chart-line", stroke: meta.color }));
+
+    /* End dot carries a surface-coloured ring so it stays legible over the line. */
+    var last = values.length - 1;
+    svg.appendChild(svgEl("circle", {
+      cx: x(last), cy: y(values[last]), r: 4.5, fill: meta.color, class: "chart-dot",
+    }));
+
+    [[0, "start"], [last, "end"]].forEach(function (pair) {
+      var t = svgEl("text", {
+        x: pair[0] === 0 ? PAD_L : VB_W - PAD_R,
+        y: VB_H - 8, class: "chart-xlabel", "text-anchor": pair[1],
+      });
+      t.textContent = dayLabel(series.from, offset + pair[0]);
+      svg.appendChild(t);
+    });
+
+    var cross = svgEl("line", { class: "chart-cross", y1: PAD_T, y2: VB_H - PAD_B });
+    var hoverDot = svgEl("circle", { r: 4.5, fill: meta.color, class: "chart-dot chart-hover-dot" });
+    svg.appendChild(cross);
+    svg.appendChild(hoverDot);
+
+    wrap.appendChild(svg);
+
+    var tip = document.createElement("div");
+    tip.className = "chart-tip";
+    tip.setAttribute("role", "status");
+    wrap.appendChild(tip);
+    figure.appendChild(wrap);
+
+    /* The crosshair snaps to the nearest day, so the reader aims at a date rather
+       than at a 2px line — and keyboard arrows walk the same positions. */
+    var active = -1;
+    function show(i) {
+      if (i < 0 || i >= values.length || i === active) return;
+      active = i;
+      cross.setAttribute("x1", x(i));
+      cross.setAttribute("x2", x(i));
+      hoverDot.setAttribute("cx", x(i));
+      hoverDot.setAttribute("cy", y(values[i]));
+      svg.classList.add("is-hovered");
+      tip.textContent = "";
+      var val = document.createElement("b");
+      val.textContent = values[i].toLocaleString() + " " + meta.unit;
+      var day = document.createElement("span");
+      day.textContent = dayLabel(series.from, offset + i);
+      tip.appendChild(val);
+      tip.appendChild(day);
+      tip.style.left = (x(i) / VB_W) * 100 + "%";
+      tip.classList.add("is-on");
+    }
+    function hide() {
+      active = -1;
+      svg.classList.remove("is-hovered");
+      tip.classList.remove("is-on");
+    }
+    function nearest(evt) {
+      var box = svg.getBoundingClientRect();
+      var vx = ((evt.clientX - box.left) / box.width) * VB_W;
+      return Math.round(((vx - PAD_L) / innerW) * (values.length - 1));
+    }
+    svg.addEventListener("pointermove", function (e) { show(nearest(e)); });
+    svg.addEventListener("pointerleave", hide);
+    svg.addEventListener("blur", hide);
+    svg.addEventListener("focus", function () { show(values.length - 1); });
+    svg.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      show(Math.min(values.length - 1, Math.max(0, (active < 0 ? values.length - 1 : active) +
+        (e.key === "ArrowRight" ? 1 : -1))));
+    });
+
+    /* Tooltips enhance but never gate: every plotted value is also in the table. */
+    var det = document.createElement("details");
+    det.className = "chart-table";
+    var sum = document.createElement("summary");
+    sum.textContent = "View as table";
+    det.appendChild(sum);
+    var tbl = document.createElement("table");
+    var head = tbl.insertRow();
+    ["Date", meta.unit.charAt(0).toUpperCase() + meta.unit.slice(1)].forEach(function (h) {
+      var th = document.createElement("th");
+      th.textContent = h;
+      head.appendChild(th);
+    });
+    values.forEach(function (v, i) {
+      var row = tbl.insertRow();
+      row.insertCell().textContent = dayLabel(series.from, offset + i);
+      row.insertCell().textContent = v.toLocaleString();
+    });
+    det.appendChild(tbl);
+    figure.appendChild(det);
+  }
+
+  function renderTraffic(stats) {
+    var panel = document.querySelector("[data-traffic]");
+    if (!panel) return;
+    /* A product with no usable series hides its own figure rather than leaving an
+       empty grid cell; if none have one, the whole panel stays hidden. */
+    var figures = [].slice.call(panel.querySelectorAll("[data-chart]")).filter(function (f) {
+      var s = stats[f.getAttribute("data-chart")];
+      var ok = !!(s && s.series && s.series.values && s.series.values.length > 1);
+      f.hidden = !ok;
+      return ok;
+    });
+    if (!figures.length) return;
+    if (figures.length === 1) panel.querySelector(".traffic-charts").style.gridTemplateColumns = "1fr";
+
+    var range = 30;
+    var paint = function () {
+      figures.forEach(function (f) {
+        var key = f.getAttribute("data-chart");
+        drawChart(f, key, stats[key].series, range);
+      });
+    };
+    paint();
+    panel.hidden = false;
+
+    panel.querySelectorAll(".range-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        range = Number(btn.getAttribute("data-range"));
+        panel.querySelectorAll(".range-btn").forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle("is-on", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        paint();
+      });
+    });
   }
 
   /* ---------- footer year ---------- */

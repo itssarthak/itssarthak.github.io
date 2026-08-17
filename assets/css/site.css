@@ -649,6 +649,147 @@ section { padding: 110px 0; position: relative; }
   .system-card.featured { grid-column: span 1; }
 }
 
+/* ---------- daily traffic charts ---------- */
+.traffic-panel {
+  margin-top: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 32px 24px;
+}
+
+.traffic-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.traffic-title {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.traffic-sub { color: var(--text-faint); text-transform: none; letter-spacing: 0; }
+
+.range-toggle { display: flex; gap: 4px; }
+
+.range-btn {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.range-btn:hover { color: var(--text-dim); border-color: var(--border-strong); }
+.range-btn.is-on { color: var(--text); border-color: var(--border-strong); background: var(--surface-hover); }
+
+.traffic-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.chart-cap { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.chart-name { font-family: var(--font-display); font-size: 0.95rem; color: var(--text); }
+
+.chart-metric {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.chart-plot { position: relative; }
+.chart-svg { display: block; width: 100%; height: auto; overflow: visible; border-radius: 8px; }
+.chart-svg:focus-visible { outline: 1px solid var(--border-strong); outline-offset: 4px; }
+
+.chart-grid { stroke: rgba(255, 255, 255, 0.07); stroke-width: 1; }
+.chart-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+
+/* Text never wears the series colour — identity comes from the mark beside it. */
+.chart-tick,
+.chart-xlabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-tick { text-anchor: end; }
+
+/* 2px surface ring keeps the dot legible where it sits on the line. */
+.chart-dot { stroke: var(--bg-elev); stroke-width: 2; }
+.chart-hover-dot, .chart-cross { opacity: 0; transition: opacity 0.12s var(--ease); }
+.chart-svg.is-hovered .chart-hover-dot, .chart-svg.is-hovered .chart-cross { opacity: 1; }
+.chart-cross { stroke: var(--border-strong); stroke-width: 1; }
+
+.chart-tip {
+  position: absolute;
+  top: -4px;
+  transform: translate(-50%, -100%);
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.chart-tip.is-on { display: flex; }
+.chart-tip b { font-size: 0.8rem; color: var(--text); font-weight: 600; }
+.chart-tip span { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-faint); }
+
+.chart-table { margin-top: 12px; }
+
+.chart-table summary {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+.chart-table summary:hover { color: var(--text-dim); }
+
+.chart-table table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  max-height: 240px;
+  display: block;
+  overflow-y: auto;
+}
+
+.chart-table th, .chart-table td {
+  text-align: left;
+  padding: 3px 8px 3px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.chart-table th { color: var(--text-faint); font-weight: 500; }
+
+@media (max-width: 860px) {
+  .traffic-panel { padding: 24px 20px 20px; }
+  .traffic-charts { grid-template-columns: 1fr; }
+}
+
 /* ---------- timeline ---------- */
 
 .timeline { position: relative; padding-left: 36px; }
