@@ -8,12 +8,49 @@ const PROPERTIES = {
   filedownloader: "214739151",
 };
 const START_DATE = "2016-01-01"; // GA4 Data API rejects anything before 2015-08-14
+/* Switchboard ships as a Claude Code plugin, so there is no download counter — a
+   `/plugin marketplace add` is a git clone, and GitHub's traffic API is the only
+   count of those. It keeps just 14 days, so every run merges the window into a
+   per-day history here; miss ~2 weeks of runs and those days are gone for good. */
+const GH_REPO = "itssarthak/claudecode-switchboard";
+const CLONE_HISTORY_DAYS = 365;
 const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
 const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads" };
+
+/* Merge a fresh 14-day traffic window into the stored history. The API is
+   authoritative for the days it covers (today's row keeps growing), so those
+   overwrite; older days are kept untouched rather than re-counted. */
+function mergeDays(previous, window) {
+  const days = { ...previous };
+  for (const row of window) days[row.timestamp.slice(0, 10)] = [row.count, row.uniques];
+  return Object.fromEntries(Object.entries(days).sort().slice(-CLONE_HISTORY_DAYS));
+}
+
+async function gh(path) {
+  const token = process.env.GH_TRAFFIC_TOKEN;
+  if (!token) throw new Error("set GH_TRAFFIC_TOKEN (needs Administration:read on the repo)");
+  const res = await fetch(`https://api.github.com/repos/${GH_REPO}${path}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+  });
+  if (!res.ok) throw new Error(`GET ${path}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+async function fetchSwitchboard(previous) {
+  const [traffic, repo] = await Promise.all([gh("/traffic/clones"), gh("")]);
+  const days = mergeDays(previous?.days, traffic.clones || []);
+  const totals = Object.values(days);
+  return {
+    clones: totals.reduce((n, d) => n + d[0], 0),
+    uniques: totals.reduce((n, d) => n + d[1], 0),
+    stars: repo.stargazers_count || 0,
+    days,
+  };
+}
 
 function b64url(str) {
   return Buffer.from(str).toString("base64url");
@@ -157,7 +194,14 @@ async function main() {
   for (const site of Object.keys(PROPERTIES)) {
     if (!out[site]) throw new Error(`no data for ${site} and no previous value to fall back on`);
   }
-  const sitesUnchanged = Object.keys(PROPERTIES).every(
+  /* GitHub is a side signal: a failure here must never drop the GA4 numbers. */
+  try {
+    out.switchboard = await fetchSwitchboard(previous.switchboard);
+  } catch (err) {
+    console.warn(`WARN keeping previous switchboard stats: ${err.message}`);
+    if (previous.switchboard) out.switchboard = previous.switchboard;
+  }
+  const sitesUnchanged = Object.keys(out).every(
     (site) => JSON.stringify(out[site]) === JSON.stringify(previous[site])
   );
   const updated =
@@ -166,6 +210,24 @@ async function main() {
   await mkdir(new URL("./", OUT_URL), { recursive: true });
   await writeFile(OUT_URL, JSON.stringify(final, null, 2) + "\n");
   console.log("wrote", JSON.stringify(final));
+}
+
+if (process.argv[2] === "--selftest") {
+  const { strict: assert } = await import("node:assert");
+  const day = (t, c, u) => ({ timestamp: `${t}T00:00:00Z`, count: c, uniques: u });
+  // fresh window overwrites the days it covers, older history survives untouched
+  assert.deepEqual(
+    mergeDays({ "2026-08-01": [5, 5], "2026-08-25": [13, 12] }, [day("2026-08-25", 14, 13), day("2026-08-26", 11, 8)]),
+    { "2026-08-01": [5, 5], "2026-08-25": [14, 13], "2026-08-26": [11, 8] }
+  );
+  // re-running the same window must not inflate the totals
+  const once = mergeDays(undefined, [day("2026-08-25", 13, 12)]);
+  assert.deepEqual(mergeDays(once, [day("2026-08-25", 13, 12)]), once);
+  assert.equal(Object.keys(mergeDays(Object.fromEntries(
+    Array.from({ length: 400 }, (_, i) => [`2025-01-${i}`, [1, 1]])
+  ), [])).length, CLONE_HISTORY_DAYS);
+  console.log("selftest ok");
+  process.exit(0);
 }
 
 main().catch((err) => {

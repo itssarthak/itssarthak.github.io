@@ -640,6 +640,22 @@ section { padding: 110px 0; position: relative; }
 
 .system-card h3 .card-link:hover { border-bottom-style: solid; }
 
+/* install commands, shown on cards for things you can actually run */
+.install-cmds {
+  margin: 0;
+  line-height: 1.9;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  overflow-x: auto;
+}
+
+.install-cmds code { font: inherit; }
+
 @media (prefers-reduced-motion: reduce) {
   .live-dot { animation: none; }
 }

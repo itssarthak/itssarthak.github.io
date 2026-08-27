@@ -26,6 +26,7 @@ jobs:
       - name: Fetch stats
         env:
           GA4_SA_KEY: ${{ secrets.GA4_SA_KEY }}
+          GH_TRAFFIC_TOKEN: ${{ secrets.GH_TRAFFIC_TOKEN }}
         run: node scripts/fetch-live-stats.mjs
       - name: Commit if changed
         env:

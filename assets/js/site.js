@@ -305,11 +305,14 @@
         if (!stats) return;
         statEls.forEach(function (el) {
           var s = stats[el.getAttribute("data-stat")];
-          if (!s || !s.users) return;
+          if (!s) return;
           var parts = [];
           if (s.downloads) parts.push(fmtStat(s.downloads) + "+ downloads");
-          parts.push(fmtStat(s.users) + "+ users");
-          if (!s.downloads && s.pageviews) parts.push(fmtStat(s.pageviews) + " views");
+          if (s.users) parts.push(fmtStat(s.users) + "+ users");
+          if (s.users && !s.downloads && s.pageviews) parts.push(fmtStat(s.pageviews) + " views");
+          if (s.clones) parts.push(fmtStat(s.clones) + " clones");
+          if (s.stars) parts.push(fmtStat(s.stars) + (s.stars === 1 ? " star" : " stars"));
+          if (!parts.length) return;
           el.textContent = "";
           parts.forEach(function (part, i) {
             if (i) el.appendChild(document.createTextNode(" · "));
