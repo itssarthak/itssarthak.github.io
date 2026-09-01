@@ -334,9 +334,10 @@
   var CHART_META = {
     askmyastro: { label: "AskMyAstro", unit: "users", color: "#0891b2" },
     filedownloader: { label: "FileDownloader", unit: "downloads", color: "#7c3aed" },
+    switchboard: { label: "Claude Code Switchboard", unit: "clones", color: "#15803d" },
   };
   var SVG_NS = "http://www.w3.org/2000/svg";
-  var VB_W = 560, VB_H = 150, PAD_L = 46, PAD_R = 14, PAD_T = 14, PAD_B = 26;
+  var VB_H = 150, PAD_L = 46, PAD_R = 14, PAD_T = 14, PAD_B = 26;
 
   function svgEl(name, attrs) {
     var node = document.createElementNS(SVG_NS, name);
@@ -365,6 +366,10 @@
 
   function drawChart(figure, key, series, range) {
     var meta = CHART_META[key];
+    /* The viewBox tracks the card's real width so a full-row chart gets a longer
+       plot instead of a taller one — a fixed box would scale 150px of height up
+       with the width and tower over the half-row charts beside it. */
+    var VB_W = Math.max(360, Math.round(figure.clientWidth) || 560);
     var all = series.values || [];
     var values = all.slice(-range);
     var offset = all.length - values.length; // day index of the first plotted value
@@ -528,8 +533,10 @@
         drawChart(f, key, stats[key].series, range);
       });
     };
-    paint();
+    /* Unhide first: a hidden panel measures 0 wide and every chart would fall back
+       to the minimum viewBox. */
     panel.hidden = false;
+    paint();
 
     panel.querySelectorAll(".range-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {

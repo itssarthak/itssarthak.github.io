@@ -19,7 +19,7 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", switchboard: "clones" };
 
 /* Merge a fresh 14-day traffic window into the stored history. The API is
    authoritative for the days it covers (today's row keeps growing), so those
@@ -49,6 +49,28 @@ async function fetchSwitchboard(previous) {
     uniques: totals.reduce((n, d) => n + d[1], 0),
     stars: repo.stargazers_count || 0,
     days,
+    series: cloneSeries(days),
+  };
+}
+
+/* The stored history only holds days that saw a clone, so fill the gaps with zeros:
+   the chart plots one point per day and a sparse map would stretch quiet stretches
+   into a straight line between two busy days. Anchored on the newest stored day
+   rather than the local clock, which can be a day off GitHub's UTC rows. */
+function cloneSeries(days) {
+  const newest = Object.keys(days).sort().pop();
+  if (!newest) return undefined;
+  const from = addDays(new Date(newest), -(SERIES_DAYS - 1));
+  const values = [];
+  for (let i = 0; i < SERIES_DAYS; i++) values.push(days[ymd(addDays(from, i))]?.[0] ?? 0);
+  /* Drop the dead run before the first clone: the repo is younger than the window,
+     and plotting the pre-launch days flattens the real shape against the axis. */
+  let start = 0;
+  while (start < values.length - 2 && values[start] === 0) start++;
+  return {
+    metric: SERIES_METRIC.switchboard,
+    from: ymd(addDays(from, start)),
+    values: values.slice(start),
   };
 }
 
@@ -226,6 +248,11 @@ if (process.argv[2] === "--selftest") {
   assert.equal(Object.keys(mergeDays(Object.fromEntries(
     Array.from({ length: 400 }, (_, i) => [`2025-01-${i}`, [1, 1]])
   ), [])).length, CLONE_HISTORY_DAYS);
+  // sparse history densifies to one point per day, anchored on the newest stored day
+  const cs = cloneSeries({ "2026-08-20": [7, 6], "2026-08-22": [3, 3] });
+  assert.deepEqual(cs.values, [7, 0, 3]);
+  assert.equal(cs.from, "2026-08-20");
+  assert.equal(cloneSeries({}), undefined);
   console.log("selftest ok");
   process.exit(0);
 }

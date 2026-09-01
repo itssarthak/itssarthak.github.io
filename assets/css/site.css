@@ -716,6 +716,9 @@ section { padding: 110px 0; position: relative; }
   gap: 28px;
 }
 
+/* An odd chart out gets the full row rather than half a row and an empty cell. */
+.traffic-charts > .chart-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
 .chart-cap { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
 .chart-name { font-family: var(--font-display); font-size: 0.95rem; color: var(--text); }
 
