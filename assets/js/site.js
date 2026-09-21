@@ -513,6 +513,7 @@
   }
 
   function renderTraffic(stats) {
+    return; // ponytail: chart section hidden per request, delete this line to re-enable
     var panel = document.querySelector("[data-traffic]");
     if (!panel) return;
     /* A product with no usable series hides its own figure rather than leaving an
@@ -526,7 +527,7 @@
     if (!figures.length) return;
     if (figures.length === 1) panel.querySelector(".traffic-charts").style.gridTemplateColumns = "1fr";
 
-    var range = 30;
+    var range = 7;
     var paint = function () {
       figures.forEach(function (f) {
         var key = f.getAttribute("data-chart");
