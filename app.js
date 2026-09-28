@@ -801,6 +801,23 @@
     else if (e.key === 'Escape' && term.classList.contains('open') && !(mode && mode.type === 'top')) closeTerm();
   });
 
+  // ---- email buttons: mailto does nothing for people without a mail app (most Gmail-in-browser users), so every
+  // click also copies the address and offers the contact form. The mail app still opens when there is one.
+  var toastTimer;
+  function toast(html) {
+    var t = $('toast') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'toast', className: 'toast', role: 'status' }));
+    t.innerHTML = html; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 5000);
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="mailto:"]');
+    if (!a) return;
+    var addr = a.getAttribute('href').slice(7).split('?')[0];
+    var form = HOME ? '#oncall' : '/#oncall';
+    var done = function (copied) { toast((copied ? 'Copied <b>' + esc(addr) + '</b>' : '<b>' + esc(addr) + '</b>') + ' · or <a href="' + form + '">write to me here →</a>'); };
+    if (navigator.clipboard) navigator.clipboard.writeText(addr).then(function () { done(true); }, function () { done(false); }); else done(false);
+  });
+
   // ---- devtools console: the backstage ----------------------------------
   window.sarthak = {
     help: function () { console.log('%csarthak.help()      this list\nsarthak.ask("...")  ask me anything\nsarthak.checkout("v2")  roll the site back\nsarthak.status()    system health\nsarthak.terminal()  open the terminal', 'font-family:monospace'); },
