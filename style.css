@@ -134,13 +134,14 @@ section{padding:36px 0}
 .sugg[hidden]{display:none}
 .sugg button.fresh{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
 .sugg button,.alts button{font:inherit;font-size:13px;background:var(--acc-soft);color:var(--ink);border:0;border-radius:999px;padding:5px 11px;cursor:pointer}
-.trace{margin-top:14px;background:#17171B;color:#D6D6DC;border-radius:10px;padding:12px 14px;font:13px/1.8 var(--mono);display:none}
+.trace{margin-top:20px;background:#17171B;color:#D6D6DC;border-radius:10px;padding:12px 14px;font:13px/1.8 var(--mono);display:none}
 .trace.show{display:block}
 .trace .st{display:flex;gap:10px}
 .trace .st i{font-style:normal;color:#8C8C96;width:62px}
 .trace .st.done b{color:#7EE2A8}
 .trace .st.run b{color:#E9C46A}
 .answer{margin-top:20px;font-size:16px;line-height:1.6}
+.answer:empty{display:none}
 .answer p+p{margin-top:8px}
 .answer code{font:13px var(--mono);background:var(--acc-soft);padding:1px 5px;border-radius:4px}
 .answer .note{font-size:14px;color:var(--muted);border-left:3px solid var(--acc);padding-left:10px;margin-bottom:10px}
