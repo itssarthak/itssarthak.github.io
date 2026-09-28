@@ -140,14 +140,14 @@ section{padding:36px 0}
 .trace .st i{font-style:normal;color:#8C8C96;width:62px}
 .trace .st.done b{color:#7EE2A8}
 .trace .st.run b{color:#E9C46A}
-.answer{margin-top:14px;font-size:16px;line-height:1.6}
+.answer{margin-top:20px;font-size:16px;line-height:1.6}
 .answer p+p{margin-top:8px}
 .answer code{font:13px var(--mono);background:var(--acc-soft);padding:1px 5px;border-radius:4px}
 .answer .note{font-size:14px;color:var(--muted);border-left:3px solid var(--acc);padding-left:10px;margin-bottom:10px}
 .didyou{font-size:14px;color:var(--muted)}
 .didyou b{color:var(--ink)}
 .didyou button{font:inherit;color:var(--acc);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
-.alts{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.alts{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
 
 /* the Ask section stays folded away until the model is downloaded and warm, then unfolds */
 section.reveal{padding:0;display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(18px);
