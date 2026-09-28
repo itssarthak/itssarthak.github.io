@@ -82,7 +82,7 @@
 
   // ---- live stats -------------------------------------------------------
   var stats = null;
-  var statsReady = fetch('/assets/data/live-stats.json').then(function (r) { return r.json(); })
+  var statsReady = fetch('/assets/data/live-stats.json', { cache: 'no-cache' }).then(function (r) { return r.json(); })
     .then(function (s) { stats = s; }).catch(function () {});
   function healthy() { // honest health: the numbers are only "live" if the daily refresh ran
     return stats && (Date.now() - new Date(stats.updated + 'T23:59:59Z')) < 2 * 864e5;
@@ -279,7 +279,7 @@
   } // below this cosine score we say "I don't know" instead of guessing
   var indexP, modelP, onAnswered = function () {}; // the Ask box sets onAnswered to retire used suggestions
   function loadIndex() {
-    return indexP || (indexP = fetch('/answers.json').then(function (r) { return r.json(); }).then(function (d) {
+    return indexP || (indexP = fetch('/answers.json', { cache: 'no-cache' }) /* revalidate each visit: a 304 when unchanged, fresh answers right after a deploy */.then(function (r) { return r.json(); }).then(function (d) {
       var bin = atob(d.vecs), v = new Int8Array(bin.length);
       for (var i = 0; i < bin.length; i++) v[i] = bin.charCodeAt(i) << 24 >> 24;
       d.v = v; return d;
