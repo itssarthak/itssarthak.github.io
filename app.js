@@ -442,7 +442,7 @@
       trace.innerHTML += '<div class="st done"><i>match</i><b>' + r.score.toFixed(2) + '</b>&nbsp;“' + esc(r.q) + '”</div>';
       var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="1">search “' + esc(q) + '” instead</button></p>' : '';
       $('answer').innerHTML = didYou + (r.hit
-        ? (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
+        ? '<p class="matched">Answering: <b>' + esc(r.q) + '</b></p>' + (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
         : '<p>No answer for that. Closest I can answer:</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
           '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
