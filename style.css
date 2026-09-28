@@ -149,7 +149,7 @@ section{padding:36px 0}
 section.reveal{padding:0;display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(18px);
   transition:grid-template-rows .9s cubic-bezier(.2,.8,.2,1),opacity .7s ease .25s,transform .8s cubic-bezier(.2,.8,.2,1) .25s}
 section.reveal.ready{grid-template-rows:1fr;opacity:1;transform:none}
-.reveal-in{min-height:0;overflow:hidden}
+.reveal-in{min-height:0;overflow:hidden;padding:0 16px;margin:0 -16px} /* side room so the glow isn't clipped; 16px = the page gutter, so no sideways scroll on phones */
 .reveal-pad{padding:36px 0}
 .reveal.ready .ask{animation:glow 1.6s ease .6s}
 @keyframes glow{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 35%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
