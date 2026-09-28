@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How AskMyAstro Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F2EA; --ink:#1B1B1B; --muted:#6B6880; --line:#DCD5E8; --card:#fff; --border:#E7E2EF;
+  --accent:#A5432A; --accent-soft:#F3E2DA; --gold:#F2A516;
+  --lane-device:#EFE8DC; --lane-api:#E9EEE6; --lane-svc:#F6E9DD;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;
+  background-image:radial-gradient(#E4DDD0 1px,transparent 1px);background-size:22px 22px}
+.wrap{max-width:1240px;margin:0 auto;padding:40px 16px 56px}
+.eyebrow{font:500 12px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(28px,4.4vw,48px)/1.05 Fraunces,serif;letter-spacing:-.02em;margin:10px 0 8px}
+.lede{color:var(--muted);max-width:60ch}
+.scrolly{position:relative;margin-top:22px}
+.pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;gap:10px;padding:12px 0}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.view{position:relative;flex:1;min-height:0;overflow:hidden;background:rgba(255,255,255,.55);border:1px solid var(--border);border-radius:22px}
+.hint{position:absolute;right:14px;bottom:12px;z-index:4;font:500 12px 'JetBrains Mono',monospace;color:var(--muted);background:#fff;border:1px solid var(--border);border-radius:999px;padding:5px 10px;transition:opacity .4s}
+.hint.gone{opacity:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px}
+.tabs button,.ctrl button{font:500 14px Inter,sans-serif;border:0;background:none;color:var(--muted);padding:8px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--ink);color:#fff}
+.ctrl{display:flex;gap:4px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px}
+.ctrl button{font-size:15px;min-width:38px;color:var(--ink)}
+.ctrl button:hover,.tabs button:hover{background:var(--accent-soft)}
+.tabs button[aria-pressed=true]:hover{background:var(--ink)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.stage{position:relative;margin:0 auto;container-type:inline-size;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.lane,.node{position:absolute}
+.lane{border-radius:16px}
+.lane span{position:absolute;left:0;right:0;top:calc(100cqw*10/var(--vbw));text-align:center;
+  font:500 calc(100cqw*11/var(--vbw))/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+svg.top{pointer-events:none;z-index:3}
+.edge{fill:none;stroke:var(--line);stroke-width:1.6;stroke-dasharray:4 5;transition:stroke .3s}
+.edge.on{stroke:var(--accent);stroke-width:2.4;stroke-dasharray:7 7;animation:flow .7s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-14}}
+
+.node{z-index:2;background:var(--card);border:1.5px solid var(--border);border-radius:calc(100cqw*14/var(--vbw));
+  padding:calc(100cqw*12/var(--vbw)) calc(100cqw*14/var(--vbw)) calc(100cqw*6/var(--vbw));
+  font-size:calc(100cqw*13/var(--vbw));box-shadow:0 1px 2px rgba(27,26,46,.04),0 6px 18px -10px rgba(27,26,46,.18);
+  transition:border-color .3s,box-shadow .3s,transform .3s;overflow:hidden}
+.node.on{border-color:var(--accent);box-shadow:0 0 0 calc(100cqw*4/var(--vbw)) var(--accent-soft),0 14px 30px -14px rgba(165,67,42,.45);transform:translateY(-2px)}
+.node .t{display:flex;align-items:center;gap:.5em;font:700 1.18em/1.15 Fraunces,serif}
+.node .ico{width:1.9em;height:1.9em;flex:none;display:grid;place-items:center;border-radius:.55em;background:var(--accent-soft);font-size:.9em}
+.node.on .ico{background:var(--accent);filter:saturate(1.2)}
+.node .s{color:var(--muted);margin-top:.45em;line-height:1.35}
+.node .m{font:500 .82em 'JetBrains Mono',monospace;color:var(--accent);margin-top:.4em}
+
+.bubble{margin-top:.55em;display:grid;gap:.35em}
+.bubble p{padding:.35em .6em;border-radius:.7em;line-height:1.3}
+.bubble .q{background:var(--ink);color:#fff;justify-self:end;border-bottom-right-radius:.2em}
+.bubble .a{background:var(--accent-soft);color:var(--ink);border-bottom-left-radius:.2em;min-height:1.6em}
+.bubble .a:empty{display:none}
+
+.chips{display:grid;gap:calc(100cqw*8/var(--vbw));margin-top:calc(100cqw*12/var(--vbw))}
+.chip{display:flex;gap:.7em;align-items:center;padding:.6em .75em;border:1px solid var(--border);border-radius:.8em;background:#FCFBFE;transition:all .3s}
+.chip b{font:600 1em/1.2 Inter,sans-serif;display:block}
+.chip small{color:var(--muted);font-size:.86em;display:block;line-height:1.25}
+.chip i{font-style:normal;width:1.8em;height:1.8em;flex:none;display:grid;place-items:center;border-radius:.5em;background:#fff;border:1px solid var(--border)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateX(4px)}
+.chip.on small{color:#F6DDD4}
+
+.cap{display:grid;grid-template-columns:auto 1fr;gap:4px 22px;background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px 22px;min-height:118px}
+.num{font:500 13px 'JetBrains Mono',monospace;color:var(--accent);padding-top:6px;white-space:nowrap}
+.cap h2{font:700 clamp(20px,2.4vw,26px)/1.15 Fraunces,serif;letter-spacing:-.01em}
+.cap p{color:var(--muted);margin-top:6px;max-width:75ch}
+.dots{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.dots button{width:26px;height:6px;border-radius:3px;border:0;background:var(--line);cursor:pointer;padding:0}
+.dots button.done{background:#D9A898}
+.dots button.cur{background:var(--accent)}
+.foot{margin-top:18px;font:13px 'JetBrains Mono',monospace;color:var(--muted)}
+@media (max-width:720px){.cap{grid-template-columns:1fr;padding:12px 14px;min-height:0}.cap h2{font-size:18px}.cap p{font-size:14px;margin-top:2px}.num{padding:0}.ctrl{display:none}.tabs button{font-size:13px;padding:6px 10px}.dots{margin-top:6px}}
+@media (prefers-reduced-motion:reduce){.edge.on{animation:none}.node,.chip,.stage{transition:none}}
+.back{display:inline-block;margin-bottom:18px;font:500 13px 'JetBrains Mono',monospace;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+.lede a{color:var(--accent);font-weight:500}
+</style>
+<link rel="stylesheet" href="term.css">
+<link rel="icon" type="image/png" href="/assets/images/my-avatar.png">
+<link rel="apple-touch-icon" href="/assets/images/my-avatar.png">
+<meta name="theme-color" content="#F6F2EA">
+<script src="/assets/js/analytics.js" defer></script>
+<link rel="canonical" href="https://sarthakchhabra.com/askmyastro.html">
+<meta name="description" content="How AskMyAstro works: one question traced through the system, step by step.">
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="askmyastro-demo.html">← back to the AskMyAstro demo</a>
+  <div class="eyebrow">askmyastro.in · architecture</div>
+  <h1>How AskMyAstro works</h1>
+  <p class="lede">Pick a journey and scroll to follow one request through the system. Everything shown here runs in production today. <a href="https://askmyastro.in" target="_blank" rel="noopener">Try it live ↗</a></p>
+
+  <section class="scrolly" id="scrolly">
+    <div class="pin">
+      <div class="bar">
+        <div class="tabs" role="group" aria-label="Journey">
+          <button data-sc="ask" aria-pressed="true">Ask a question</button>
+          <button data-sc="byok" aria-pressed="false">Use your own AI key</button>
+          <button data-sc="pay" aria-pressed="false">Buy credits</button>
+        </div>
+        <div class="ctrl">
+          <button id="prev" aria-label="Previous step">↑</button>
+          <button id="next" aria-label="Next step">↓</button>
+        </div>
+      </div>
+      <div class="view" id="view">
+        <div class="stage" id="stage">
+          <svg id="edges" aria-hidden="true"></svg>
+          <svg class="top" id="fx" aria-hidden="true"></svg>
+        </div>
+        <span class="hint" id="hint">scroll ↓</span>
+      </div>
+      <div class="cap" aria-live="polite">
+        <div class="num" id="num"></div>
+        <div>
+          <h2 id="ttl"></h2>
+          <p id="txt"></p>
+          <div class="dots" id="dots"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <p class="foot">scroll to follow the journey · the question and answer shown are an example</p>
+</main>
+
+<script>
+(function () {
+  // ---- content -----------------------------------------------------------
+  var NODES = {
+    user:  { t: 'You', ico: '🙋', bubble: true },
+    app:   { t: 'AskMyAstro app', ico: '📱', s: 'On the web and on Android' },
+    chart: { t: 'Chart engine', ico: '🪐', s: 'Works out your birth chart right on your phone, instantly' },
+    tools: { t: 'Astro toolkit', ico: '🧰', s: 'Exact facts from your chart that the AI can ask for' },
+    api:   { t: 'AskMyAstro server', ico: '⚡', s: 'Every question passes these checks', chips: [
+      ['auth', '🔐', 'Sign-in check', 'confirms it’s really you'],
+      ['safety', '🛡️', 'Safety check', 'every message is screened'],
+      ['credits', '🪙', 'Credits', 'checks your balance'],
+      ['memory', '🧠', 'Memory', 'remembers the conversation'],
+      ['stream', '🌊', 'Streaming', 'the answer appears as it’s written']
+    ] },
+    geo:   { t: 'Place lookup', ico: '📍', s: 'Turns your birthplace into exact coordinates' },
+    llm:   { t: 'AI model', ico: '✨', s: 'Writes your reading and asks for facts when it needs them' },
+    byok:  { t: 'Your AI provider', ico: '🔑', s: 'Used when you bring your own AI key' },
+    db:    { t: 'Database', ico: '🗄️', s: 'Your profile, chats and credits' },
+    pay:   { t: 'Payment provider', ico: '💳', s: 'Secure checkout for credit packs' }
+  };
+
+  var Q = { ask: 'When will my career take off?', byok: 'When will my career take off?', pay: 'Buy a credit pack' };
+  var A = {
+    ask: 'Your 10th-house period begins mid-2027, a strong window for a big career move…',
+    byok: 'Your 10th-house period begins mid-2027, a strong window for a big career move…',
+    pay: '✓ Credits added'
+  };
+
+  var SC = {
+    ask: [
+      { path: ['user', 'app'], h: 'A question comes in', p: 'You type a question along with your birth date, time and place.' },
+      { path: ['app', 'geo'], h: 'Birthplace becomes coordinates', p: 'A chart needs an exact location, so the place name is converted first.' },
+      { path: ['app', 'chart'], h: 'Your chart is worked out on your phone', p: 'It’s calculated right on your device, so it’s instant, with no waiting on a server.' },
+      { path: ['app', 'api'], h: 'The question reaches the server', p: 'Your question is sent to the AskMyAstro server.' },
+      { node: 'api', chip: 'auth', h: 'Is this really you?', p: 'Every request is checked to make sure it comes from a signed-in user.' },
+      { node: 'api', chip: 'safety', h: 'Safety check', p: 'Every message is screened first. Sensitive questions get a careful, caring answer.' },
+      { node: 'api', chip: 'credits', h: 'Enough credits?', p: 'If you’re out of credits, you see a top-up screen, not an error.' },
+      { node: 'api', chip: 'memory', h: 'Remembering the conversation', p: 'Earlier messages are brought back in, so you never have to repeat yourself.' },
+      { path: ['api', 'llm'], h: 'The AI starts on your reading', p: 'Your question and the conversation so far go to the AI model.' },
+      { path: ['llm', 'api', 'app', 'tools'], h: 'The AI asks for facts', p: '“Which period is this person in right now?” Instead of guessing, the AI asks the toolkit for exact facts from your chart.' },
+      { path: ['tools', 'api', 'llm'], h: 'The facts go back', p: 'The AI can ask more than once, gathering everything it needs before it answers.' },
+      { path: ['llm', 'api', 'app', 'user'], chip: 'stream', stream: true, h: 'The answer streams in', p: 'Words appear as they’re written, so you’re never staring at a spinner.' },
+      { path: ['api', 'db'], h: 'Everything is saved', p: 'Your chat is saved so you can pick it up later.' }
+    ],
+    byok: [
+      { path: ['user', 'app'], h: 'Bring your own AI key', p: 'If you already pay for an AI service, you can use your own key instead of credits.' },
+      { path: ['app', 'chart'], h: 'Your chart is worked out on your phone', p: 'Same as always: instant, right on your device.' },
+      { path: ['app', 'byok'], h: 'Straight to your provider', p: 'The app talks to your AI provider directly, so your key never reaches AskMyAstro’s servers.' },
+      { path: ['byok', 'app', 'tools'], h: 'The AI asks for facts', p: 'When the AI needs a fact from your chart, the app looks it up.' },
+      { path: ['tools', 'app', 'byok'], h: 'The facts go back', p: 'As many rounds as the AI needs.' },
+      { path: ['byok', 'app', 'user'], stream: true, h: 'The answer streams in', p: 'No credits used.' }
+    ],
+    pay: [
+      { path: ['user', 'app'], h: 'Picking a credit pack', p: 'Choose how many questions you want to ask.' },
+      { path: ['app', 'api', 'pay'], h: 'Secure checkout', p: 'Payment happens with a trusted payment provider. Your card details never touch AskMyAstro.' },
+      { path: ['pay', 'api'], h: 'Payment confirmed, more than once', p: 'Every payment is double-checked in independent ways, so a paid order is never lost.' },
+      { path: ['api', 'db'], h: 'Credits are added', p: 'Every credit in and out is recorded, so your balance always adds up.' },
+      { path: ['api', 'app', 'user'], stream: true, h: 'Ready to ask', p: 'Your new credits show up straight away.' }
+    ]
+  };
+
+  // ---- layouts (coordinates in viewBox units) ----------------------------
+  var LAYOUT = {
+    desk: {
+      vb: [1200, 640],
+      lanes: [['Your device', 30, 10, 340, 620, 'device'], ['Server', 430, 10, 340, 620, 'api'], ['Services', 830, 10, 340, 620, 'svc']],
+      n: { user: [50, 56, 300, 150], app: [50, 226, 300, 108], chart: [50, 350, 300, 108], tools: [50, 474, 300, 108],
+           api: [450, 110, 300, 430], geo: [850, 56, 300, 92], llm: [850, 164, 300, 108], byok: [850, 288, 300, 108],
+           db: [850, 412, 300, 92], pay: [850, 520, 300, 88] },
+      wp: { 'app-geo': [[400, 270], [410, 90], [800, 90]], 'app-tools': [[38, 280], [38, 520]],
+            'app-byok': [[395, 330], [400, 622], [800, 622], [815, 338]] }
+    },
+    mob: {
+      vb: [400, 1300],
+      lanes: [['Your device', 8, 8, 384, 367, 'device'], ['Server', 8, 389, 384, 430, 'api'], ['Services', 8, 833, 384, 459, 'svc']],
+      n: { user: [205, 40, 175, 160], app: [20, 40, 175, 160], chart: [20, 215, 175, 148], tools: [205, 215, 175, 148],
+           api: [20, 419, 360, 386], llm: [20, 863, 175, 155], db: [205, 863, 175, 155], byok: [20, 1033, 175, 140],
+           geo: [205, 1033, 175, 140], pay: [20, 1188, 360, 95] },
+      wp: { 'app-api': [[12, 150], [12, 395]], 'app-geo': [[12, 150], [12, 1025], [292, 1025]],
+            'app-byok': [[12, 150], [12, 1100]], 'api-pay': [[393, 825], [393, 1235]], 'api-db': [[393, 833], [393, 940]] }
+    }
+  };
+  var LANE_BG = { device: 'var(--lane-device)', api: 'var(--lane-api)', svc: 'var(--lane-svc)' };
+
+  // ---- DOM ---------------------------------------------------------------
+  var stage = document.getElementById('stage'), gEdges = document.getElementById('edges'), gFx = document.getElementById('fx');
+  var els = {}, laneEls = [], edgeEls = {}, L;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var NS = 'http://www.w3.org/2000/svg';
+
+  Object.keys(NODES).forEach(function (id) {
+    var d = NODES[id], el = document.createElement('div');
+    el.className = 'node';
+    var h = '<div class="t"><span class="ico">' + d.ico + '</span>' + d.t + '</div>';
+    if (d.s) h += '<div class="s">' + d.s + '</div>';
+    if (d.m) h += '<div class="m">' + d.m + '</div>';
+    if (d.bubble) h += '<div class="bubble"><p class="q" id="bq"></p><p class="a" id="ba"></p></div>';
+    if (d.chips) h += '<div class="chips">' + d.chips.map(function (c) {
+      return '<div class="chip" data-chip="' + c[0] + '"><i>' + c[1] + '</i><span><b>' + c[2] + '</b><small>' + c[3] + '</small></span></div>';
+    }).join('') + '</div>';
+    el.innerHTML = h;
+    stage.appendChild(el);
+    els[id] = el;
+  });
+  for (var i = 0; i < 3; i++) { var ln = document.createElement('div'); ln.className = 'lane'; ln.innerHTML = '<span></span>'; stage.insertBefore(ln, gEdges); laneEls.push(ln); }
+
+  var EDGE_KEYS = {};
+  Object.keys(SC).forEach(function (k) { SC[k].forEach(function (s) { (s.path || []).forEach(function (n, j, a) { if (j) EDGE_KEYS[key(a[j - 1], n)] = 1; }); }); });
+  function key(a, b) { return [a, b].sort().join('-'); }
+
+  function pct(v, of) { return (v / of * 100) + '%'; }
+  function center(r) { return [r[0] + r[2] / 2, r[1] + r[3] / 2]; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function anchor(r, p) {
+    var c = center(r), dx = (p[0] - c[0]) / r[2], dy = (p[1] - c[1]) / r[3];
+    if (Math.abs(dx) > Math.abs(dy)) return [dx > 0 ? r[0] + r[2] : r[0], clamp(p[1], r[1] + 16, r[1] + r[3] - 16)];
+    return [clamp(p[0], r[0] + 16, r[0] + r[2] - 16), dy > 0 ? r[1] + r[3] : r[1]];
+  }
+  function smooth(pts) { // Catmull-Rom through the points, as cubic beziers
+    var d = 'M' + pts[0];
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += 'C' + [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6] + ' ' + [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6] + ' ' + p2;
+    }
+    return d;
+  }
+
+  function layout() {
+    var next = matchMedia('(max-width: 720px)').matches ? LAYOUT.mob : LAYOUT.desk;
+    if (next === L) return false;
+    L = next;
+    var W = L.vb[0], H = L.vb[1];
+    stage.style.aspectRatio = W + ' / ' + H;
+    stage.style.setProperty('--vbw', W);
+    [gEdges, gFx].forEach(function (s) { s.setAttribute('viewBox', '0 0 ' + W + ' ' + H); });
+    L.lanes.forEach(function (l, i) {
+      var s = laneEls[i].style;
+      s.left = pct(l[1], W); s.top = pct(l[2], H); s.width = pct(l[3], W); s.height = pct(l[4], H); s.background = LANE_BG[l[5]];
+      laneEls[i].firstChild.textContent = l[0];
+    });
+    Object.keys(els).forEach(function (id) {
+      var r = L.n[id], s = els[id].style;
+      s.left = pct(r[0], W); s.top = pct(r[1], H); s.width = pct(r[2], W); s.height = pct(r[3], H);
+    });
+    gEdges.innerHTML = '';
+    Object.keys(EDGE_KEYS).forEach(function (k) {
+      var ab = k.split('-'), A = L.n[ab[0]], B = L.n[ab[1]], wp = L.wp[k] || [];
+      var pts = [anchor(A, wp[0] || center(B))].concat(wp, [anchor(B, wp[wp.length - 1] || center(A))]);
+      var p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', smooth(pts)); p.setAttribute('class', 'edge');
+      gEdges.appendChild(p); edgeEls[k] = p;
+    });
+    return true;
+  }
+
+  // ---- playback (scroll drives the step) --------------------------------
+  var state = { sc: 'ask', i: -1 }, run = 0, cur = null, camEl = null;
+  var bq = document.getElementById('bq'), ba = document.getElementById('ba');
+  var view = document.getElementById('view'), sec = document.getElementById('scrolly'), hint = document.getElementById('hint');
+  var STEP_VH = 60; // scroll distance per step
+
+  // Scale the diagram to fit the pinned view; on phones it's taller than the screen, so the camera pans instead.
+  function fit() {
+    var W = L.vb[0], H = L.vb[1];
+    stage.style.width = (L === LAYOUT.mob ? view.clientWidth : Math.min(view.clientWidth, view.clientHeight * W / H)) + 'px';
+    camera(camEl);
+  }
+  function camera(el) {
+    camEl = el;
+    var sh = stage.offsetHeight, vh = view.clientHeight, y;
+    if (sh <= vh) y = (vh - sh) / 2;
+    else if (!el) y = 0;
+    else {
+      var r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+      y = -clamp(r.top - sr.top + r.height / 2 - vh / 2, 0, sh - vh);
+    }
+    stage.style.transform = 'translateY(' + y + 'px)';
+  }
+
+  function travel(pathEl, reverse, token) {
+    return new Promise(function (res, rej) {
+      if (reduce) return res();
+      var len = pathEl.getTotalLength(), dur = clamp(len * 1.6, 450, 1100), t0 = performance.now();
+      var dots = [5.5, 4, 2.8].map(function (r, j) {
+        var c = document.createElementNS(NS, 'circle');
+        c.setAttribute('r', r * (L.vb[0] / 1200 < .5 ? 1.4 : 1));
+        c.setAttribute('fill', j ? 'rgba(165,67,42,' + (0.5 - j * .15) + ')' : 'var(--accent)');
+        if (!j) c.setAttribute('style', 'filter:drop-shadow(0 0 6px rgba(165,67,42,.8))');
+        gFx.appendChild(c); return c;
+      });
+      (function frame(now) {
+        if (token !== run) { dots.forEach(function (d) { d.remove(); }); return rej(); }
+        var k = Math.min(1, (now - t0) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        dots.forEach(function (d, j) {
+          var f = clamp(e - j * 0.035, 0, 1), pt = pathEl.getPointAtLength(len * (reverse ? 1 - f : f));
+          d.setAttribute('cx', pt.x); d.setAttribute('cy', pt.y);
+        });
+        if (k < 1) requestAnimationFrame(frame); else { dots.forEach(function (d) { d.remove(); }); res(); }
+      })(t0);
+    });
+  }
+
+  function typeOut(text, token) {
+    return new Promise(function (res, rej) {
+      if (reduce) { ba.textContent = text; return res(); }
+      var n = 0;
+      (function tick() {
+        if (token !== run) return rej();
+        ba.textContent = text.slice(0, n += 2);
+        n < text.length ? setTimeout(tick, 22) : res();
+      })();
+    });
+  }
+
+  function clearOn() {
+    stage.querySelectorAll('.on').forEach(function (e) { e.classList.remove('on'); });
+    gEdges.querySelectorAll('.on').forEach(function (e) { e.classList.remove('on'); });
+  }
+
+  function show(i, animate) {
+    var steps = SC[state.sc], s = steps[i], token = ++run;
+    gFx.innerHTML = '';
+    state.i = i; cur = s;
+    clearOn();
+    document.getElementById('num').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(steps.length).padStart(2, '0');
+    document.getElementById('ttl').textContent = s.h;
+    document.getElementById('txt').textContent = s.p;
+    document.getElementById('dots').innerHTML = steps.map(function (_, j) {
+      return '<button aria-label="Step ' + (j + 1) + '" class="' + (j < i ? 'done' : j === i ? 'cur' : '') + '" data-j="' + j + '"></button>';
+    }).join('');
+    bq.textContent = Q[state.sc];
+    var streamAt = steps.findIndex(function (x) { return x.stream; });
+    ba.textContent = i > streamAt ? A[state.sc] : '';
+    var chip = s.chip && stage.querySelector('[data-chip="' + s.chip + '"]');
+    if (chip) chip.classList.add('on');
+
+    var seq = Promise.resolve();
+    if (s.node) els[s.node].classList.add('on');
+    camera(chip || els[s.node || s.path[0]]);
+    if (s.path) {
+      els[s.path[0]].classList.add('on');
+      s.path.forEach(function (n, j, a) {
+        if (!j) return;
+        var k = key(a[j - 1], n), el = edgeEls[k];
+        seq = seq.then(function () {
+          if (token !== run) throw 0; // a newer step took over
+          el.classList.add('on');
+          if (!animate) return;
+          camera(els[n]);
+          return travel(el, k.split('-')[0] !== a[j - 1], token);
+        }).then(function () { els[n].classList.add('on'); });
+      });
+    }
+    seq.then(function () {
+      if (token !== run) throw 0;
+      if (s.stream && animate) return typeOut(A[state.sc], token);
+      if (s.stream) ba.textContent = A[state.sc];
+    }).catch(function () {});
+  }
+
+  function sizeSection() { sec.style.height = 'calc(100vh + ' + SC[state.sc].length * STEP_VH + 'vh)'; }
+  function span() { return sec.offsetHeight - innerHeight; }
+  function stepFromScroll() {
+    var p = clamp(-sec.getBoundingClientRect().top / span(), 0, 0.9999);
+    return Math.floor(p * SC[state.sc].length);
+  }
+  function scrollToStep(j) {
+    var n = SC[state.sc].length;
+    scrollTo({ top: sec.offsetTop + span() * (clamp(j, 0, n - 1) + 0.5) / n, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function onScroll() {
+    hint.classList.toggle('gone', sec.getBoundingClientRect().top < -40);
+    var j = stepFromScroll();
+    if (j !== state.i) show(j, true);
+  }
+
+  document.getElementById('prev').onclick = function () { scrollToStep(state.i - 1); };
+  document.getElementById('next').onclick = function () { scrollToStep(state.i + 1); };
+  document.getElementById('dots').onclick = function (e) { var j = e.target.dataset.j; if (j != null) scrollToStep(+j); };
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      state.sc = b.dataset.sc; sizeSection();
+      if (sec.getBoundingClientRect().top < 0) scrollTo({ top: sec.offsetTop });
+      show(0, true);
+    };
+  });
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', function () { var changed = layout(); fit(); if (changed) show(state.i, false); });
+
+  sizeSection();
+  layout();
+  fit();
+  onScroll();
+})();
+</script>
+<script src="app.js"></script>
+</body>
+</html>

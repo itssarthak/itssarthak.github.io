@@ -1,0 +1,17 @@
+/* The terminal, shared by every page in v2/. app.js injects the markup. */
+/* terminal */
+.term{position:fixed;left:50%;bottom:16px;transform:translate(-50%,calc(100% + 30px));width:min(760px,calc(100% - 24px));height:min(440px,70vh);z-index:50;
+  background:#141418;color:#E4E4EA;border-radius:14px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6);display:flex;flex-direction:column;font:13.5px/1.55 var(--mono,'JetBrains Mono',ui-monospace,monospace);transition:transform .35s cubic-bezier(.3,.9,.3,1);visibility:hidden}
+.term.open{transform:translate(-50%,0);visibility:visible}
+.term .bar{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid #2A2A33;color:#8C8C96;font-size:12px}
+.term .bar i{width:10px;height:10px;border-radius:50%;background:#FF5F57}.term .bar i:nth-child(2){background:#FEBC2E}.term .bar i:nth-child(3){background:#28C840}
+.term .bar button{margin-left:auto;background:none;border:0;color:#8C8C96;font:inherit;cursor:pointer}
+.out{flex:1;overflow:auto;padding:12px 14px;white-space:pre-wrap;word-break:break-word}
+.out .c{color:#7EE2A8}.out .d{color:#8C8C96}.out .e{color:#F28B82}.out .a{color:#F2B8A0}
+.line{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #2A2A33}
+.line span{color:#7EE2A8;white-space:nowrap}
+.line input{flex:1;min-width:0;background:none;border:0;color:inherit;font:inherit;outline:none}
+.term-fab{position:fixed;right:16px;top:16px;z-index:40;background:#17171B;color:#EDEDED;border:0;border-radius:10px;padding:9px 13px;
+  font:500 13px 'JetBrains Mono',ui-monospace,monospace;cursor:pointer;box-shadow:0 10px 24px -10px rgba(0,0,0,.5)}
+.term-fab:focus-visible{outline:2px solid #A5432A;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.term{transition:none}}

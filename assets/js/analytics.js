@@ -3,6 +3,7 @@
 // ES5-compatible (matches the site's existing inline scripts). Safe on every page.
 (function () {
   'use strict';
+  if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return; // local previews don't count as visits
 
   var GA_ID = 'G-T4EHKQYQE3';
 

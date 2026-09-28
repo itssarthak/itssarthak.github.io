@@ -1,169 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Résumé — Sarthak Chhabra | Technical Lead · AI Systems</title>
-    <meta name="description" content="Résumé of Sarthak Chhabra — Technical Lead with 7+ years across Stashfin, Zupee, Dresma AI, Gigforce, Signcatch and Bosch. AI agent platforms, LLM infrastructure, Node.js, TypeScript, AWS.">
-    <meta name="author" content="Sarthak Chhabra">
-    <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#050608">
-    <link rel="canonical" href="https://sarthakchhabra.com/resume.html">
-
-    <meta property="og:type" content="profile">
-    <meta property="og:url" content="https://sarthakchhabra.com/resume.html">
-    <meta property="og:title" content="Résumé — Sarthak Chhabra | Technical Lead · AI Systems">
-    <meta property="og:description" content="7+ years of experience: AI agent platforms, LLM routing infrastructure, distributed backend systems.">
-    <meta property="og:image" content="https://sarthakchhabra.com/assets/images/my-avatar.png">
-
-    <meta property="twitter:card" content="summary">
-    <meta property="twitter:url" content="https://sarthakchhabra.com/resume.html">
-    <meta property="twitter:title" content="Résumé — Sarthak Chhabra | Technical Lead · AI Systems">
-    <meta property="twitter:description" content="7+ years of experience: AI agent platforms, LLM routing infrastructure, distributed backend systems.">
-
-    <link rel="icon" type="image/png" href="./assets/images/my-avatar.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./assets/css/site.css">
-    <script src="./assets/js/analytics.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Résumé · Sarthak Chhabra</title>
+<meta name="description" content="Résumé of Sarthak Chhabra, Tech Lead: AI agent platforms, LLM infrastructure and distributed systems.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="term.css">
+<style>
+.back{display:inline-block;margin:28px 0 8px;font:500 13px var(--mono);color:var(--muted);text-decoration:none}
+.back:hover{color:var(--acc)}
+.cv-h{padding:28px 0 12px}
+.cv-h h1{font-size:clamp(40px,7vw,72px);line-height:1}
+.cv-h h1 em{color:var(--acc)}
+.cv-h p{color:var(--muted);margin-top:12px;font-size:17px}
+.roles{list-style:none;padding:0;display:grid;gap:14px;margin:28px 0 64px}
+.role{padding:20px 22px}
+.when{font:500 12.5px var(--mono);color:var(--acc);letter-spacing:.04em}
+.role h3{font-size:22px;margin-top:6px}
+.role .at{font-family:var(--body);font-size:16px;font-weight:500;color:var(--muted)}
+.tech{font-size:13px;color:var(--muted);margin-top:4px}
+.role ul{margin:12px 0 0;padding-left:18px;display:grid;gap:6px;font-size:15px}
+.role b{font-weight:600}
+</style>
+<link rel="icon" type="image/png" href="/assets/images/my-avatar.png">
+<link rel="apple-touch-icon" href="/assets/images/my-avatar.png">
+<meta name="theme-color" content="#F6F2EA">
+<script src="/assets/js/analytics.js" defer></script>
+<link rel="canonical" href="https://sarthakchhabra.com/resume.html">
 </head>
-
-<body class="noise">
-    <a class="skip-link" href="#main">Skip to content</a>
-    <canvas id="constellation" aria-hidden="true"></canvas>
-    <div class="scroll-progress" aria-hidden="true"></div>
-
-    <header class="nav scrolled">
-        <div class="nav-inner">
-            <a href="/" class="logo" aria-label="Sarthak Chhabra — home">
-                <span class="prompt">~/</span>sarthak<span class="blink" aria-hidden="true"></span>
-            </a>
-            <nav aria-label="Primary">
-                <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle menu">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
-                </button>
-                <ul class="nav-links" id="nav-links">
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/portfolio.html">Portfolio</a></li>
-                    <li><a href="/resume.html" class="active">Résumé</a></li>
-                    <li><a class="nav-cta" href="/contact.html">get in touch()</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main id="main" class="page">
-        <div class="subpage-hero container">
-            <p class="kicker">curriculum vitae</p>
-            <h1>Résumé<span class="grad-text">.</span></h1>
-            <p class="section-sub">Technical Lead · 7+ years · AI agent platforms, LLM infrastructure &amp; distributed systems.</p>
-            <div class="btn-row" style="justify-content:flex-start; margin-top:32px">
-                <a class="btn btn-primary" href="/Sarthak%20Resume.pdf" target="_blank" rel="noopener">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Download PDF
-                </a>
-                <a class="btn btn-ghost" href="mailto:hello@sarthakchhabra.com">Email me</a>
-            </div>
-        </div>
-
-        <section aria-label="Work experience" style="padding-top:70px">
-            <div class="container">
-                <div class="section-head reveal">
-                    <p class="kicker">experience</p>
-                    <h2 class="section-title">Where I've <span class="grad-text">shipped</span>.</h2>
-                </div>
-
-                <div class="timeline">
-                    <div class="tl-item reveal">
-                        <p class="tl-date">FEB 2026 — JUL 2026</p>
-                        <h3>Technical Lead · <span class="company">Stashfin</span></h3>
-                        <p class="tl-stack">NodeJS · TypeScript · AWS · Postgres · GenAI · Docker · Microservices</p>
-                        <ul>
-                            <li>Architected and led a <b>no-code platform for production AI agents</b> — delivery cut from days to minutes; runs a support agent handling <b>~30K messages / 44M tokens daily</b> across 6,000+ users.</li>
-                            <li>Designed a dynamic tool framework that turns <b>any REST API into an agent-callable tool</b> via live test calls and schema annotation — no hand-written integrations.</li>
-                            <li>Built a cross-channel contact system unifying email, phone &amp; Slack identities into <b>one persistent agent memory</b>.</li>
-                            <li>Developed an end-to-end <b>RAG ingestion pipeline</b> (upload → chunk → embed → store) usable by non-technical teams.</li>
-                            <li>Implemented multi-channel delivery (Slack, Telegram &amp; more) — one agent config deploys everywhere.</li>
-                        </ul>
-                    </div>
-
-                    <div class="tl-item reveal">
-                        <p class="tl-date">JUL 2025 — FEB 2026</p>
-                        <h3>Technical Lead · <span class="company">Zupee</span></h3>
-                        <p class="tl-stack">NodeJS · Postgres · Qdrant · MongoDB · LangGraph · GenAI · Microservices</p>
-                        <ul>
-                            <li>Architected a centralized <b>LLM routing engine</b> — 300K+ req/day, 15–20ms latency, 99% uptime, with budget tracking, rate limiting, multi-provider fallbacks &amp; circuit breakers.</li>
-                            <li>Developed an AI companion chatbot achieving <b>46% D15 retention</b> via LangGraph multi-agent architecture and RAG memory on Qdrant.</li>
-                            <li>Built automated promo generation: production time <b>1 week → 3 hours</b>, parallel-processing 50–100 microseries.</li>
-                            <li>Created a no-code bot management platform — 2-click model swaps and behavior changes for product managers.</li>
-                            <li><b>Led a team of 4 engineers</b> across AI products including an astrology chatbot and routing infrastructure.</li>
-                        </ul>
-                    </div>
-
-                    <div class="tl-item reveal">
-                        <p class="tl-date">MAR 2022 — APR 2025</p>
-                        <h3>Senior Software Engineer · <span class="company">Dresma AI</span></h3>
-                        <p class="tl-stack">NodeJS · TypeScript · AWS · MongoDB · Kafka · Technical Architecture</p>
-                        <ul>
-                            <li>Reduced response time by <b>40%</b> and improved system efficiency by 30% through optimization and debugging.</li>
-                            <li>Engineered near-fail-proof architectures for heavy computation: −30% processing time, +50% stability.</li>
-                            <li>Mentored junior engineers across backend, frontend and AWS — +20% delivery efficiency, −30% error rates.</li>
-                        </ul>
-                    </div>
-
-                    <div class="tl-item reveal">
-                        <p class="tl-date">MAY 2021 — MAR 2022</p>
-                        <h3>Full Stack Developer · <span class="company">Gigforce</span></h3>
-                        <p class="tl-stack">NodeJS · AWS SQS · MongoDB · VueJS · System Design</p>
-                        <ul>
-                            <li>End-to-end ownership of new modules: +25% stability, fewer post-launch bugs.</li>
-                            <li>Scaled backend services for operational growth: <b>−40% peak-load latency</b>, −30% query response time.</li>
-                        </ul>
-                    </div>
-
-                    <div class="tl-item reveal">
-                        <p class="tl-date">OCT 2020 — MAY 2021</p>
-                        <h3>Software Developer · <span class="company">Signcatch</span></h3>
-                        <p class="tl-stack">ReactJS · Angular · SQL · PHP · Agile</p>
-                        <ul>
-                            <li>Maintained new + legacy modules: +25% positive user feedback, −15% churn, −20% time-to-market.</li>
-                        </ul>
-                    </div>
-
-                    <div class="tl-item reveal">
-                        <p class="tl-date">JAN 2019 — OCT 2020</p>
-                        <h3>Associate Software Engineer · <span class="company">Bosch</span></h3>
-                        <p class="tl-stack">Angular · C# · SQL</p>
-                        <ul>
-                            <li>Cross-platform applications, close product-owner collaboration: −20% rework, −25% ticket resolution time.</li>
-                        </ul>
-                    </div>
-
-                    <div class="tl-item reveal">
-                        <p class="tl-date">AUG 2015 — JUL 2019</p>
-                        <h3>B.E. Computer Science · <span class="company">Lovely Professional University</span></h3>
-                        <p class="tl-stack">8.7 CGPA</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <footer class="footer">
-            <div class="container footer-inner">
-                <span>© <span id="yr">2026</span> Sarthak Chhabra</span>
-                <div class="footer-links">
-                    <a href="/">home</a>
-                    <a href="/portfolio.html">portfolio</a>
-                    <a href="/contact.html">contact</a>
-                </div>
-                <span>$ open resume.pdf → 200 OK</span>
-            </div>
-        </footer>
-    </main>
-
-    <script src="./assets/js/site.js" defer></script>
+<body data-era="agents">
+<main class="wrap">
+  <a class="back" href="./">← back to the system</a>
+  <section class="cv-h">
+    <span class="label">curriculum vitae</span>
+    <h1>Résumé<em>.</em></h1>
+    <p>Tech Lead · 7+ years · AI agent platforms, LLM infrastructure and distributed systems.</p>
+    <div class="btns">
+      <a class="btn p" href="/Sarthak%20Resume.pdf" target="_blank" rel="noopener">Download PDF</a>
+      <a class="btn" href="mailto:hello@sarthakchhabra.com">Email me</a>
+    </div>
+  </section>
+  <ol class="roles">
+      <li class="card role">
+        <div class="when">Feb 2026 – Jul 2026</div>
+        <h3>Technical Lead <span class="at">· Stashfin</span></h3>
+        <p class="tech">NodeJS · TypeScript · AWS · Postgres · GenAI · Docker · Microservices</p><ul><li>Architected and led a <b>no-code platform for production AI agents</b> — delivery cut from days to minutes; runs a support agent handling <b>~30K messages / 44M tokens daily</b> across 6,000+ users.</li><li>Designed a dynamic tool framework that turns <b>any REST API into an agent-callable tool</b> via live test calls and schema annotation — no hand-written integrations.</li><li>Built a cross-channel contact system unifying email, phone &amp; Slack identities into <b>one persistent agent memory</b>.</li><li>Developed an end-to-end <b>RAG ingestion pipeline</b> (upload → chunk → embed → store) usable by non-technical teams.</li><li>Implemented multi-channel delivery (Slack, Telegram &amp; more) — one agent config deploys everywhere.</li></ul>
+      </li>
+      <li class="card role">
+        <div class="when">Jul 2025 – Feb 2026</div>
+        <h3>Technical Lead <span class="at">· Zupee</span></h3>
+        <p class="tech">NodeJS · Postgres · Qdrant · MongoDB · LangGraph · GenAI · Microservices</p><ul><li>Architected a centralized <b>LLM routing engine</b> — 300K+ req/day, 15–20ms latency, 99% uptime, with budget tracking, rate limiting, multi-provider fallbacks &amp; circuit breakers.</li><li>Developed an AI companion chatbot achieving <b>46% D15 retention</b> via LangGraph multi-agent architecture and RAG memory on Qdrant.</li><li>Built automated promo generation: production time <b>1 week → 3 hours</b>, parallel-processing 50–100 microseries.</li><li>Created a no-code bot management platform — 2-click model swaps and behavior changes for product managers.</li><li><b>Led a team of 4 engineers</b> across AI products including an astrology chatbot and routing infrastructure.</li></ul>
+      </li>
+      <li class="card role">
+        <div class="when">Mar 2022 – Apr 2025</div>
+        <h3>Senior Software Engineer <span class="at">· Dresma AI</span></h3>
+        <p class="tech">NodeJS · TypeScript · AWS · MongoDB · Kafka · Technical Architecture</p><ul><li>Reduced response time by <b>40%</b> and improved system efficiency by 30% through optimization and debugging.</li><li>Engineered near-fail-proof architectures for heavy computation: −30% processing time, +50% stability.</li><li>Mentored junior engineers across backend, frontend and AWS — +20% delivery efficiency, −30% error rates.</li></ul>
+      </li>
+      <li class="card role">
+        <div class="when">May 2021 – Mar 2022</div>
+        <h3>Full Stack Developer <span class="at">· Gigforce</span></h3>
+        <p class="tech">NodeJS · AWS SQS · MongoDB · VueJS · System Design</p><ul><li>End-to-end ownership of new modules: +25% stability, fewer post-launch bugs.</li><li>Scaled backend services for operational growth: <b>−40% peak-load latency</b>, −30% query response time.</li></ul>
+      </li>
+      <li class="card role">
+        <div class="when">Oct 2020 – May 2021</div>
+        <h3>Software Developer <span class="at">· Signcatch</span></h3>
+        <p class="tech">ReactJS · Angular · SQL · PHP · Agile</p><ul><li>Maintained new + legacy modules: +25% positive user feedback, −15% churn, −20% time-to-market.</li></ul>
+      </li>
+      <li class="card role">
+        <div class="when">Jan 2019 – Oct 2020</div>
+        <h3>Associate Software Engineer <span class="at">· Bosch</span></h3>
+        <p class="tech">Angular · C# · SQL</p><ul><li>Cross-platform applications, close product-owner collaboration: −20% rework, −25% ticket resolution time.</li></ul>
+      </li>
+      <li class="card role">
+        <div class="when">Aug 2015 – Jul 2019</div>
+        <h3>B.E. Computer Science <span class="at">· Lovely Professional University</span></h3>
+        <p class="tech">8.7 CGPA</p>
+      </li>
+  </ol>
+</main>
+<script src="app.js"></script>
 </body>
-
 </html>

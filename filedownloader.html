@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FileDownloader Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F2EA; --ink:#1B1B1B; --muted:#6B6880; --line:#DCD5E8; --border:#E7E2EF; --accent:#A5432A; --accent-soft:#F3E2DA;
+  /* the product's own dark UI */
+  --app:#0B1020; --app-card:#121A2E; --app-line:#22304D; --app-ink:#E6EBF5; --app-muted:#8A96B2;
+  --app-a:#6366F1; --app-b:#22B8E6; --ok:#34D399;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;
+  background-image:radial-gradient(#E4DDD0 1px,transparent 1px);background-size:22px 22px}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 16px 56px}
+.eyebrow{font:500 12px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(28px,4.4vw,48px)/1.05 Fraunces,serif;letter-spacing:-.02em;margin:10px 0 8px}
+.lede{color:var(--muted);max-width:60ch}
+.foot{margin-top:18px;font:13px 'JetBrains Mono',monospace;color:var(--muted)}
+
+.scrolly{position:relative;margin-top:22px}
+.pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;gap:12px;padding:12px 0;justify-content:center}
+
+/* ---- the fake browser window ---- */
+.win{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--app);border-radius:18px;overflow:hidden;position:relative;
+  box-shadow:0 30px 60px -30px rgba(27,26,46,.55),0 0 0 1px rgba(27,26,46,.08)}
+.chrome{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#161D30;border-bottom:1px solid var(--app-line)}
+.chrome i{width:10px;height:10px;border-radius:50%;background:#FF5F57}
+.chrome i:nth-child(2){background:#FEBC2E}.chrome i:nth-child(3){background:#28C840}
+.url{flex:1;max-width:360px;margin:0 auto;background:#0E1426;color:var(--app-muted);border-radius:8px;padding:4px 12px;font:12px 'JetBrains Mono',monospace;text-align:center}
+.app{flex:0 1 auto;min-height:0;overflow:hidden;padding:clamp(14px,3vw,28px);color:var(--app-ink);display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font:700 15px Fraunces,serif}
+.brand b{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:linear-gradient(135deg,var(--app-a),var(--app-b));font-size:14px}
+.brand span{margin-left:auto;font:500 12px Inter,sans-serif;color:var(--app-muted)}
+
+.card{background:var(--app-card);border:1px solid var(--app-line);border-radius:14px;padding:14px}
+.lbl{font-size:13px;color:var(--app-muted);margin-bottom:8px}
+.ta{font:12.5px/1.6 'JetBrains Mono',monospace;background:#0A0F1D;border:1px solid var(--app-line);border-radius:10px;padding:10px 12px;
+  height:7.4em;overflow:hidden;white-space:pre;color:#C9D3EA;transition:height .45s ease,opacity .3s}
+.ta.small{height:2.3em;color:var(--app-muted)}
+.caret{display:inline-block;width:7px;height:1.1em;vertical-align:-.2em;background:var(--app-b);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.row1{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:9px 16px;font:600 13.5px Inter,sans-serif;color:#fff;background:linear-gradient(135deg,var(--app-a),var(--app-b));
+  transition:transform .12s,opacity .3s,filter .3s;white-space:nowrap}
+.btn.off{opacity:.35;filter:grayscale(.6)}
+.btn.press{transform:scale(.94)}
+.count{font:12px 'JetBrains Mono',monospace;color:var(--app-muted)}
+
+.list{display:grid;gap:6px}
+.file{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;background:var(--app-card);border:1px solid var(--app-line);border-radius:10px;padding:8px 12px;
+  opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.file.in{opacity:1;transform:none}
+.file .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#1A2440;font-size:15px}
+.file .nm{font:500 13px Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file .bar{height:4px;border-radius:2px;background:#1B2540;margin-top:6px;overflow:hidden}
+.file .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--app-a),var(--app-b))}
+.file.done .bar i{background:var(--ok)}
+.file .st{font:12px 'JetBrains Mono',monospace;color:var(--app-muted);text-align:right;min-width:9ch}
+.file.done .st{color:var(--ok)}
+.file.packed{opacity:.35}
+
+.zipbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.zipbar .bar{flex:1;min-width:120px;height:6px;border-radius:3px;background:#1B2540;overflow:hidden}
+.zipbar .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--app-a),var(--app-b))}
+
+.toast{position:absolute;left:50%;bottom:18px;transform:translate(-50%,20px);opacity:0;transition:all .35s;background:#fff;color:var(--ink);
+  border-radius:12px;padding:10px 16px;font:500 13.5px Inter,sans-serif;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);white-space:nowrap}
+.toast.show{transform:translate(-50%,0);opacity:1}
+
+.end{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(11,16,32,.86);backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .4s;color:var(--app-ink)}
+.end.show{opacity:1}
+.end h3{font:700 clamp(24px,4vw,40px)/1.1 Fraunces,serif;letter-spacing:-.02em}
+.end h3 em{font-style:normal;background:linear-gradient(90deg,var(--app-a),var(--app-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.end p{color:var(--app-muted);margin-top:10px}
+
+.cursor{position:absolute;left:0;top:0;width:22px;height:22px;z-index:5;pointer-events:none;will-change:transform;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.cursor::after{content:'';position:absolute;left:-10px;top:-10px;width:22px;height:22px;border-radius:50%;border:2px solid var(--app-b);opacity:0;transform:scale(.4)}
+.cursor.click::after{opacity:1;transform:scale(1.3);transition:all .25s}
+
+/* ---- player controls ---- */
+.player{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 16px 14px}
+.top{display:flex;align-items:center;gap:12px}
+.play{width:36px;height:36px;flex:none;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:13px;cursor:pointer}
+.play:focus-visible,.track:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.ch{flex:1;min-width:0}
+.ch h2{font:700 clamp(17px,2.2vw,22px)/1.2 Fraunces,serif}
+.ch p{color:var(--muted);font-size:14.5px;margin-top:2px}
+.time{font:500 13px 'JetBrains Mono',monospace;color:var(--accent);white-space:nowrap}
+.track{position:relative;height:22px;margin-top:10px;cursor:pointer;touch-action:none}
+.track .rail{position:absolute;left:0;right:0;top:9px;height:4px;border-radius:2px;background:var(--line)}
+.track .fill{position:absolute;left:0;top:9px;height:4px;border-radius:2px;background:var(--accent)}
+.track .knob{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.track .tick{position:absolute;top:6px;width:2px;height:10px;margin-left:-1px;background:#fff;border-radius:1px}
+.marks{position:relative;height:16px;font:11px 'JetBrains Mono',monospace;color:var(--muted)}
+.marks span{position:absolute;white-space:nowrap;cursor:pointer}
+.marks span.cur{color:var(--accent)}
+@media (max-width:720px){.marks{display:none}.ta{font-size:11px}.file .st{min-width:0}.ch p,.brand span{display:none}.app{gap:10px}.card{padding:10px}.list{gap:4px}.file{padding:5px 10px;grid-template-columns:24px 1fr auto}.file .ic{width:24px;height:24px;font-size:13px}.file .nm{font-size:12px}.file .bar{margin-top:4px}.btn{padding:7px 12px;font-size:12.5px}.player{padding:10px 12px}}
+@media (prefers-reduced-motion:reduce){.caret{animation:none}.ta,.file,.btn,.toast,.end{transition:none}}
+.back{display:inline-block;margin-bottom:18px;font:500 13px 'JetBrains Mono',monospace;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+.lede a{color:var(--accent);font-weight:500}
+</style>
+<link rel="stylesheet" href="term.css">
+<link rel="icon" type="image/png" href="/assets/images/my-avatar.png">
+<link rel="apple-touch-icon" href="/assets/images/my-avatar.png">
+<meta name="theme-color" content="#F6F2EA">
+<script src="/assets/js/analytics.js" defer></script>
+<link rel="canonical" href="https://sarthakchhabra.com/filedownloader.html">
+<meta name="description" content="FileDownloader in 30 seconds: paste links, download everything at once, one ZIP. A solo product by Sarthak Chhabra.">
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="./">← back to the system</a>
+  <div class="eyebrow">filedownloader.in · demo</div>
+  <h1>FileDownloader in 30 seconds</h1>
+  <p class="lede">Scroll to play, scroll back to rewind, or press play. <a href="https://filedownloader.in" target="_blank" rel="noopener">Try it live ↗</a></p>
+
+  <section class="scrolly" id="scrolly">
+    <div class="pin">
+      <div class="win" id="win" aria-hidden="true">
+        <div class="chrome"><i></i><i></i><i></i><div class="url">filedownloader.in</div></div>
+        <div class="app">
+          <div class="brand"><b>⬇</b>File Downloader<span>free · no sign-up</span></div>
+          <div class="card">
+            <div class="lbl">Paste your download links, one per line</div>
+            <div class="ta" id="ta"></div>
+            <div class="row1">
+              <button class="btn off" id="go" tabindex="-1">Download all</button>
+              <span class="count" id="count"></span>
+            </div>
+          </div>
+          <div class="list" id="list"></div>
+          <div class="zipbar">
+            <button class="btn off" id="zip" tabindex="-1">Download as ZIP</button>
+            <div class="bar"><i id="zipfill"></i></div>
+          </div>
+        </div>
+        <div class="toast" id="toast">✓ files.zip saved · 6 files · 61.4 MB</div>
+        <div class="end" id="end"><div>
+          <h3>Paste. Download. <em>Done.</em></h3>
+          <p>Over half a million downloads served. No sign-up, nothing to install.</p>
+        </div></div>
+        <svg class="cursor" id="cursor" viewBox="0 0 22 22"><path d="M3 2l15 8.5-6.6 1.6L8.6 19z" fill="#fff" stroke="#0B1020" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="player">
+        <div class="top">
+          <button class="play" id="play" aria-label="Play">▶</button>
+          <div class="ch" aria-live="polite"><h2 id="chT"></h2><p id="chP"></p></div>
+          <div class="time" id="time"></div>
+        </div>
+        <div class="track" id="track" role="slider" tabindex="0" aria-label="Demo timeline" aria-valuemin="0" aria-valuemax="32">
+          <div class="rail"></div><div class="fill" id="fill"></div><div id="ticks"></div><div class="knob" id="knob"></div>
+        </div>
+        <div class="marks" id="marks"></div>
+      </div>
+    </div>
+  </section>
+  <p class="foot">example links and file names · the real tool runs at filedownloader.in</p>
+</main>
+
+<script>
+(function () {
+  var T = 32, SEC_VH = 12; // demo length in seconds, scroll distance per second
+
+  var CHAPTERS = [
+    [0, 'Paste', 'Paste your links', 'Any number of links, one per line. A spreadsheet of links works too.'],
+    [7, 'Start', 'Hit download', 'One click starts everything.'],
+    [9, 'Parallel', 'Everything downloads at once', 'Files download side by side instead of one after another, each with its own progress.'],
+    [21, 'ZIP', 'One click, one ZIP', 'All the files are bundled into a single ZIP, ready to share.'],
+    [27, 'Done', 'Done', 'No account, nothing to install, and it works in any desktop browser.']
+  ];
+  var FILES = [
+    ['📄', 'q1-report.pdf', '2.4 MB', 0, 4.5],
+    ['🖼️', 'team-photo.jpg', '5.1 MB', 0, 3],
+    ['📊', 'dataset.csv', '8.7 MB', 0.3, 6],
+    ['🎬', 'launch-video.mp4', '38.2 MB', 0.6, 8],
+    ['🧾', 'invoice-0423.pdf', '0.9 MB', 3.2, 2.6],
+    ['🗜️', 'brand-kit.zip', '6.1 MB', 4.1, 5.2]
+  ];
+  var URLS = [
+    'https://cdn.example.com/reports/q1-report.pdf',
+    'https://images.example.org/team-photo.jpg',
+    'https://files.example.net/data/dataset.csv',
+    'https://media.example.com/launch-video.mp4',
+    'https://docs.example.io/invoice-0423.pdf',
+    'https://assets.example.com/brand-kit.zip'
+  ].join('\n');
+  var GO_AT = 8.2, DL_AT = 9, ZIP_AT = 23, ZIP_DONE = 26, END_AT = 27.5;
+  // where the cursor is at each moment: [time, element id or null (rest spot)]
+  var CURSOR = [[0, 'ta'], [6.6, 'ta'], [7.8, 'go'], [8.6, 'go'], [10, null], [21, null], [22.6, 'zip'], [23.4, 'zip'], [25, null], [T, null]];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var win = $('win'), ta = $('ta'), go = $('go'), count = $('count'), list = $('list'), zip = $('zip'), zipfill = $('zipfill'),
+      toast = $('toast'), end = $('end'), cursor = $('cursor'), sec = $('scrolly'), track = $('track');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  list.innerHTML = FILES.map(function (f) {
+    return '<div class="file"><div class="ic">' + f[0] + '</div><div><div class="nm">' + f[1] + '</div><div class="bar"><i></i></div></div><div class="st"></div></div>';
+  }).join('');
+  var rows = [].slice.call(list.children);
+  $('ticks').innerHTML = CHAPTERS.map(function (c) { return '<i class="tick" style="left:' + c[0] / T * 100 + '%"></i>'; }).join('');
+  $('marks').innerHTML = CHAPTERS.map(function (c, i) {
+    return '<span data-t="' + (c[0] + .01) + '" style="left:' + c[0] / T * 100 + '%;transform:translateX(' + (i ? -50 : 0) + '%)">' + c[1] + '</span>';
+  }).join('');
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function ease(k) { return k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
+  function fmt(s) { s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+  function spot(id) { // centre of an element, relative to the window
+    var w = win.getBoundingClientRect();
+    if (!id) return [w.width * .78, w.height * .72];
+    var r = $(id).getBoundingClientRect();
+    return [r.left - w.left + r.width * .5, r.top - w.top + r.height * .6];
+  }
+
+  // Everything on screen is a pure function of t, so scrubbing works in both directions.
+  function render(t) {
+    var typed = Math.floor(URLS.length * clamp((t - .4) / 6, 0, 1));
+    var started = t >= GO_AT;
+    ta.innerHTML = started ? '6 links added' : (URLS.slice(0, typed).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '<span class="caret"></span>');
+    ta.classList.toggle('small', started);
+    if (!started) ta.scrollTop = ta.scrollHeight;
+    go.classList.toggle('off', typed < 20 || started);
+    go.classList.toggle('press', t >= GO_AT && t < GO_AT + .25);
+
+    var done = 0;
+    rows.forEach(function (row, i) {
+      var f = FILES[i], k = clamp((t - DL_AT - f[3]) / f[4], 0, 1);
+      row.classList.toggle('in', t >= GO_AT + .1 + i * .08);
+      row.classList.toggle('done', k >= 1);
+      row.classList.toggle('packed', t >= ZIP_AT + .3 + i * .35);
+      row.querySelector('.bar i').style.width = k * 100 + '%';
+      row.querySelector('.st').textContent = t < DL_AT + f[3] ? 'queued' : k < 1 ? Math.floor(k * 100) + '%' : '✓ ' + f[2];
+      if (k >= 1) done++;
+    });
+    count.textContent = t < DL_AT ? '' : done + ' of 6 downloaded';
+
+    var allDone = done === FILES.length;
+    zip.classList.toggle('off', !allDone || t >= ZIP_AT);
+    zip.classList.toggle('press', t >= ZIP_AT && t < ZIP_AT + .25);
+    zipfill.style.width = clamp((t - ZIP_AT) / (ZIP_DONE - ZIP_AT), 0, 1) * 100 + '%';
+    toast.classList.toggle('show', t >= ZIP_DONE && t < END_AT + 2);
+    end.classList.toggle('show', t >= END_AT);
+
+    // cursor: glide between keyframes
+    var a = CURSOR[0], b = CURSOR[CURSOR.length - 1];
+    for (var i = 0; i < CURSOR.length - 1; i++) if (t >= CURSOR[i][0] && t <= CURSOR[i + 1][0]) { a = CURSOR[i]; b = CURSOR[i + 1]; break; }
+    var k2 = ease(clamp((t - a[0]) / ((b[0] - a[0]) || 1), 0, 1)), pa = spot(a[1]), pb = spot(b[1]);
+    cursor.style.transform = 'translate(' + (pa[0] + (pb[0] - pa[0]) * k2) + 'px,' + (pa[1] + (pb[1] - pa[1]) * k2) + 'px)';
+    cursor.classList.toggle('click', (t >= GO_AT && t < GO_AT + .3) || (t >= ZIP_AT && t < ZIP_AT + .3));
+    cursor.style.opacity = t >= END_AT ? 0 : 1;
+
+    // player
+    var ch = CHAPTERS.filter(function (c) { return t >= c[0]; }).pop();
+    if ($('chT').textContent !== ch[2]) { $('chT').textContent = ch[2]; $('chP').textContent = ch[3]; }
+    $('time').textContent = fmt(t) + ' / ' + fmt(T);
+    $('fill').style.width = $('knob').style.left = t / T * 100 + '%';
+    track.setAttribute('aria-valuenow', Math.floor(t));
+    [].forEach.call($('marks').children, function (m) { m.classList.toggle('cur', m.textContent === ch[1]); });
+  }
+
+  // ---- scroll is the playhead --------------------------------------------
+  sec.style.height = 'calc(100vh + ' + T * SEC_VH + 'vh)';
+  function span() { return sec.offsetHeight - innerHeight; }
+  function tFromScroll() { return clamp(-sec.getBoundingClientRect().top / span(), 0, 1) * T; }
+  function scrollToT(t, smooth) { scrollTo({ top: sec.offsetTop + span() * clamp(t, 0, T) / T, behavior: smooth && !reduce ? 'smooth' : 'auto' }); }
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () { ticking = false; render(tFromScroll()); });
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+
+  // play = scroll for you at 1x speed
+  var playing = false, last;
+  function setPlay(p) {
+    playing = p; $('play').textContent = p ? '❚❚' : '▶'; $('play').setAttribute('aria-label', p ? 'Pause' : 'Play');
+    if (p) { if (tFromScroll() >= T - .05) scrollToT(0); last = performance.now(); requestAnimationFrame(step); }
+  }
+  function step(now) {
+    if (!playing) return;
+    var t = tFromScroll() + (now - last) / 1000; last = now;
+    scrollToT(t);
+    if (t >= T) return setPlay(false);
+    requestAnimationFrame(step);
+  }
+  $('play').onclick = function () { setPlay(!playing); };
+  ['wheel', 'touchstart', 'keydown'].forEach(function (e) { addEventListener(e, function (ev) { if (ev.target !== $('play')) setPlay(false); }, { passive: true }); });
+
+  // scrubbing the timeline
+  function seek(e) { var r = track.getBoundingClientRect(); scrollToT((e.clientX - r.left) / r.width * T); }
+  track.addEventListener('pointerdown', function (e) { setPlay(false); track.setPointerCapture(e.pointerId); seek(e); track.onpointermove = seek; });
+  track.addEventListener('pointerup', function () { track.onpointermove = null; });
+  track.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); scrollToT(tFromScroll() + (e.key === 'ArrowRight' ? 2 : -2)); }
+  });
+  $('marks').onclick = function (e) { var t = e.target.dataset.t; if (t) { setPlay(false); scrollToT(+t, true); } };
+
+  render(tFromScroll());
+})();
+</script>
+<script src="app.js"></script>
+</body>
+</html>

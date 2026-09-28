@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switchboard Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F2EA; --ink:#1B1B1B; --muted:#6B6880; --line:#DCD5E8; --border:#E7E2EF; --accent:#A5432A; --accent-soft:#F3E2DA;
+  /* Switchboard's own dark UI */
+  --sb:#111111; --sb-card:#161616; --sb-line:#2E2E2E; --sb-ink:#EDEDED; --sb-muted:#8B8B8B;
+  --busy:#d99a45; --idle:#4c9a5a; --wait:#6b8fd4; --red:#c9584f;
+}
+*{box-sizing:border-box;margin:0}
+html{overflow-anchor:none}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;
+  background-image:radial-gradient(#E4DDD0 1px,transparent 1px);background-size:22px 22px}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 16px 56px}
+.eyebrow{font:500 12px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(28px,4.4vw,48px)/1.05 Fraunces,serif;letter-spacing:-.02em;margin:10px 0 8px}
+.lede{color:var(--muted);max-width:60ch}
+.foot{margin-top:18px;font:13px 'JetBrains Mono',monospace;color:var(--muted)}
+
+.scrolly{position:relative;margin-top:22px}
+.pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:12px 0}
+
+/* ---- the fake browser window ---- */
+.win{flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--sb);border-radius:18px;overflow:hidden;position:relative;
+  box-shadow:0 30px 60px -30px rgba(27,26,46,.55),0 0 0 1px rgba(27,26,46,.08)}
+.chrome{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#1C1C1C;border-bottom:1px solid var(--sb-line)}
+.chrome i{width:10px;height:10px;border-radius:50%;background:#FF5F57}
+.chrome i:nth-child(2){background:#FEBC2E}.chrome i:nth-child(3){background:#28C840}
+.url{flex:1;max-width:360px;margin:0 auto;background:#0C0C0C;color:var(--sb-muted);border-radius:8px;padding:4px 12px;font:12px 'JetBrains Mono',monospace;text-align:center}
+.app{flex:0 1 auto;min-height:0;overflow:hidden;padding:clamp(14px,2.6vw,24px);color:var(--sb-ink);font:13px/1.45 'JetBrains Mono',monospace;display:flex;flex-direction:column;gap:12px}
+.hd b{font-weight:700;font-size:15px}
+.hd span{color:var(--sb-muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border:1px solid var(--sb-line);border-radius:10px;padding:8px 12px}
+.stat b{display:block;font-size:17px}
+.stat small{color:var(--sb-muted);font-size:11.5px}
+.stat.g b{color:var(--idle)}
+.plan{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.plan .row{display:flex;justify-content:space-between;font-size:12px}
+.meter{height:6px;border-radius:3px;background:#2A2A2A;overflow:hidden;margin-top:5px}
+.meter i{display:block;height:100%;width:0;background:var(--idle);transition:background .4s}
+.meter i.hot{background:var(--busy)}
+.plan small{color:var(--sb-muted);font-size:11px}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{position:relative;border:1px solid var(--sb-line);border-left:3px solid var(--c,#8b8b8b);border-radius:10px;padding:9px 11px;background:var(--sb-card);
+  opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s,border-color .35s,box-shadow .35s;min-width:0}
+.tile.in{opacity:1;transform:none}
+.tile.hl{box-shadow:0 0 0 2px var(--wait)}
+.tile .nm{display:flex;align-items:center;gap:6px;font-weight:700}
+.tile .dot{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.tile .stt{margin-left:auto;font-weight:400;font-size:11px;color:var(--c)}
+.tile .doing{color:var(--sb-muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+.tile .tool{font-size:11px;color:var(--busy);height:1.4em;white-space:nowrap;overflow:hidden}
+.tile .ctx{height:4px;border-radius:2px;background:#2A2A2A;margin-top:6px;overflow:hidden}
+.tile .ctx i{display:block;height:100%;background:#6b8fd4}
+.tile .tok{font-size:11px;color:var(--sb-muted);margin-top:4px}
+.tile .tok b{color:var(--sb-ink)}
+.bubble{position:absolute;top:-9px;right:8px;font-size:10.5px;padding:1px 7px;border-radius:999px;background:var(--wait);color:#0C0C0C;font-weight:700;
+  opacity:0;transform:scale(.6);transition:all .3s}
+.bubble.show{opacity:1;transform:none}
+
+.chatter{border:1px solid var(--sb-line);border-radius:10px;padding:8px 12px;min-height:3.2em}
+.chatter .h{color:var(--sb-muted);font-size:11px;margin-bottom:2px}
+.chatter p{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;max-height:0;transition:opacity .35s,max-height .35s}
+.chatter p.show{opacity:1;max-height:2em}
+.chatter p b{color:var(--wait)}
+
+.env{position:absolute;left:0;top:0;z-index:4;width:24px;height:18px;pointer-events:none;opacity:0}
+
+.composer{position:absolute;left:50%;top:54px;bottom:16px;width:min(560px,calc(100% - 28px));transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:#141414;border:1px solid #3A3A3A;border-radius:12px;display:flex;flex-direction:column;transition:all .35s;z-index:3;font:12.5px/1.5 'JetBrains Mono',monospace;color:var(--sb-ink)}
+.composer.show{opacity:1;transform:translate(-50%,0)}
+.composer .top{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--sb-line)}
+.composer .top span{color:var(--idle);border:1px solid #2F5A38;border-radius:999px;padding:0 8px;font-size:11px}
+.msgs{flex:1;min-height:0;overflow:hidden;padding:10px 12px;display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
+.msg{border-left:2px solid var(--idle);padding-left:10px;opacity:0;transition:opacity .3s}
+.msg.show{opacity:1}
+.msg.you{border-color:#6b8fd4}
+.msg small{color:var(--sb-muted);display:block;font-size:11px}
+.msg small b{color:var(--idle)}
+.msg.you small b{color:#6b8fd4}
+.input{margin:0 12px 12px;border:1px solid #3A3A3A;border-radius:8px;padding:7px 10px;color:var(--sb-ink);min-height:2.2em}
+.input:empty::before{content:'type a message…';color:#666}
+
+.end{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(12,12,12,.88);backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .4s;color:var(--sb-ink);z-index:6}
+.end.show{opacity:1}
+.end h3{font:700 clamp(24px,4vw,40px)/1.1 Fraunces,serif;letter-spacing:-.02em}
+.end p{color:var(--sb-muted);margin-top:10px;font:14px Inter,sans-serif}
+.end code{display:inline-block;margin-top:14px;font:12.5px 'JetBrains Mono',monospace;background:#1E1E1E;border:1px solid var(--sb-line);border-radius:8px;padding:8px 12px;color:var(--sb-ink);text-align:left}
+
+.cursor{position:absolute;left:0;top:0;width:22px;height:22px;z-index:5;pointer-events:none;will-change:transform;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.cursor::after{content:'';position:absolute;left:-10px;top:-10px;width:22px;height:22px;border-radius:50%;border:2px solid #6b8fd4;opacity:0;transform:scale(.4)}
+.cursor.click::after{opacity:1;transform:scale(1.3);transition:all .25s}
+
+/* ---- player controls (same as the FileDownloader demo) ---- */
+.player{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 16px 14px}
+.player .top{display:flex;align-items:center;gap:12px}
+.play{width:36px;height:36px;flex:none;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:13px;cursor:pointer}
+.play:focus-visible,.track:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.ch{flex:1;min-width:0}
+.ch h2{font:700 clamp(17px,2.2vw,22px)/1.2 Fraunces,serif}
+.ch p{color:var(--muted);font-size:14.5px;margin-top:2px}
+.time{font:500 13px 'JetBrains Mono',monospace;color:var(--accent);white-space:nowrap}
+.track{position:relative;height:22px;margin-top:10px;cursor:pointer;touch-action:none}
+.track .rail{position:absolute;left:0;right:0;top:9px;height:4px;border-radius:2px;background:var(--line)}
+.track .fill{position:absolute;left:0;top:9px;height:4px;border-radius:2px;background:var(--accent)}
+.track .knob{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.track .tick{position:absolute;top:6px;width:2px;height:10px;margin-left:-1px;background:#fff;border-radius:1px}
+.marks{position:relative;height:16px;font:11px 'JetBrains Mono',monospace;color:var(--muted)}
+.marks span{position:absolute;white-space:nowrap;cursor:pointer}
+.marks span.cur{color:var(--accent)}
+@media (max-width:720px){
+  .marks,.ch p{display:none}
+  .app{font-size:11.5px;gap:9px}
+  .tiles{grid-template-columns:1fr 1fr}
+  .stat{padding:6px 8px}.stat b{font-size:14px}.stat small{font-size:10px}
+  .plan{gap:10px}.plan small{display:none}
+  .player{padding:10px 12px}
+}
+@media (prefers-reduced-motion:reduce){.tile,.bubble,.chatter p,.composer,.msg,.end{transition:none}}
+.back{display:inline-block;margin-bottom:18px;font:500 13px 'JetBrains Mono',monospace;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+.lede a{color:var(--accent);font-weight:500}
+</style>
+<link rel="stylesheet" href="term.css">
+<link rel="icon" type="image/png" href="/assets/images/my-avatar.png">
+<link rel="apple-touch-icon" href="/assets/images/my-avatar.png">
+<meta name="theme-color" content="#F6F2EA">
+<script src="/assets/js/analytics.js" defer></script>
+<link rel="canonical" href="https://sarthakchhabra.com/switchboard.html">
+<meta name="description" content="Claude Code Switchboard in 30 seconds: one dashboard for every Claude Code session on your Mac. Open source.">
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="./">← back to the system</a>
+  <div class="eyebrow">claude code switchboard · demo</div>
+  <h1>Switchboard in 30 seconds</h1>
+  <p class="lede">Scroll to play, scroll back to rewind, or press play. <a href="https://github.com/itssarthak/claudecode-switchboard" target="_blank" rel="noopener">View on GitHub ↗</a></p>
+
+  <section class="scrolly" id="scrolly">
+    <div class="pin">
+      <div class="win" id="win" aria-hidden="true">
+        <div class="chrome"><i></i><i></i><i></i><div class="url">localhost:7823</div></div>
+        <div class="app">
+          <div class="hd"><b>Claude Code sessions</b> <span id="hdSub"></span></div>
+          <div class="stats">
+            <div class="stat"><b id="s1">0</b><small>output, last 5 min</small></div>
+            <div class="stat g"><b id="s2">0</b><small>all tokens today</small></div>
+            <div class="stat"><b id="s3">$0</b><small>API-equivalent today</small></div>
+          </div>
+          <div class="plan">
+            <div><div class="row"><span>5-hour session</span><b id="p1t">0%</b></div><div class="meter"><i id="p1"></i></div><small>resets in 2h 10m</small></div>
+            <div><div class="row"><span>Weekly</span><b id="p2t">0%</b></div><div class="meter"><i id="p2"></i></div><small id="p2s">on pace</small></div>
+          </div>
+          <div class="tiles" id="tiles"></div>
+          <div class="chatter"><div class="h">chatter</div><div id="chat"></div></div>
+        </div>
+        <svg class="env" id="env" viewBox="0 0 24 18"><rect x="1" y="1" width="22" height="16" rx="3" fill="#6b8fd4"/><path d="M2 3l10 7 10-7" fill="none" stroke="#0C0C0C" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <div class="composer" id="comp">
+          <div class="top">message <b>frontend</b> <span>● waiting for you</span></div>
+          <div class="msgs">
+            <div class="msg" id="m1"><small><b>frontend</b> · just now</small>Checkout page is updated for the new API. Your call: ship behind a flag today, or wait for QA tomorrow?</div>
+            <div class="msg you" id="m2"><small><b>you</b> · now</small><span id="m2t"></span></div>
+            <div class="msg" id="m3"><small><b>frontend</b> · now</small>On it. Shipping behind the flag.</div>
+          </div>
+          <div class="input" id="inp"></div>
+        </div>
+        <div class="end" id="end"><div>
+          <h3>Every session. One page.</h3>
+          <p>Open source · zero dependencies · runs on your Mac</p>
+          <code>/plugin marketplace add itssarthak/claudecode-switchboard<br>/plugin install switchboard</code>
+        </div></div>
+        <svg class="cursor" id="cursor" viewBox="0 0 22 22"><path d="M3 2l15 8.5-6.6 1.6L8.6 19z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="player">
+        <div class="top">
+          <button class="play" id="play" aria-label="Play">▶</button>
+          <div class="ch" aria-live="polite"><h2 id="chT"></h2><p id="chP"></p></div>
+          <div class="time" id="time"></div>
+        </div>
+        <div class="track" id="track" role="slider" tabindex="0" aria-label="Demo timeline" aria-valuemin="0" aria-valuemax="32">
+          <div class="rail"></div><div class="fill" id="fill"></div><div id="ticks"></div><div class="knob" id="knob"></div>
+        </div>
+        <div class="marks" id="marks"></div>
+      </div>
+    </div>
+  </section>
+  <p class="foot">example sessions and numbers · the real thing is one command away</p>
+</main>
+
+<script>
+(function () {
+  var T = 32, SEC_VH = 12;
+
+  var CHAPTERS = [
+    [0, 'Sessions', 'Every session, one screen', 'Every Claude Code session running on your Mac appears on one page, grouped by project.'],
+    [6, 'Live', 'Watch them work', 'See what each one is doing right now, how much context it holds and how many tokens it’s burning.'],
+    [14, 'Chatter', 'Sessions talk to each other', 'When one session messages another, you see it fly across, and it’s kept in a log.'],
+    [20, 'Limits', 'Know your limits', 'Live plan usage and a weekly budget, so you know whether you’ll run dry before the reset.'],
+    [25, 'Talk', 'Reply without switching tabs', 'A session waiting on you? Answer it right from the page.'],
+    [30, 'Done', 'Done', 'One command to install, nothing else to set up.']
+  ];
+  // name, status colour key, doing, tool, ctx start→end, tokens start→end (k)
+  var TILES = [
+    ['frontend', 'checkout page for the new API', '⚙ Edit · 1s ago', .22, .64, 180, 920],
+    ['api', 'schema v2 migration', '⚙ Bash · 3s ago', .35, .71, 240, 1310],
+    ['infra', 'rotate staging certs', '', .12, .18, 60, 95],
+    ['docs', 'changelog for v2', '⚙ Write · 2s ago', .08, .33, 30, 410]
+  ];
+  var ENV_AT = 14.4, ENV_DUR = 1.6, WAIT_AT = 22, COMP_AT = 25.6, TYPE_AT = 26.4, SEND_AT = 28.4, END_AT = 30.2;
+  var REPLY = 'ship it behind the flag';
+  var CURSOR = [[0, null], [24.2, null], [25.3, 't0'], [25.6, 't0'], [26.2, 'inp'], [28.6, 'inp'], [29.6, null], [T, null]];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var win = $('win'), cursor = $('cursor'), sec = $('scrolly'), track = $('track'), env = $('env');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  $('tiles').innerHTML = TILES.map(function (d, i) {
+    return '<div class="tile" id="t' + i + '"><span class="bubble">waiting</span><div class="nm"><span class="dot"></span>' + d[0] +
+      '<span class="stt"></span></div><div class="doing">' + d[1] + '</div><div class="tool"></div><div class="ctx"><i></i></div><div class="tok"></div></div>';
+  }).join('');
+  var tiles = TILES.map(function (_, i) { return $('t' + i); });
+  var CHAT = [[15.8, 'api', 'frontend', 'schema v2 is live, update the client'], [18.2, 'docs', 'api', 'which endpoints changed in v2?']];
+  $('chat').innerHTML = CHAT.map(function (c) { return '<p><b>' + c[1] + ' → ' + c[2] + '</b> ' + c[3] + '</p>'; }).join('');
+  var chatRows = [].slice.call($('chat').children);
+
+  $('ticks').innerHTML = CHAPTERS.map(function (c) { return '<i class="tick" style="left:' + c[0] / T * 100 + '%"></i>'; }).join('');
+  $('marks').innerHTML = CHAPTERS.map(function (c, i) {
+    return '<span data-t="' + (c[0] + .01) + '" style="left:' + c[0] / T * 100 + '%;transform:translateX(' + (i ? -50 : 0) + '%)">' + c[1] + '</span>';
+  }).join('');
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function ease(k) { return k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
+  function lerp(a, b, k) { return a + (b - a) * k; }
+  function prog(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+  function fmt(s) { s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function kfmt(k) { return k >= 1000 ? (k / 1000).toFixed(2) + 'M' : Math.round(k) + 'k'; }
+  function spot(id) {
+    var w = win.getBoundingClientRect();
+    if (!id) return [w.width * .8, w.height * .78];
+    var r = $(id).getBoundingClientRect();
+    return [r.left - w.left + r.width * .5, r.top - w.top + r.height * .55];
+  }
+
+  function render(t) {
+    var live = prog(t, 6, 24); // how far the "work" has progressed
+    var shown = 0;
+    tiles.forEach(function (el, i) {
+      var d = TILES[i], k = ease(live);
+      var on = t >= .8 + i * .7; if (on) shown++;
+      el.classList.toggle('in', on);
+      var waiting = i === 0 && t >= WAIT_AT && t < SEND_AT;
+      var busy = !waiting && (i === 0 ? t >= 6 : i === 2 ? false : t >= 3 + i);
+      el.style.setProperty('--c', waiting ? '#6b8fd4' : busy ? '#d99a45' : '#4c9a5a');
+      el.querySelector('.stt').textContent = waiting ? 'waiting' : busy ? 'busy' : 'idle';
+      el.querySelector('.bubble').classList.toggle('show', waiting);
+      el.classList.toggle('hl', waiting && t >= COMP_AT - .6);
+      el.querySelector('.tool').textContent = busy && d[2] && Math.floor(t * 1.3 + i) % 3 ? d[2] : '';
+      el.querySelector('.ctx i').style.width = lerp(d[3], d[4], k) * 100 + '%';
+      el.querySelector('.tok').innerHTML = '<b>' + kfmt(lerp(d[5], d[6], k)) + '</b> tokens';
+    });
+    $('hdSub').textContent = '— ' + shown + ' live in 4 projects' + (t >= WAIT_AT && t < SEND_AT ? ' · 1 waiting on you' : '');
+
+    var g = ease(prog(t, 1, 24));
+    $('s1').textContent = kfmt(lerp(4, 38, g) + Math.sin(t * 3) * 1.5);
+    $('s2').textContent = (lerp(41.2, 58.9, g)).toFixed(1) + 'M';
+    $('s3').textContent = '$' + Math.round(lerp(31, 47, g));
+    var p = ease(prog(t, 20, 24));
+    var p1 = Math.round(lerp(14, 38, Math.max(p, live * .3))), p2 = Math.round(lerp(58, 73, Math.max(p, live * .3)));
+    $('p1').style.width = p1 + '%'; $('p1t').textContent = p1 + '%';
+    $('p2').style.width = p2 + '%'; $('p2t').textContent = p2 + '%';
+    $('p2').classList.toggle('hot', p2 > 70);
+    $('p2s').textContent = t >= 21 ? 'resets Fri · 2h to spare' : 'on pace';
+
+    // envelope: api tile → frontend tile
+    var ek = prog(t, ENV_AT, ENV_AT + ENV_DUR), a = spot('t1'), b = spot('t0');
+    env.style.opacity = ek > 0 && ek < 1 ? 1 : 0;
+    env.style.transform = 'translate(' + (lerp(a[0], b[0], ease(ek)) - 10) + 'px,' + (lerp(a[1], b[1], ease(ek)) - 12 - Math.sin(ek * Math.PI) * 40) + 'px)';
+    chatRows.forEach(function (r, i) { r.classList.toggle('show', t >= CHAT[i][0]); });
+
+    // composer
+    $('comp').classList.toggle('show', t >= COMP_AT && t < END_AT);
+    $('m1').classList.add('show');
+    var typed = REPLY.slice(0, Math.floor(REPLY.length * prog(t, TYPE_AT, SEND_AT - .3)));
+    $('inp').textContent = t < SEND_AT ? typed : '';
+    $('m2').classList.toggle('show', t >= SEND_AT); $('m2t').textContent = REPLY;
+    $('m3').classList.toggle('show', t >= SEND_AT + .8);
+    $('end').classList.toggle('show', t >= END_AT);
+
+    var c0 = CURSOR[0], c1 = CURSOR[CURSOR.length - 1];
+    for (var i = 0; i < CURSOR.length - 1; i++) if (t >= CURSOR[i][0] && t <= CURSOR[i + 1][0]) { c0 = CURSOR[i]; c1 = CURSOR[i + 1]; break; }
+    var ck = ease(prog(t, c0[0], c1[0] || c0[0] + 1)), pa = spot(c0[1]), pb = spot(c1[1]);
+    cursor.style.transform = 'translate(' + lerp(pa[0], pb[0], ck) + 'px,' + lerp(pa[1], pb[1], ck) + 'px)';
+    cursor.classList.toggle('click', (t >= COMP_AT - .2 && t < COMP_AT + .1) || (t >= SEND_AT - .2 && t < SEND_AT + .1));
+    cursor.style.opacity = t >= END_AT ? 0 : 1;
+
+    var ch = CHAPTERS.filter(function (c) { return t >= c[0]; }).pop();
+    if ($('chT').textContent !== ch[2]) { $('chT').textContent = ch[2]; $('chP').textContent = ch[3]; }
+    $('time').textContent = fmt(t) + ' / ' + fmt(T);
+    $('fill').style.width = $('knob').style.left = t / T * 100 + '%';
+    track.setAttribute('aria-valuenow', Math.floor(t));
+    [].forEach.call($('marks').children, function (m) { m.classList.toggle('cur', m.textContent === ch[1]); });
+  }
+
+  // ---- scroll is the playhead (same player as the FileDownloader demo) ----
+  sec.style.height = 'calc(100vh + ' + T * SEC_VH + 'vh)';
+  function span() { return sec.offsetHeight - innerHeight; }
+  function tFromScroll() { return clamp(-sec.getBoundingClientRect().top / span(), 0, 1) * T; }
+  function scrollToT(t, smooth) { scrollTo({ top: sec.offsetTop + span() * clamp(t, 0, T) / T, behavior: smooth && !reduce ? 'smooth' : 'auto' }); }
+  var ticking = false, lastT = -1;
+  function onScroll() {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () { ticking = false; var t = tFromScroll(); if (t !== lastT) { lastT = t; render(t); } });
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+
+  var playing = false, last;
+  function setPlay(p) {
+    playing = p; $('play').textContent = p ? '❚❚' : '▶'; $('play').setAttribute('aria-label', p ? 'Pause' : 'Play');
+    if (p) { if (tFromScroll() >= T - .05) scrollToT(0); last = performance.now(); requestAnimationFrame(step); }
+  }
+  function step(now) {
+    if (!playing) return;
+    var t = tFromScroll() + (now - last) / 1000; last = now;
+    scrollToT(t);
+    if (t >= T) return setPlay(false);
+    requestAnimationFrame(step);
+  }
+  $('play').onclick = function () { setPlay(!playing); };
+  ['wheel', 'touchstart', 'keydown'].forEach(function (e) { addEventListener(e, function (ev) { if (ev.target !== $('play')) setPlay(false); }, { passive: true }); });
+
+  function seek(e) { var r = track.getBoundingClientRect(); scrollToT((e.clientX - r.left) / r.width * T); }
+  track.addEventListener('pointerdown', function (e) { setPlay(false); track.setPointerCapture(e.pointerId); seek(e); track.onpointermove = seek; });
+  track.addEventListener('pointerup', function () { track.onpointermove = null; });
+  track.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); scrollToT(tFromScroll() + (e.key === 'ArrowRight' ? 2 : -2)); }
+  });
+  $('marks').onclick = function (e) { var t = e.target.dataset.t; if (t) { setPlay(false); scrollToT(+t, true); } };
+
+  render(tFromScroll());
+})();
+</script>
+<script src="app.js"></script>
+</body>
+</html>
