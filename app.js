@@ -65,9 +65,14 @@
   var $ = function (id) { return document.getElementById(id); };
   function k(n) { return n >= 1e5 ? Math.round(n / 1e3) + 'K' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K' : String(n); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function md(s) { // tiny markdown: `code`, [text](url), paragraphs
+  function md(s) { // tiny markdown: `code`, [text](url), bare emails and web addresses become links, paragraphs
     return esc(s).split('\n').map(function (p) {
-      return '<p>' + p.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>') + '</p>';
+      return '<p>' + p.replace(/`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|([\w.+-]+@[\w-]+(?:\.[\w-]+)+)|((?:https?:\/\/)?(?:[\w-]+\.)+(?:com|in|io|dev|ai|me|org|net|app)\b(?:\/[^\s<]*[^\s<.,;:!?)])?)/g, function (m, code, text, href, mail, url) {
+        if (code) return '<code>' + code + '</code>';
+        if (text) return '<a href="' + href + '">' + text + '</a>';
+        if (mail) return '<a href="mailto:' + mail + '">' + mail + '</a>'; // the mailto handler below copies it / offers the form
+        return '<a href="' + (/^https?:/.test(url) ? url : 'https://' + url) + '" target="_blank" rel="noopener">' + url + '</a>';
+      }) + '</p>';
     }).join('');
   }
   function plain(s) { return s.replace(/`([^`]+)`/g, '$1').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '$1 ($2)'); }
