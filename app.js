@@ -410,7 +410,6 @@
   // ` and ~ are the terminal's keys; questions never need them. Strip them (typed, pasted or from a phone keyboard) and point to the terminal.
   var hintTimer;
   $('askIn').addEventListener('input', function () {
-    if (!this.value.trim()) $('sugg').hidden = false; // cleared the box: offer the starter chips again
     var el = this, v = el.value, clean = v.replace(/[`~]/g, '');
     if (clean === v) return;
     var pos = el.selectionStart - (v.slice(0, el.selectionStart).length - v.slice(0, el.selectionStart).replace(/[`~]/g, '').length);
@@ -430,7 +429,7 @@
   async function runAsk(exact) {
     var q = $('askIn').value.trim(); if (!q) return;
     var id = ++asking, trace = $('trace'), times = {}, searched = q;
-    trace.classList.add('show'); $('answer').innerHTML = ''; $('sugg').hidden = true; // one row of chips at a time: the answer's own
+    trace.classList.add('show'); $('answer').innerHTML = '';
     function draw(cur) {
       trace.innerHTML = '<div class="st done"><i>searched</i><b>“' + esc(searched) + '”</b></div>' + STEPS.map(function (s) {
         if (s === 'load' && times.load != null && times.load < 50) return ''; // already warm: don't show the one-time download

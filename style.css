@@ -131,7 +131,6 @@ section{padding:36px 0}
 .ask-hint.show{max-height:3em;opacity:1;margin-top:8px}
 .ask-hint button{font:inherit;color:var(--acc);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.sugg[hidden]{display:none}
 .sugg button.fresh{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
 .sugg button,.alts button{font:inherit;font-size:13px;background:var(--acc-soft);color:var(--ink);border:0;border-radius:999px;padding:5px 11px;cursor:pointer}
 .trace{margin-top:20px;background:#17171B;color:#D6D6DC;border-radius:10px;padding:12px 14px;font:13px/1.8 var(--mono);display:none}
