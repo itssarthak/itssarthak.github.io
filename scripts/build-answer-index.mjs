@@ -15,6 +15,7 @@ export const norm = (q) => q.toLowerCase().replace(/\bsarthak('s)?\b/g, "you").r
 
 const SRC = new URL("../docs/answer-bank.csv", import.meta.url);
 const OUT = new URL("../answers.json", import.meta.url);
+const COMMON = new URL("./common-words.txt", import.meta.url);
 
 // Minimal RFC 4180 reader: quoted fields, doubled quotes, newlines inside quotes.
 export function readCsv(text) {
@@ -67,7 +68,9 @@ async function main() {
   const counts = {};
   for (const x of answers) for (const w of [x.q, ...x.phrasings, x.a].join(" ").toLowerCase().match(/[a-z][a-z0-9'-]+/g) || []) counts[w] = (counts[w] || 0) + 1;
   const vocab = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).join(" ");
-  await writeFile(OUT, JSON.stringify({ model: MODEL, dtype: DTYPE, dim, answers: answers.map(({ q, era, a }) => ({ q, era, a })), idx, vecs: b64, vocab }));
+  // Common English words (google-10000-english, Josh Kaufman) the spelling fix leaves alone, so "married" never becomes "carried".
+  const common = (await readFile(COMMON, "utf8")).split(/\s+/).filter((w) => w.length >= 5 && !(w in counts)).join(" ");
+  await writeFile(OUT, JSON.stringify({ model: MODEL, dtype: DTYPE, dim, answers: answers.map(({ q, era, a }) => ({ q, era, a })), idx, vecs: b64, vocab, common }));
   console.log(`wrote ${answers.length} answers, ${idx.length} vectors × ${dim} dims`);
 }
 

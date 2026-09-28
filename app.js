@@ -307,7 +307,7 @@
     return d[a.length][b.length];
   }
   function spellFix(q, d) { // → corrected text, or q unchanged
-    if (!d.vocabList) { d.vocabList = (d.vocab || '').split(' '); d.vocabSet = new Set(d.vocabList); }
+    if (!d.vocabList) { d.vocabList = (d.vocab || '').split(' '); d.vocabSet = new Set(d.vocabList.concat((d.common || '').split(' '))); } // common English words are real words: never "fix" them
     return q.replace(/[A-Za-z][A-Za-z'-]{4,}/g, function (w) { // 5+ letters only: short words like "tall"/"tell" are too ambiguous
       var lw = w.toLowerCase();
       if (d.vocabSet.has(lw)) return w;
