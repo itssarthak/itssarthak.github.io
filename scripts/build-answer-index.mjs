@@ -63,7 +63,11 @@ async function main() {
   }
   const dim = vecs.length / idx.length;
   const b64 = Buffer.from(Int8Array.from(vecs).buffer).toString("base64");
-  await writeFile(OUT, JSON.stringify({ model: MODEL, dtype: DTYPE, dim, answers: answers.map(({ q, era, a }) => ({ q, era, a })), idx, vecs: b64 }));
+  // Vocabulary for the Ask box's spelling fix: every word in the bank with its count, most frequent first.
+  const counts = {};
+  for (const x of answers) for (const w of [x.q, ...x.phrasings, x.a].join(" ").toLowerCase().match(/[a-z][a-z0-9'-]+/g) || []) counts[w] = (counts[w] || 0) + 1;
+  const vocab = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).join(" ");
+  await writeFile(OUT, JSON.stringify({ model: MODEL, dtype: DTYPE, dim, answers: answers.map(({ q, era, a }) => ({ q, era, a })), idx, vecs: b64, vocab }));
   console.log(`wrote ${answers.length} answers, ${idx.length} vectors × ${dim} dims`);
 }
 

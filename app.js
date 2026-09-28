@@ -288,26 +288,69 @@
   function loadModel() {
     return modelP || (modelP = import(TF).then(function (m) { return m.pipeline('feature-extraction', MODEL, { dtype: DTYPE }); }));
   }
+  // ---- spelling fix: typos are corrected against the answer bank's own vocabulary ------------------
+  function osa(a, b, max) { // optimal-string-alignment distance (edits incl. swapped letters), gives up past max
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    var d = [], i, j;
+    for (i = 0; i <= a.length; i++) { d[i] = [i]; }
+    for (j = 0; j <= b.length; j++) d[0][j] = j;
+    for (i = 1; i <= a.length; i++) {
+      var rowMin = Infinity;
+      for (j = 1; j <= b.length; j++) {
+        var c = a[i - 1] === b[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+        rowMin = Math.min(rowMin, d[i][j]);
+      }
+      if (rowMin > max) return max + 1;
+    }
+    return d[a.length][b.length];
+  }
+  function spellFix(q, d) { // → corrected text, or q unchanged
+    if (!d.vocabList) { d.vocabList = (d.vocab || '').split(' '); d.vocabSet = new Set(d.vocabList); }
+    return q.replace(/[A-Za-z][A-Za-z'-]{4,}/g, function (w) { // 5+ letters only: short words like "tall"/"tell" are too ambiguous
+      var lw = w.toLowerCase();
+      if (d.vocabSet.has(lw)) return w;
+      var max = lw.length <= 6 ? 1 : 2, best = null, bestD = max + 1;
+      for (var i = 0; i < d.vocabList.length; i++) { // list is most-frequent first, so ties go to the common word
+        var c = d.vocabList[i];
+        if (c[0] !== lw[0] && lw.length < 6) continue; // short typos rarely get the first letter wrong; saves work
+        var dist = osa(lw, c, max);
+        if (dist < bestD) { bestD = dist; best = c; if (dist === 1) break; }
+      }
+      return best || w;
+    });
+  }
   function eraOf(tag) { return tag === 'all' ? -1 : eraFromArg(tag); } // 'v5' → 4
 
   // step(name, ms|null) is called as each stage starts (null) and ends (ms)
-  async function search(q, step) {
+  async function search(q, step, opts) {
     step = step || function () {};
     logAsked(q);
     var now = function () { return performance.now(); }, t;
     step('load', null); t = now();
     var got = await Promise.all([loadIndex(), loadModel(), statsReady]), d = got[0], embed = got[1];
     step('load', now() - t);
+    var fixed = opts && opts.exact ? q : spellFix(q, d);
     step('embed', null); t = now();
     var qv = (await embed(norm(q), { pooling: 'mean', normalize: true })).data;
+    var fv = fixed !== q ? (await embed(norm(fixed), { pooling: 'mean', normalize: true })).data : null;
     step('embed', now() - t);
     step('search', null); t = now();
-    var n = d.idx.length, dim = d.dim, best = {};
-    for (var i = 0; i < n; i++) {
-      var s = 0, o = i * dim;
-      for (var j = 0; j < dim; j++) s += qv[j] * d.v[o + j];
-      s /= 127;
-      if (!(d.idx[i] in best) || s > best[d.idx[i]]) best[d.idx[i]] = s;
+    function scan(vec) {
+      var n = d.idx.length, dim = d.dim, best = {};
+      for (var i = 0; i < n; i++) {
+        var s = 0, o = i * dim;
+        for (var j = 0; j < dim; j++) s += vec[j] * d.v[o + j];
+        s /= 127;
+        if (!(d.idx[i] in best) || s > best[d.idx[i]]) best[d.idx[i]] = s;
+      }
+      return best;
+    }
+    var best = scan(qv), corrected = null;
+    if (fv) { // keep the correction only if it actually matches better
+      var alt = scan(fv), top0 = Math.max.apply(null, Object.values(best)), top1 = Math.max.apply(null, Object.values(alt));
+      if (top1 >= MATCH && top1 - top0 >= 0.05) { best = alt; corrected = fixed; } // only a clearly better, real match wins
     }
     step('search', now() - t);
     step('rank', null); t = now();
@@ -315,6 +358,7 @@
     step('rank', now() - t);
     step('answer', null); t = now();
     var r = compose(d, top);
+    r.corrected = corrected;
     step('answer', now() - t);
     if (r.hit) onAnswered(r.q);
     return r;
@@ -371,10 +415,13 @@
   });
   $('askHint').onclick = function (e) { if (e.target.tagName === 'BUTTON') { $('askHint').classList.remove('show'); openTerm(); } };
   $('askForm').onsubmit = function (e) { e.preventDefault(); runAsk(); };
-  $('answer').onclick = function (e) { if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); } };
+  $('answer').onclick = function (e) {
+    if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); }
+    else if (e.target.dataset.exact) runAsk(true);
+  };
 
   var asking = 0;
-  async function runAsk() {
+  async function runAsk(exact) {
     var q = $('askIn').value.trim(); if (!q) return;
     var id = ++asking, trace = $('trace'), times = {};
     trace.classList.add('show'); $('answer').innerHTML = '';
@@ -388,14 +435,15 @@
       }).join('');
     }
     try {
-      var r = await search(q, function (name, ms) { if (id !== asking) return; if (ms != null) times[name] = ms; draw(ms == null ? name : null); });
+      var r = await search(q, function (name, ms) { if (id !== asking) return; if (ms != null) times[name] = ms; draw(ms == null ? name : null); }, { exact: exact === true });
       if (id !== asking) return;
       trace.innerHTML += '<div class="st done"><i>match</i><b>' + r.score.toFixed(2) + '</b>&nbsp;“' + esc(r.q) + '”</div>';
-      $('answer').innerHTML = r.hit
+      var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="1">search “' + esc(q) + '” instead</button></p>' : '';
+      $('answer').innerHTML = didYou + (r.hit
         ? (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
         : '<p>I don’t have an answer for that one, and I won’t make one up. Closest questions I can answer:</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
-          '</div><p>Or ask me directly: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>. Psst: try the terminal (press ~), it knows more tricks.</p>';
+          '</div><p>Or ask me directly: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>. Psst: try the terminal (press ~), it knows more tricks.</p>');
     } catch (err) {
       if (id !== asking) return;
       trace.classList.remove('show');
@@ -735,6 +783,7 @@
         if (cmd !== 'ask') print('<span class="d">not a command, asking the system…</span>');
         var t = {};
         r = await search(q, function (n, ms) { if (ms != null) t[n] = ms; });
+        if (r.corrected) print('<span class="d">showing results for “' + esc(r.corrected) + '”</span>');
         print('<span class="d">' + ['embed', 'search', 'rank', 'answer'].map(function (n) { return n + ' ' + t[n].toFixed(1) + 'ms'; }).join(' · ') + ' · match ' + r.score.toFixed(2) + '</span>');
         return print(r.hit ? esc(plain((r.note ? r.note + '\n' : '') + r.text)) : 'no confident match. closest: ' + r.alts.map(esc).join(' | ') + '\nor run `mail` to ask me directly', r.hit ? '' : 'e');
       }
