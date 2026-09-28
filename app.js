@@ -77,7 +77,7 @@
   if (!$('term')) document.body.insertAdjacentHTML('beforeend',
     '<div class="term" id="term" role="dialog" aria-label="Terminal" aria-modal="false"><div class="bar"><i></i><i></i><i></i><span>sarthak — zsh</span>' +
     '<button id="termX" aria-label="Close terminal">esc ✕</button></div><div class="out" id="out"></div>' +
-    '<form class="line" id="termForm"><span id="ps1"></span><input id="termIn" autocomplete="off" spellcheck="false" aria-label="Terminal input"></form></div>' +
+    '<form class="line" id="termForm"><span id="ps1"></span><span class="gw"><span class="ghost" id="ghost" aria-hidden="true"></span><input id="termIn" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input"></span></form></div>' +
     ($('termChip') ? '' : '<button class="term-fab" id="termChip" aria-label="Open terminal">~$</button>'));
 
   // ---- live stats -------------------------------------------------------
@@ -102,7 +102,7 @@
   function setEra(i) {
     i = Math.max(0, Math.min(HEAD, i));
     var changed = i !== era; era = i;
-    $('ps1').textContent = 'sarthak@' + STOPS[i].v + ' ~ %';
+    if (typeof setPrompt === 'function' && !mode) setPrompt();
     if (!HOME) return;
     document.body.dataset.era = STOPS[i].look;
     $('ver').textContent = label(i);
@@ -170,6 +170,22 @@
     $('rail').onclick = function (e) { var b = e.target.closest('button'); if (b) scrollToStop(+b.dataset.i, true); };
     addEventListener('scroll', function () { var i = stopFromScroll(); if (i !== era) setEra(i); }, { passive: true }); // cheap: two rect reads; DOM only changes on a new version
   }
+
+  // ---- mail (shared by the contact form and the terminal's `mail`) ---------
+  // Same EmailJS service and template as the old contact page, so messages land in the same inbox. SDK loads on first use.
+  var mailSdk;
+  function loadMail() {
+    return mailSdk || (mailSdk = new Promise(function (res, rej) {
+      var el = document.createElement('script');
+      el.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+      el.onload = function () { window.emailjs.init('LhqIBx9HdNrecNXa6'); res(window.emailjs); };
+      el.onerror = function (e) { mailSdk = null; rej(e); }; document.head.appendChild(el);
+    }));
+  }
+  function sendMail(fields) { // { fullname, email, message }
+    return loadMail().then(function (ej) { return ej.send('service_okhl58i', 'template_k5j1ftq', fields); });
+  }
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   // ---- the search engine (shared) ---------------------------------------
   // Must match scripts/build-answer-index.mjs, or the vectors aren't comparable.
@@ -303,24 +319,15 @@
     }
   }
 
-  // Contact form: same EmailJS service and template as the old contact page, so messages land in the same inbox.
-  // The SDK loads only once someone starts typing.
+  // Contact form (sends through sendMail, shared with the terminal).
   (function () {
-    var f = $('contact'), btn = $('sendBtn'), msg = $('formMsg'), sdk;
-    function loadSdk() {
-      return sdk || (sdk = new Promise(function (res, rej) {
-        var s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-        s.onload = function () { window.emailjs.init('LhqIBx9HdNrecNXa6'); res(window.emailjs); };
-        s.onerror = rej; document.head.appendChild(s);
-      }));
-    }
-    f.addEventListener('input', function () { loadSdk().catch(function () {}); btn.disabled = !f.checkValidity(); msg.textContent = ''; msg.className = 'form-msg'; });
+    var f = $('contact'), btn = $('sendBtn'), msg = $('formMsg');
+    f.addEventListener('input', function () { loadMail().catch(function () {}); btn.disabled = !f.checkValidity(); msg.textContent = ''; msg.className = 'form-msg'; });
     f.onsubmit = function (e) {
       e.preventDefault();
       if (!f.checkValidity()) return;
       btn.disabled = true; btn.textContent = 'Sending…';
-      loadSdk().then(function (ej) { return ej.sendForm('service_okhl58i', 'template_k5j1ftq', f); })
+      sendMail({ fullname: f.fullname.value.trim(), email: f.email.value.trim(), message: f.message.value.trim() })
         .then(function () { f.reset(); msg.className = 'form-msg ok'; msg.textContent = 'Sent. I’ll get back to you within a day.'; })
         .catch(function () { btn.disabled = false; msg.className = 'form-msg err'; msg.innerHTML = 'That didn’t go through. Try again, or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.'; })
         .then(function () { btn.textContent = 'Send message'; });
@@ -387,88 +394,326 @@
   })();
 
   // ---- terminal ---------------------------------------------------------
-  var term = $('term'), out = $('out'), tin = $('termIn'), hist = [], hi = 0, greeted = false;
-  var CMDS = ['help', 'status', 'ask', 'git checkout', 'git log', 'ls', 'open', 'visit', 'home', 'whoami', 'contact', 'clear', 'exit'];
-  function print(html, cls) { var el = document.createElement('div'); if (cls) el.className = cls; el.innerHTML = html; out.appendChild(el); out.scrollTop = out.scrollHeight; }
+  // A small shell over the site's own content: a virtual filesystem, git over the versions, live tools, and mail.
+  // Anything that isn't a command is asked to the search engine.
+  var term = $('term'), out = $('out'), tin = $('termIn'), greeted = false;
+  var hist = [], hi = 0, cwd = [], mode = null; // mode: an interactive program (mail, top) that owns the input
+  try { hist = JSON.parse(localStorage.getItem('sv.hist')) || []; } catch (e) {}
+  hi = hist.length;
+  function print(html, cls) { var el = document.createElement('div'); if (cls) el.className = cls; el.innerHTML = html; out.appendChild(el); out.scrollTop = out.scrollHeight; return el; }
   function openTerm() {
     term.classList.add('open'); tin.focus();
-    if (!greeted) { greeted = true; print('<span class="c">Welcome to the backstage.</span> Type <b>help</b> to see what I can do.', ''); }
+    if (!greeted) { greeted = true; print('<span class="c">Welcome to the backstage.</span> Type <b>help</b>, or just ask a question.'); }
   }
   function closeTerm() { term.classList.remove('open'); tin.blur(); }
+  function ps1() { return 'sarthak@' + STOPS[era].v + ' ~' + (cwd.length ? '/' + cwd.join('/') : '') + ' %'; }
+  function setPrompt(p) { $('ps1').textContent = p || ps1(); }
+
   function statusText() {
     var lines = ['version ' + label(era), 'system  ' + sysText()];
     if (era === HEAD && stats) SERVICES.forEach(function (s) { var m = s.metric(stats); lines.push((healthy() ? '● ' : '◐ ') + s.name.padEnd(15) + m[0] + ' ' + m[1]); });
     return lines.join('\n');
   }
-  var RUN = {
-    help: function () {
-      return ['help                  this list', 'status                system and side-quest health', 'ask "..."             ask me anything', 'git checkout <v1–v6>  roll the system back (or a title: senior, tech lead)',
-        'git log               every version', 'ls                    list side quests', 'open <project>        watch its demo', 'visit <project>       open the real product', 'home                  back to the home page', 'whoami                who is this', 'contact               how to reach me', 'clear, exit'].join('\n');
-    },
-    status: statusText,
-    whoami: function () { return 'Sarthak Chhabra. Tech Lead, 7+ years. I build the platforms that put AI agents into production. Gurgaon, India.'; },
-    contact: function () { return 'email     ' + EMAIL + '\nlinkedin  linkedin.com/in/sarthak-chhabra'; },
-    ls: function () { return SERVICES.map(function (s) { return s.id; }).join('   '); },
-    clear: function () { out.innerHTML = ''; return ''; },
-    exit: function () { closeTerm(); return ''; },
-    home: function () { location.href = './'; return ''; }
-  };
+  function slug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  // -- virtual filesystem: built from the same data as the page, so it never drifts ----------------------
+  function file(read, run) { return { read: read, run: run }; }
+  function stopText(s) {
+    return '# ' + s.v + ' · ' + s.title + '\n' + s.blurb + '\n\n' + s.projects.map(function (p) {
+      return '## ' + p[0] + '  (' + p[1] + ')\n' + p[2] + '\n' + p[3].map(function (m) { return '  › ' + m; }).join('\n');
+    }).join('\n\n') + '\n\nstack: ' + s.stack.join(', ');
+  }
+  var FS = { dir: {
+    'about.md': file(function () { return '# Sarthak Chhabra\nTech Lead, 7+ years. I build the platforms that put AI agents into production:\nrouting engines, RAG pipelines and no-code tooling that turn weeks of engineering\ninto minutes of configuration.\n\nGurgaon, India · IST (UTC+5:30)'; }),
+    'contact.md': file(function () { return 'email     ' + EMAIL + '\nlinkedin  linkedin.com/in/sarthak-chhabra\n\nor write to me right here: run `mail`'; }),
+    'stack.json': file(function () { return JSON.stringify({ version: STOPS[HEAD].v, stack: STOPS[HEAD].stack }, null, 2); }),
+    'resume.pdf': file(function () { return 'binary file. opening it instead…'; }, function () { window.open('/Sarthak%20Resume.pdf', '_blank', 'noopener'); }),
+    '.secrets': file(function () { return 'nice try. the only secret is that I read every message. run `mail`.'; }),
+    'side-quests': { dir: {} },
+    'versions': { dir: {} }
+  } };
+  SERVICES.forEach(function (sv) {
+    FS.dir['side-quests'].dir[sv.id + '.md'] = file(function () {
+      var m = stats ? sv.metric(stats) : ['—', ''];
+      return '# ' + sv.name + '\n' + sv.d + '\n\nlive      ' + m[0] + ' ' + m[1] + '\nsite      ' + sv.url + '\n\nwatch it run: `open ' + sv.id + '`';
+    });
+  });
+  STOPS.forEach(function (st) { FS.dir.versions.dir[st.v + '-' + slug(st.title) + '.md'] = file(function () { return stopText(st); }); });
+
+  function resolve(p) { // → { node, path } or null
+    var parts = (p || '').startsWith('/') || p === '~' || (p || '').startsWith('~/') ? [] : cwd.slice();
+    (p || '').replace(/^~\/?|^\//, '').split('/').forEach(function (x) {
+      if (!x || x === '.') return;
+      if (x === '..') parts.pop(); else parts.push(x);
+    });
+    var node = FS;
+    for (var i = 0; i < parts.length; i++) { if (!node.dir || !node.dir[parts[i]]) return null; node = node.dir[parts[i]]; }
+    return { node: node, path: parts };
+  }
+  function listing(node, all) {
+    return Object.keys(node.dir).filter(function (n) { return all || n[0] !== '.'; })
+      .map(function (n) { return node.dir[n].dir ? '<span class="dir">' + n + '/</span>' : esc(n); }).join('   ');
+  }
+  function tree(node, pre) {
+    var names = Object.keys(node.dir).filter(function (n) { return n[0] !== '.'; });
+    return names.map(function (n, i) {
+      var last = i === names.length - 1, kid = node.dir[n];
+      return pre + (last ? '└── ' : '├── ') + (kid.dir ? '<span class="dir">' + n + '/</span>' : esc(n)) + (kid.dir ? '\n' + tree(kid, pre + (last ? '    ' : '│   ')) : '');
+    }).join('\n').replace(/\n$/, '');
+  }
+
+  // -- git over the versions --------------------------------------------------------------------------
+  function gitLog(graph) {
+    return STOPS.slice().reverse().map(function (st, i) {
+      var head = i === 0 ? ' <span class="a">(HEAD → main)</span>' : '';
+      var line = (graph ? '* ' : '') + '<span class="a">' + st.v + '</span>' + head + '  ' + esc(st.title);
+      if (graph && i === 0) line += '\n|\\\n| * <span class="a">side-quests</span>  ' + SERVICES.map(function (x) { return x.name; }).join(', ') + '\n|/';
+      if (graph && i < STOPS.length - 1) line += '\n|';
+      return line;
+    }).join('\n') + (graph ? '\n<span class="d">(root)</span>' : '');
+  }
+  function gitDiff(a, b) {
+    var A = STOPS[a], B = STOPS[b], o = ['<span class="d">diff --career ' + A.v + ' ' + B.v + '</span>'];
+    if (A.title !== B.title) o.push('<span class="e">- title: ' + esc(A.title) + '</span>', '<span class="c">+ title: ' + esc(B.title) + '</span>');
+    var coA = A.projects.map(function (p) { return p[1]; }), coB = B.projects.map(function (p) { return p[1]; });
+    coA.filter(function (c, i) { return coA.indexOf(c) === i && coB.indexOf(c) < 0; }).forEach(function (c) { o.push('<span class="e">- at: ' + esc(c) + '</span>'); });
+    coB.filter(function (c, i) { return coB.indexOf(c) === i && coA.indexOf(c) < 0; }).forEach(function (c) { o.push('<span class="c">+ at: ' + esc(c) + '</span>'); });
+    A.stack.filter(function (x) { return B.stack.indexOf(x) < 0; }).forEach(function (x) { o.push('<span class="e">- stack: ' + esc(x) + '</span>'); });
+    B.stack.filter(function (x) { return A.stack.indexOf(x) < 0; }).forEach(function (x) { o.push('<span class="c">+ stack: ' + esc(x) + '</span>'); });
+    B.projects.forEach(function (p) { o.push('<span class="c">+ shipped: ' + esc(p[0]) + ' (' + p[3].join(', ') + ')</span>'); });
+    return o.join('\n');
+  }
+
+  // -- live tools -------------------------------------------------------------------------------------
+  var BARS = ' ▁▂▃▄▅▆▇█';
+  function spark(vals) {
+    var max = Math.max.apply(null, vals) || 1;
+    return vals.map(function (v) { return BARS[Math.max(1, Math.round(v / max * 8))]; }).join(''); // quiet days sit on the baseline, not blank
+  }
+  function topFrame(tick) {
+    if (!stats) return 'live stats are still loading…';
+    var rows = SERVICES.map(function (sv) {
+      var ser = (stats[sv.id] && stats[sv.id].series) || { values: [], metric: '' }, vals = ser.values.slice(-21), m = sv.metric(stats);
+      var sp = spark(vals), cur = tick % Math.max(1, vals.length);
+      sp = sp.slice(0, cur) + '<span class="a">' + sp[cur] + '</span>' + sp.slice(cur + 1);
+      return sv.name.padEnd(15) + sp + '  ' + m[0] + ' ' + m[1] + '  <span class="d">' + ser.metric + '/day</span>';
+    });
+    return '<span class="b">top</span> <span class="d">· side quests, last 21 days · refreshed ' + stats.updated + ' · press q to quit</span>\n' + rows.join('\n');
+  }
+  function startTop() {
+    var el = print(topFrame(0)), tick = 0;
+    mode = { type: 'top', stop: function () { clearInterval(iv); mode = null; setPrompt(); } };
+    var iv = setInterval(function () { el.innerHTML = topFrame(++tick); }, 350);
+    setPrompt('(top running · q to quit)');
+  }
+  function ping(host) {
+    var t, n = 0, times = [], el = print('PING ' + esc(host) + ' <span class="d">(https round trip)</span>');
+    function one() {
+      t = performance.now();
+      return fetch('https://' + host + '/favicon.ico?_=' + Date.now(), { mode: 'no-cors', cache: 'no-store' }).then(function () {
+        var ms = performance.now() - t; times.push(ms);
+        el.innerHTML += '\nreply from ' + esc(host) + ': time=' + ms.toFixed(0) + ' ms';
+      });
+    }
+    var chain = Promise.resolve();
+    for (var i = 0; i < 4; i++) chain = chain.then(one).then(function () { return new Promise(function (r) { setTimeout(r, 250); }); });
+    return chain.then(function () {
+      var avg = times.reduce(function (a, b) { return a + b; }, 0) / times.length;
+      el.innerHTML += '\n<span class="d">4 sent, 4 received · avg ' + avg.toFixed(0) + ' ms</span>';
+    }).catch(function () { el.innerHTML += '\n<span class="e">' + esc(host) + ' did not answer</span>'; });
+  }
+  function neofetch() {
+    var logo = ['  ███████ ', ' ██       ', '  ██████  ', '       ██ ', ' ███████  ', '          ', ' v e r s i o n e d'];
+    var info = [
+      '<span class="a">sarthak</span>@<span class="a">sarthakchhabra.com</span>',
+      '------------------------',
+      '<span class="a">OS</span>      ' + label(HEAD),
+      '<span class="a">Uptime</span>  7+ years shipping',
+      '<span class="a">Host</span>    Gurgaon, India',
+      '<span class="a">Shell</span>   zsh (in your browser)',
+      '<span class="a">Stack</span>   ' + STOPS[HEAD].stack.slice(0, 5).join(', '),
+      '<span class="a">Quests</span>  ' + SERVICES.length + ' live side quests',
+      '<span class="a">Status</span>  open to Tech Lead / EM roles'
+    ];
+    return info.map(function (l, i) { return '<span class="a">' + (logo[i] || '').padEnd(19) + '</span>' + l; }).join('\n');
+  }
+
+  // -- mail: name → email → message → confirm -------------------------------------------------------
+  function startMail() {
+    mode = { type: 'mail', step: 0, data: {}, stop: function () { mode = null; setPrompt(); print('<span class="d">mail cancelled</span>'); } };
+    print('<span class="d">Writing to Sarthak. Ctrl+C to cancel.</span>');
+    setPrompt('name:');
+  }
+  function mailStep(v) {
+    var m = mode, d = m.data;
+    print('<span class="c">' + esc($('ps1').textContent) + '</span> ' + esc(v));
+    if (m.step === 0) { if (!v.trim()) return print('a name, please', 'e'); d.fullname = v.trim(); m.step = 1; return setPrompt('email:'); }
+    if (m.step === 1) { if (!EMAIL_RE.test(v.trim())) return print('that email doesn’t look right, try again', 'e'); d.email = v.trim(); m.step = 2; return setPrompt('message:'); }
+    if (m.step === 2) { if (v.trim().length < 5) return print('a few more words, please', 'e'); d.message = v.trim(); m.step = 3; return setPrompt('send? (y/n)'); }
+    if (m.step === 3) {
+      if (!/^y/i.test(v)) return m.stop();
+      mode = null; setPrompt('sending…');
+      return sendMail(d).then(function () { print('<span class="c">sent.</span> I’ll get back to you within a day.'); })
+        .catch(function () { print('that didn’t go through. email ' + EMAIL + ' directly.', 'e'); })
+        .then(function () { setPrompt(); });
+    }
+  }
+
+  // -- commands ---------------------------------------------------------------------------------------
+  var HELP = [
+    ['explore', [['ls [-a] [dir]', 'list files'], ['cd <dir>', 'change directory (~, .., side-quests, versions)'], ['cat <file>', 'print a file'], ['tree', 'everything at once'], ['pwd', 'where am I']]],
+    ['history', [['git log [--graph]', 'every version'], ['git show v5', 'one version in detail'], ['git diff v5 v6', 'what changed between two versions'], ['git branch', 'side quests'], ['git checkout v3', 'roll the site back']]],
+    ['live', [['top', 'side quests, live'], ['neofetch', 'who is this'], ['uptime', 'how long I’ve been shipping'], ['ping <host>', 'e.g. ping askmyastro.in'], ['status', 'system health']]],
+    ['talk', [['ask "…"', 'ask me anything (or just type a question)'], ['mail', 'send me a message from here'], ['open / visit <project>', 'watch its demo / open the real product'], ['contact', 'email and LinkedIn']]],
+    ['shell', [['clear, Ctrl+L', ''], ['Ctrl+C', 'cancel'], ['Tab, →', 'autocomplete'], ['home, exit', '']]]
+  ];
+  var CMDS = ['help', 'ls', 'cd', 'cat', 'tree', 'pwd', 'git', 'top', 'neofetch', 'uptime', 'ping', 'status', 'ask', 'mail', 'open', 'visit', 'contact', 'whoami', 'clear', 'home', 'exit', 'history'];
+  var GIT = ['log', 'log --graph', 'show', 'diff', 'branch', 'checkout', 'status'];
+
   async function exec(line) {
-    print('<span class="c">' + esc($('ps1').textContent) + '</span> ' + esc(line));
+    print('<span class="c">' + esc(ps1()) + '</span> ' + esc(line));
     var m = line.trim().match(/^(\S+)\s*(.*)$/); if (!m) return;
-    var cmd = m[1].toLowerCase(), arg = m[2].trim();
-    if (cmd === 'git' && /^checkout\b/.test(arg)) { cmd = 'checkout'; arg = arg.replace(/^checkout\s*/, ''); }
-    else if (cmd === 'git' && /^log\b/.test(arg)) cmd = 'log';
-    if (cmd === 'checkout') {
-      var i = eraFromArg(arg);
-      if (i < 0) return print('usage: git checkout v1 … v' + STOPS.length + ', e.g. git checkout v3', 'e');
-      goEra(i); return print('HEAD is now at ' + label(i) + '. ' + STOPS[i].blurb, 'd');
+    var cmd = m[1].toLowerCase(), arg = m[2].trim(), r;
+    switch (cmd) {
+      case 'help':
+        return print(HELP.map(function (g) {
+          return '<span class="a">' + g[0] + '</span>\n' + g[1].map(function (c) { return '  ' + esc(c[0].padEnd(24)) + '<span class="d">' + esc(c[1]) + '</span>'; }).join('\n');
+        }).join('\n'));
+      case 'ls': {
+        var all = /(^|\s)-a\b/.test(arg); arg = arg.replace(/(^|\s)-a\b/, '').trim();
+        r = resolve(arg || '.');
+        if (!r) return print('ls: ' + esc(arg) + ': no such file or directory', 'e');
+        return print(r.node.dir ? listing(r.node, all) : esc(arg));
+      }
+      case 'cd':
+        r = resolve(arg || '~');
+        if (!r || !r.node.dir) return print('cd: not a directory: ' + esc(arg), 'e');
+        cwd = r.path; return setPrompt();
+      case 'pwd': return print('~' + (cwd.length ? '/' + cwd.join('/') : ''));
+      case 'cat': case 'less': case 'more': {
+        if (!arg) return print('usage: cat <file>', 'e');
+        r = resolve(arg);
+        if (!r) return print('cat: ' + esc(arg) + ': no such file', 'e');
+        if (r.node.dir) return print('cat: ' + esc(arg) + ': is a directory. try `ls ' + esc(arg) + '`', 'e');
+        print(esc(r.node.read())); if (r.node.run) r.node.run(); return;
+      }
+      case 'tree': return print('<span class="dir">~/</span>\n' + tree(FS, ''));
+      case 'git': {
+        var sub = arg.split(/\s+/), g = sub[0];
+        if (g === 'log') return print(gitLog(/--graph|--oneline/.test(arg)));
+        if (g === 'branch') return print('* <span class="c">main</span>\n' + SERVICES.map(function (x) { return '  side-quest/' + x.id; }).join('\n'));
+        if (g === 'status') return print('On branch main\nHEAD at ' + label(era) + '\nnothing to commit, open to opportunities');
+        if (g === 'show') { var i = eraFromArg(sub[1] || 'v6'); if (i < 0) return print('usage: git show v1 … v6', 'e'); return print(esc(stopText(STOPS[i]))); }
+        if (g === 'diff') {
+          var x = eraFromArg(sub[1] || 'v5'), y = eraFromArg(sub[2] || (sub[1] ? 'v6' : 'v6'));
+          if (x < 0 || y < 0) return print('usage: git diff v5 v6', 'e');
+          return print(gitDiff(x, y));
+        }
+        if (g === 'checkout') {
+          var target = sub.slice(1).join(' ');
+          var sq = SERVICES.find(function (q) { return target === 'side-quest/' + q.id; });
+          if (sq) { location.href = '/' + sq.href; return; }
+          var ci = eraFromArg(target);
+          if (ci < 0) return print('usage: git checkout v1 … v' + STOPS.length + ', e.g. git checkout v3', 'e');
+          goEra(ci); return print('HEAD is now at ' + label(ci) + '. ' + STOPS[ci].blurb, 'd');
+        }
+        return print('git: try log, show, diff, branch, checkout or status', 'e');
+      }
+      case 'top': case 'htop': return startTop();
+      case 'neofetch': case 'whoami': return print(neofetch());
+      case 'uptime': return print('up 7+ years, ' + STOPS.length + ' versions, load average: ' + SERVICES.length + ' side quests');
+      case 'ping': {
+        var host = (arg || 'askmyastro.in').replace(/^https?:\/\//, '').split('/')[0];
+        if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)) return print('usage: ping askmyastro.in', 'e');
+        return ping(host);
+      }
+      case 'status': return print(esc(statusText()));
+      case 'mail': return startMail();
+      case 'contact': return print(esc(FS.dir['contact.md'].read()));
+      case 'history': return print(hist.slice(-20).map(function (h, i) { return String(i + 1).padStart(3) + '  ' + esc(h); }).join('\n'));
+      case 'open': case 'visit': {
+        var s = SERVICES.find(function (x) { return x.id === arg.toLowerCase(); });
+        if (!s) { r = resolve(arg); if (r && !r.node.dir) { print(esc(r.node.read())); if (r.node.run) r.node.run(); return; } }
+        if (!s) return print('usage: ' + cmd + ' <' + SERVICES.map(function (x) { return x.id; }).join('|') + '>', 'e');
+        if (cmd === 'visit') { window.open(s.url, '_blank', 'noopener'); return print('opened ' + s.url, 'd'); }
+        location.href = '/' + s.href; return;
+      }
+      case 'clear': out.innerHTML = ''; return;
+      case 'exit': return closeTerm();
+      case 'home': location.href = '/'; return;
+      case 'sudo': return print('nice try. this incident has been logged 🙂', 'e');
+      case 'rm': return print('rm: permission denied. the past is read-only; try `git log`.', 'e');
+      case 'ask': default: {
+        // Not a command: ask the engine. (Single unknown words still get asked; they're usually names or topics.)
+        var q = (cmd === 'ask' ? arg : line).replace(/^["']|["']$/g, '').trim();
+        if (!q) return print('usage: ask "is he open to remote roles?"', 'e');
+        if (cmd !== 'ask') print('<span class="d">not a command, asking the system…</span>');
+        var t = {};
+        r = await search(q, function (n, ms) { if (ms != null) t[n] = ms; });
+        print('<span class="d">' + ['embed', 'search', 'rank', 'answer'].map(function (n) { return n + ' ' + t[n].toFixed(1) + 'ms'; }).join(' · ') + ' · match ' + r.score.toFixed(2) + '</span>');
+        return print(r.hit ? esc(plain((r.note ? r.note + '\n' : '') + r.text)) : 'no confident match. closest: ' + r.alts.map(esc).join(' | ') + '\nor run `mail` to ask me directly', r.hit ? '' : 'e');
+      }
     }
-    if (cmd === 'log') return print(STOPS.slice().reverse().map(function (s) {
-      return '<span class="a">' + s.v + '</span>  ' + esc(s.title) + '  <span class="d">' + esc(s.projects.map(function (p) { return p[0]; }).join(', ')) + '</span>';
-    }).join('\n'));
-    if (cmd === 'open' || cmd === 'visit') {
-      var s = SERVICES.find(function (x) { return x.id === arg.toLowerCase(); });
-      if (!s) return print('usage: ' + cmd + ' <' + SERVICES.map(function (x) { return x.id; }).join('|') + '>', 'e');
-      if (cmd === 'visit') { window.open(s.url, '_blank', 'noopener'); return print('opened ' + s.url, 'd'); }
-      location.href = s.href; return;
+  }
+
+  // -- input: history, autocomplete with a ghost hint, Ctrl+C / Ctrl+L -------------------------------
+  var ghost = $('ghost');
+  function completions(v) {
+    var parts = v.split(' ');
+    if (parts.length === 1) return CMDS.filter(function (c) { return c.indexOf(v) === 0; });
+    var head = parts.slice(0, -1).join(' ') + ' ', last = parts[parts.length - 1];
+    if (/^git $/.test(head)) return GIT.filter(function (g) { return g.indexOf(last) === 0; }).map(function (g) { return head + g; });
+    if (/^git (show|checkout|diff( v\d)?) $/.test(head)) return STOPS.map(function (x) { return x.v; }).filter(function (x) { return x.indexOf(last) === 0; }).map(function (x) { return head + x; });
+    if (/^(open|visit) $/.test(head)) return SERVICES.map(function (x) { return x.id; }).filter(function (x) { return x.indexOf(last) === 0; }).map(function (x) { return head + x; });
+    if (/^(ls( -a)?|cd|cat|less|open) $/.test(head)) { // paths
+      var dir = last.lastIndexOf('/') >= 0 ? last.slice(0, last.lastIndexOf('/') + 1) : '', base = last.slice(dir.length), rr = resolve(dir || '.');
+      if (!rr || !rr.node.dir) return [];
+      return Object.keys(rr.node.dir).filter(function (n) { return n[0] !== '.' && n.indexOf(base) === 0; })
+        .map(function (n) { return head + dir + n + (rr.node.dir[n].dir ? '/' : ''); });
     }
-    if (cmd === 'ask') {
-      var q = arg.replace(/^["']|["']$/g, '');
-      if (!q) return print('usage: ask "is he open to remote roles?"', 'e');
-      var t = {};
-      var r = await search(q, function (n, ms) { if (ms != null) t[n] = ms; });
-      print('<span class="d">' + ['embed', 'search', 'rank', 'answer'].map(function (n) { return n + ' ' + t[n].toFixed(1) + 'ms'; }).join(' · ') + ' · match ' + r.score.toFixed(2) + '</span>');
-      return print(r.hit ? esc(plain((r.note ? r.note + '\n' : '') + r.text)) : 'no confident match. closest: ' + r.alts.map(esc).join(' | ') + '\nor email ' + EMAIL, r.hit ? '' : 'e');
+    return [];
+  }
+  function updateGhost() {
+    var v = tin.value, c = !mode && v ? completions(v) : [];
+    ghost.innerHTML = c.length === 1 && c[0] !== v ? '<span>' + esc(v) + '</span>' + esc(c[0].slice(v.length)) : '';
+  }
+  function accept() {
+    var c = completions(tin.value);
+    if (c.length === 1) { tin.value = c[0] + (/\/$/.test(c[0]) || /^(ask|cd|cat|ls|open|visit|ping|git( \w+)?)$/.test(c[0]) ? (/\/$/.test(c[0]) ? '' : ' ') : ''); updateGhost(); return true; }
+    if (c.length > 1) { // extend to the common prefix, list the options
+      var pre = c.reduce(function (a, b) { var i = 0; while (i < a.length && a[i] === b[i]) i++; return a.slice(0, i); });
+      if (pre.length > tin.value.length) tin.value = pre; else print(c.map(function (x) { return esc(x.split(' ').pop()); }).join('   '), 'd');
+      updateGhost(); return true;
     }
-    if (cmd === 'sudo') return print('nice try. this incident has been logged 🙂', 'e');
-    if (RUN[cmd]) { var o = RUN[cmd](); if (o) print(esc(o)); return; }
-    print('command not found: ' + esc(cmd) + '. try <b>help</b>', 'e');
+    return false;
   }
   $('termForm').onsubmit = function (e) {
     e.preventDefault();
-    var v = tin.value; tin.value = ''; if (!v.trim()) return;
-    hist.push(v); hi = hist.length;
-    exec(v).catch(function () { print('the search engine couldn’t load. email ' + EMAIL, 'e'); });
+    var v = tin.value; tin.value = ''; updateGhost();
+    if (mode && mode.type === 'mail') return mailStep(v);
+    if (mode && mode.type === 'top') { mode.stop(); return; }
+    if (!v.trim()) return;
+    hist.push(v); hist = hist.slice(-50); hi = hist.length;
+    try { localStorage.setItem('sv.hist', JSON.stringify(hist)); } catch (err) {}
+    exec(v).catch(function () { print('the search engine couldn’t load. run `mail` to reach me directly.', 'e'); });
   };
+  tin.addEventListener('input', updateGhost);
   tin.addEventListener('keydown', function (e) {
-    if (e.key === 'Tab') { // complete commands, then eras / services
-      e.preventDefault();
-      var v = tin.value, pool = CMDS;
-      if (/^git checkout /.test(v)) pool = STOPS.map(function (x) { return 'git checkout ' + x.v; });
-      else if (/^(open|visit) /.test(v)) pool = SERVICES.map(function (x) { return v.split(' ')[0] + ' ' + x.id; });
-      var hits = pool.filter(function (c) { return c.indexOf(v) === 0; });
-      if (hits.length === 1) tin.value = hits[0] + (pool === CMDS && /^(ask|open|visit|git checkout)$/.test(hits[0]) ? ' ' : '');
-      else if (hits.length > 1) print(hits.join('   '), 'd');
-    } else if (e.key === 'ArrowUp' && hi > 0) { e.preventDefault(); tin.value = hist[--hi]; }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hist.length, hi + 1); tin.value = hist[hi] || ''; }
+    if (mode && mode.type === 'top' && (e.key === 'q' || e.key === 'Escape' || (e.ctrlKey && e.key === 'c'))) { e.preventDefault(); e.stopPropagation(); mode.stop(); print('<span class="d">top: stopped</span>'); return; }
+    if (e.ctrlKey && e.key === 'c') { e.preventDefault(); if (mode) mode.stop(); else { print('<span class="c">' + esc(ps1()) + '</span> ' + esc(tin.value) + '^C'); tin.value = ''; updateGhost(); } return; }
+    if (e.ctrlKey && e.key === 'l') { e.preventDefault(); out.innerHTML = ''; return; }
+    if (mode) return;
+    if (e.key === 'Tab') { e.preventDefault(); accept(); }
+    else if (e.key === 'ArrowRight' && tin.selectionStart === tin.value.length && ghost.textContent) { e.preventDefault(); accept(); }
+    else if (e.key === 'ArrowUp' && hi > 0) { e.preventDefault(); tin.value = hist[--hi]; updateGhost(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hist.length, hi + 1); tin.value = hist[hi] || ''; updateGhost(); }
   });
   $('termChip').onclick = function () { term.classList.contains('open') ? closeTerm() : openTerm(); };
   $('termX').onclick = closeTerm;
   document.addEventListener('keydown', function (e) {
     var typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable;
     if ((e.key === '~' || e.key === '`') && (!typing || e.target === tin)) { e.preventDefault(); term.classList.contains('open') ? closeTerm() : openTerm(); }
-    else if (e.key === 'Escape' && term.classList.contains('open')) closeTerm();
+    else if (e.key === 'Escape' && term.classList.contains('open') && !(mode && mode.type === 'top')) closeTerm();
   });
 
   // ---- devtools console: the backstage ----------------------------------

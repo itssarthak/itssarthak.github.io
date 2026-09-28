@@ -10,7 +10,11 @@
 .out .c{color:#7EE2A8}.out .d{color:#8C8C96}.out .e{color:#F28B82}.out .a{color:#F2B8A0}
 .line{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #2A2A33}
 .line span{color:#7EE2A8;white-space:nowrap}
-.line input{flex:1;min-width:0;background:none;border:0;color:inherit;font:inherit;outline:none}
+.line .gw{position:relative;flex:1;min-width:0;display:flex}
+.line input{flex:1;min-width:0;background:none;border:0;color:inherit;font:inherit;outline:none;position:relative;z-index:1;padding:0}
+.ghost{position:absolute;left:0;top:0;right:0;white-space:pre;overflow:hidden;color:#5E5E6A;pointer-events:none}
+.ghost span{visibility:hidden}
+.out .dir{color:#8AB4F8}.out .b{color:#fff;font-weight:700}
 .term-fab{position:fixed;right:16px;top:16px;z-index:40;background:#17171B;color:#EDEDED;border:0;border-radius:10px;padding:9px 13px;
   font:500 13px 'JetBrains Mono',ui-monospace,monospace;cursor:pointer;box-shadow:0 10px 24px -10px rgba(0,0,0,.5)}
 .term-fab:focus-visible{outline:2px solid #A5432A;outline-offset:3px}
