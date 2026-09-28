@@ -525,8 +525,9 @@
   function neofetch() {
     var logo = ['  ███████ ', ' ██       ', '  ██████  ', '       ██ ', ' ███████  ', '          ', ' v e r s i o n e d'];
     var info = [
-      '<span class="a">sarthak</span>@<span class="a">sarthakchhabra.com</span>',
+      '<span class="a">sarthak</span>@<span class="a">' + STOPS[HEAD].v + '</span>',
       '------------------------',
+      '<span class="a">Email</span>   ' + EMAIL,
       '<span class="a">OS</span>      ' + label(HEAD),
       '<span class="a">Uptime</span>  7+ years shipping',
       '<span class="a">Host</span>    Gurgaon, India',
