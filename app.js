@@ -423,10 +423,10 @@
   var asking = 0;
   async function runAsk(exact) {
     var q = $('askIn').value.trim(); if (!q) return;
-    var id = ++asking, trace = $('trace'), times = {};
+    var id = ++asking, trace = $('trace'), times = {}, searched = q;
     trace.classList.add('show'); $('answer').innerHTML = '';
     function draw(cur) {
-      trace.innerHTML = STEPS.map(function (s) {
+      trace.innerHTML = '<div class="st done"><i>searched</i><b>“' + esc(searched) + '”</b></div>' + STEPS.map(function (s) {
         if (s === 'load' && times.load != null && times.load < 50) return ''; // already warm: don't show the one-time download
         var st = times[s] != null ? 'done' : s === cur ? 'run' : '';
         var label = s === 'load' ? 'warm-up' : s;
@@ -437,13 +437,14 @@
     try {
       var r = await search(q, function (name, ms) { if (id !== asking) return; if (ms != null) times[name] = ms; draw(ms == null ? name : null); }, { exact: exact === true });
       if (id !== asking) return;
+      if (r.corrected) { searched = r.corrected; draw(null); }
       trace.innerHTML += '<div class="st done"><i>match</i><b>' + r.score.toFixed(2) + '</b>&nbsp;“' + esc(r.q) + '”</div>';
       var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="1">search “' + esc(q) + '” instead</button></p>' : '';
       $('answer').innerHTML = didYou + (r.hit
         ? (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
-        : '<p>I don’t have an answer for that one, and I won’t make one up. Closest questions I can answer:</p><div class="alts">' +
+        : '<p>No answer for that. Closest I can answer:</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
-          '</div><p>Or ask me directly: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>. Psst: try the terminal (press ~), it knows more tricks.</p>');
+          '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
     } catch (err) {
       if (id !== asking) return;
       trace.classList.remove('show');
