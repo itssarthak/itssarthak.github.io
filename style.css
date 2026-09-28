@@ -169,6 +169,7 @@ footer p{color:var(--muted);margin-top:8px}
 .form-msg{font-size:14px;color:var(--muted)}
 .form-msg.ok{color:var(--ok);font-weight:600}.form-msg.err{color:var(--acc);font-weight:600}
 .or{margin-top:22px!important;font-size:14px}
+.disclose{font-size:12px!important;color:var(--muted);margin-top:0!important}
 .psst{margin-top:28px;font-size:13.5px;color:var(--muted)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}

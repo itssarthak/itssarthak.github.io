@@ -182,9 +182,92 @@
       el.onerror = function (e) { mailSdk = null; rej(e); }; document.head.appendChild(el);
     }));
   }
-  function sendMail(fields) { // { fullname, email, message }
-    return loadMail().then(function (ej) { return ej.send('service_okhl58i', 'template_k5j1ftq', fields); });
+  function sendMail(fields, via) { // fields: { fullname, email, message }; the visit details ride along inside the message
+    var uad = navigator.userAgentData; // Chromium only: the real OS version and device model (the UA string freezes them)
+    var hints = uad && uad.getHighEntropyValues ? uad.getHighEntropyValues(['platformVersion', 'model', 'architecture']).catch(function () { return null; }) : Promise.resolve(null);
+    return Promise.all([loadMail(), hints]).then(function (r) {
+      var body = fields.message + '\n\n' + visitorInfo(via, r[1]);
+      return r[0].send('service_okhl58i', 'template_k5j1ftq', { fullname: fields.fullname, email: fields.email, message: body });
+    });
   }
+
+  // ---- visit details, attached to messages so replies have context (disclosed next to both senders) ----
+  var SESS_KEY = 'sv.sess';
+  var sess = (function () { // per-tab visit: landing, referrer, campaign tags, pages seen, questions asked
+    var x = null;
+    try { x = JSON.parse(sessionStorage.getItem(SESS_KEY)); } catch (e) {}
+    if (!x) {
+      var q = new URLSearchParams(location.search), utm = {};
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'ref'].forEach(function (k) { if (q.get(k)) utm[k] = q.get(k); });
+      x = { start: Date.now(), landing: location.pathname + location.search, ref: document.referrer || '', utm: utm, pages: [], asked: [] };
+    }
+    x.pages.push(location.pathname); x.pages = x.pages.slice(-25);
+    return x;
+  })();
+  function saveSess() { try { sessionStorage.setItem(SESS_KEY, JSON.stringify(sess)); } catch (e) {} }
+  saveSess();
+  var firstSeen = (function () {
+    try { var f = localStorage.getItem('sv.first'); if (!f) { f = String(Date.now()); localStorage.setItem('sv.first', f); return null; } return +f; } catch (e) { return null; }
+  })();
+  function logAsked(q) { sess.asked.push(q.slice(0, 120)); sess.asked = sess.asked.slice(-15); saveSess(); }
+  function browserOf(ua) {
+    var m = ua.match(/(Edg|OPR|Firefox|SamsungBrowser|CriOS|FxiOS|Chrome)\/([\d.]+)/) || (/Safari\//.test(ua) && ua.match(/Version\/([\d.]+)/) && ['', 'Safari', ua.match(/Version\/([\d.]+)/)[1]]);
+    var names = { Edg: 'Edge', OPR: 'Opera', CriOS: 'Chrome (iOS)', FxiOS: 'Firefox (iOS)', SamsungBrowser: 'Samsung Internet' };
+    return m ? (names[m[1]] || m[1]) + ' ' + m[2].split('.')[0] : 'unknown';
+  }
+  function osOf(ua) {
+    var m;
+    if ((m = ua.match(/iPhone OS ([\d_]+)/))) return 'iOS ' + m[1].replace(/_/g, '.');
+    if ((m = ua.match(/iPad.*OS ([\d_]+)/))) return 'iPadOS ' + m[1].replace(/_/g, '.');
+    if ((m = ua.match(/Android ([\d.]+)/))) return 'Android ' + m[1];
+    if ((m = ua.match(/Mac OS X ([\d_]+)/))) return 'macOS ' + m[1].replace(/_/g, '.');
+    if ((m = ua.match(/Windows NT ([\d.]+)/))) return 'Windows ' + ({ '10.0': '10/11', '6.3': '8.1', '6.1': '7' }[m[1]] || m[1]);
+    if (/CrOS/.test(ua)) return 'ChromeOS';
+    if (/Linux/.test(ua)) return 'Linux';
+    return 'unknown';
+  }
+  function realOs(os, h) { // swap the frozen version for the real one when the browser shares it
+    if (!h || !h.platformVersion) return os;
+    var major = parseInt(h.platformVersion, 10);
+    if (/^macOS/.test(os)) return 'macOS ' + h.platformVersion;
+    if (/^Windows/.test(os)) return 'Windows ' + (major >= 13 ? '11' : '10');
+    if (/^Android/.test(os)) return 'Android ' + h.platformVersion;
+    return os;
+  }
+  function visitorInfo(via, hints) {
+    var n = navigator, ua = n.userAgent || '', now = new Date(), tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+    var mins = Math.round((Date.now() - sess.start) / 60000);
+    var touch = n.maxTouchPoints > 0, small = Math.min(screen.width, screen.height) < 600;
+    var lines = [
+      '———— sent from sarthakchhabra.com ————',
+      'via:          ' + via + ' on ' + location.pathname,
+      'their time:   ' + now.toString().replace(/ GMT.*$/, '') + (tz ? ' (' + tz + ')' : ''),
+      'utc:          ' + now.toISOString(),
+      '',
+      'browser:      ' + browserOf(ua),
+      'os:           ' + realOs(osOf(ua), hints) + (hints && hints.architecture ? ' · ' + hints.architecture : ''),
+      'model:        ' + ((hints && hints.model) || (/iPhone|iPad/.test(ua) ? ua.match(/iPhone|iPad/)[0] : 'not shared')),
+      'device:       ' + (touch ? (small ? 'phone' : 'tablet / touch screen') : 'desktop / laptop'),
+      'screen:       ' + screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x · window ' + innerWidth + '×' + innerHeight,
+      'language:     ' + ((n.languages && n.languages.join(', ')) || n.language || '?'),
+      'theme:        ' + (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') + ' mode',
+      'connection:   ' + ((n.connection && n.connection.effectiveType) || '?') + (n.connection && n.connection.saveData ? ' (data saver on)' : ''),
+      'hardware:     ' + (n.hardwareConcurrency || '?') + ' cores · ' + (n.deviceMemory ? n.deviceMemory + ' GB+ memory' : 'memory ?'),
+      '',
+      'came from:    ' + (sess.ref || 'direct / no referrer'),
+      'landed on:    ' + sess.landing,
+      'campaign:     ' + (Object.keys(sess.utm).length ? Object.keys(sess.utm).map(function (k) { return k + '=' + sess.utm[k]; }).join(' ') : 'none'),
+      'visitor:      ' + (firstSeen ? 'returning, first seen ' + new Date(firstSeen).toDateString() : 'first visit'),
+      'on site:      ' + (mins < 1 ? 'under a minute' : mins + ' min') + ' · viewing ' + label(era),
+      'pages:        ' + sess.pages.join(' → '),
+      'asked:        ' + (sess.asked.length ? sess.asked.map(function (q) { return '“' + q + '”'; }).join(' · ') : 'nothing'),
+      '',
+      'user agent:   ' + ua
+    ];
+    return lines.join('\n');
+  }
+  var DISCLOSE = 'Sending includes basic details (browser, device, timezone, pages you viewed and questions you asked here) so I have context when I reply.';
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   // ---- the search engine (shared) ---------------------------------------
@@ -210,6 +293,7 @@
   // step(name, ms|null) is called as each stage starts (null) and ends (ms)
   async function search(q, step) {
     step = step || function () {};
+    logAsked(q);
     var now = function () { return performance.now(); }, t;
     step('load', null); t = now();
     var got = await Promise.all([loadIndex(), loadModel(), statsReady]), d = got[0], embed = got[1];
@@ -327,7 +411,7 @@
       e.preventDefault();
       if (!f.checkValidity()) return;
       btn.disabled = true; btn.textContent = 'Sending…';
-      sendMail({ fullname: f.fullname.value.trim(), email: f.email.value.trim(), message: f.message.value.trim() })
+      sendMail({ fullname: f.fullname.value.trim(), email: f.email.value.trim(), message: f.message.value.trim() }, 'contact form')
         .then(function () { f.reset(); msg.className = 'form-msg ok'; msg.textContent = 'Sent. I’ll get back to you within a day.'; })
         .catch(function () { btn.disabled = false; msg.className = 'form-msg err'; msg.innerHTML = 'That didn’t go through. Try again, or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.'; })
         .then(function () { btn.textContent = 'Send message'; });
@@ -542,7 +626,7 @@
   // -- mail: name → email → message → confirm -------------------------------------------------------
   function startMail() {
     mode = { type: 'mail', step: 0, data: {}, stop: function () { mode = null; setPrompt(); print('<span class="d">mail cancelled</span>'); } };
-    print('<span class="d">Writing to Sarthak. Ctrl+C to cancel.</span>');
+    print('<span class="d">Writing to Sarthak. Ctrl+C to cancel.\n' + esc(DISCLOSE) + '</span>');
     setPrompt('name:');
   }
   function mailStep(v) {
@@ -554,7 +638,7 @@
     if (m.step === 3) {
       if (!/^y/i.test(v)) return m.stop();
       mode = null; setPrompt('sending…');
-      return sendMail(d).then(function () { print('<span class="c">sent.</span> I’ll get back to you within a day.'); })
+      return sendMail(d, 'terminal `mail`').then(function () { print('<span class="c">sent.</span> I’ll get back to you within a day.'); })
         .catch(function () { print('that didn’t go through. email ' + EMAIL + ' directly.', 'e'); })
         .then(function () { setPrompt(); });
     }
