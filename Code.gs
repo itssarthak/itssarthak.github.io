@@ -1,5 +1,5 @@
 // Code.gs — Google Apps Script web app.
-// Bound to a Google Sheet; appends one row per abandoned contact-form draft.
+// Appends one row per abandoned contact-form draft ("Drafts" tab) and per Ask box question ("Ask" tab).
 // Deploy: Extensions > Apps Script in the Sheet, paste this, Deploy > Manage deployments > edit >
 // New version. Web app, execute as "Me", access "Anyone" (anything else gives visitors a 401).
 
@@ -22,12 +22,13 @@ function doPost(e) {
     try {
       if (data.kind === 'ask') { // one row per Ask box question, on its own tab
         var ss = SpreadsheetApp.openById(SHEET_ID);
-        var ask = ss.getSheetByName('Ask') || ss.insertSheet('Ask', ss.getNumSheets()); // last tab, so the drafts tab stays first
+        var ask = ss.getSheetByName('Ask') || ss.insertSheet('Ask');
         if (ask.getLastRow() === 0) ask.appendRow(['timestamp', 'visit', 'question', 'corrected to', 'result', 'matched', 'score', 'other options']);
         ask.appendRow([cap(data.ts, 40), cap(data.visit, 20), cap(data.question, 300), cap(data.corrected, 300), cap(data.result, 20), cap(data.matched, 200), Number(data.score) || 0, cap(data.alts, 600)]);
         return ok;
       }
-      var sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0]; // first tab: drafts
+      var book = SpreadsheetApp.openById(SHEET_ID);
+      var sheet = book.getSheetByName('Drafts') || book.insertSheet('Drafts'); // by name, so tab order never matters
       if (sheet.getLastRow() === 0) {
         sheet.appendRow(['timestamp', 'name', 'email', 'message', 'fields_filled', 'page', 'referrer']);
       }
