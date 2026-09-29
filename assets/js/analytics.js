@@ -24,6 +24,12 @@
   gtag('config', GA_ID, { transport_type: 'beacon' });
 
   function track(name, params) { gtag('event', name, params || {}); }
+  // app.js logs each Ask box question and what it got back to the Sheet's "Ask" tab.
+  window.sheetBeacon = function (row) {
+    if (!SHEET_ENDPOINT || !navigator.sendBeacon) return;
+    row.token = SHEET_TOKEN; row.ts = new Date().toISOString();
+    try { navigator.sendBeacon(SHEET_ENDPOINT, new Blob([JSON.stringify(row)], { type: 'text/plain' })); } catch (err) { /* never let tracking throw */ }
+  };
   function nowMs() {
     return (window.performance && performance.now) ? performance.now() : Date.now();
   }

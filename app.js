@@ -366,6 +366,7 @@
     r.corrected = corrected;
     step('answer', now() - t);
     if (r.hit) onAnswered(r.q);
+    if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: q.slice(0, 300), corrected: corrected || '', result: r.hit ? 'answered' : r.near ? 'did you mean' : 'no answer', matched: r.q, score: +r.score.toFixed(2), alts: r.alts.join(' | ') });
     return r;
   }
   function compose(d, top) {

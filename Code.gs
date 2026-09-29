@@ -18,7 +18,14 @@ function doPost(e) {
     var lock = LockService.getScriptLock();
     lock.waitLock(5000);
     try {
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+      if (data.kind === 'ask') { // one row per Ask box question, on its own tab
+        var ss = SpreadsheetApp.getActiveSpreadsheet();
+        var ask = ss.getSheetByName('Ask') || ss.insertSheet('Ask', ss.getNumSheets()); // last tab, so the drafts tab stays first
+        if (ask.getLastRow() === 0) ask.appendRow(['timestamp', 'visit', 'question', 'corrected to', 'result', 'matched', 'score', 'other options']);
+        ask.appendRow([cap(data.ts, 40), cap(data.visit, 20), cap(data.question, 300), cap(data.corrected, 300), cap(data.result, 20), cap(data.matched, 200), Number(data.score) || 0, cap(data.alts, 600)]);
+        return ok;
+      }
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0]; // first tab: drafts
       if (sheet.getLastRow() === 0) {
         sheet.appendRow(['timestamp', 'name', 'email', 'message', 'fields_filled', 'page', 'referrer']);
       }
