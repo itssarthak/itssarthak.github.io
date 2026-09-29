@@ -278,7 +278,7 @@
   // ---- the search engine (shared) ---------------------------------------
   // Must match scripts/build-answer-index.mjs, or the vectors aren't comparable.
   var MODEL = 'Xenova/all-MiniLM-L6-v2', DTYPE = 'q8', TF = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0';
-  var MATCH = 0.5;
+  var MATCH = 0.5, SURE = 0.7; // below SURE the top match is often wrong (0.57 sent "strength" to the weakness answer), so we ask "did you mean" instead
   function norm(q) { // identical to norm() in the build script
     return q.toLowerCase().replace(/\bsarthak('s)?\b/g, 'you').replace(/\b(he|him|he's)\b/g, 'you').replace(/\bhis\b/g, 'your');
   } // below this cosine score we say "I don't know" instead of guessing
@@ -369,8 +369,8 @@
     return r;
   }
   function compose(d, top) {
-    var hit = top[0].score >= MATCH, a = d.answers[top[0].i];
-    var res = { hit: hit, score: top[0].score, q: a.q, alts: top.map(function (x) { return d.answers[x.i].q; }), note: '', text: '' };
+    var hit = top[0].score >= SURE, a = d.answers[top[0].i];
+    var res = { hit: hit, near: !hit && top[0].score >= MATCH, score: top[0].score, q: a.q, alts: top.map(function (x) { return d.answers[x.i].q; }), note: '', text: '' };
     if (!hit) return res;
     res.text = /tech stack/i.test(a.q)
       ? 'At ' + label(era) + ': ' + STOPS[era].stack.join(', ') + '.' + (era < HEAD ? ' Today: ' + STOPS[HEAD].stack.join(', ') + '.' : '')
@@ -447,7 +447,7 @@
       var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="1">search “' + esc(q) + '” instead</button></p>' : '';
       $('answer').innerHTML = didYou + (r.hit
         ? '<p class="matched">Answering: <b>' + esc(r.q) + '</b></p>' + (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
-        : '<p>No answer for that. Closest I can answer:</p><div class="alts">' +
+        : '<p>' + (r.near ? 'Did you mean:' : 'No answer for that. Closest I can answer:') + '</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
           '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
     } catch (err) {
@@ -791,7 +791,7 @@
         r = await search(q, function (n, ms) { if (ms != null) t[n] = ms; });
         if (r.corrected) print('<span class="d">showing results for “' + esc(r.corrected) + '”</span>');
         print('<span class="d">' + ['embed', 'search', 'rank', 'answer'].map(function (n) { return n + ' ' + t[n].toFixed(1) + 'ms'; }).join(' · ') + ' · match ' + r.score.toFixed(2) + '</span>');
-        return print(r.hit ? esc(plain((r.note ? r.note + '\n' : '') + r.text)) : 'no confident match. closest: ' + r.alts.map(esc).join(' | ') + '\nor run `mail` to ask me directly', r.hit ? '' : 'e');
+        return print(r.hit ? esc(plain((r.note ? r.note + '\n' : '') + r.text)) : (r.near ? 'did you mean: ' : 'no confident match. closest: ') + r.alts.map(esc).join(' | ') + '\nor run `mail` to ask me directly', r.hit ? '' : 'e');
       }
     }
   }
@@ -880,7 +880,7 @@
       var t = {};
       return search(String(q), function (n, ms) { if (ms != null) t[n] = +ms.toFixed(1) + 'ms'; }).then(function (r) {
         console.table(t);
-        var text = r.hit ? plain((r.note ? r.note + '\n' : '') + r.text) : 'No confident match. Closest: ' + r.alts.join(' | ');
+        var text = r.hit ? plain((r.note ? r.note + '\n' : '') + r.text) : (r.near ? 'Did you mean: ' : 'No confident match. Closest: ') + r.alts.join(' | ');
         console.log(text); return text;
       });
     },
