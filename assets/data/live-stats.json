@@ -1,13 +1,12 @@
 {
-  "updated": "2026-09-30",
+  "updated": "2026-10-01",
   "askmyastro": {
-    "users": 5145,
-    "pageviews": 16026,
+    "users": 5158,
+    "pageviews": 16051,
     "series": {
       "metric": "users",
-      "from": "2026-08-31",
+      "from": "2026-09-01",
       "values": [
-        2,
         412,
         689,
         247,
@@ -36,19 +35,19 @@
         7,
         5,
         10,
-        6
+        6,
+        5
       ]
     }
   },
   "filedownloader": {
-    "users": 7050,
-    "pageviews": 27774,
-    "downloads": 696395,
+    "users": 7087,
+    "pageviews": 27861,
+    "downloads": 703298,
     "series": {
       "metric": "downloads",
-      "from": "2026-08-31",
+      "from": "2026-09-01",
       "values": [
-        6658,
         1689,
         2931,
         982,
@@ -77,13 +76,14 @@
         8698,
         766,
         676,
-        3864
+        3864,
+        7234
       ]
     }
   },
   "switchboard": {
-    "clones": 441,
-    "uniques": 219,
+    "clones": 449,
+    "uniques": 225,
     "stars": 4,
     "days": {
       "2026-08-13": [
@@ -277,13 +277,16 @@
       "2026-09-29": [
         13,
         10
+      ],
+      "2026-09-30": [
+        8,
+        6
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-08-31",
+      "from": "2026-09-01",
       "values": [
-        39,
         42,
         38,
         9,
@@ -312,7 +315,8 @@
         4,
         2,
         9,
-        13
+        13,
+        8
       ]
     }
   }
