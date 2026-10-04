@@ -339,9 +339,10 @@
   // ---- the chat agent's tools --------------------------------------------
   // Each returns { items: what the panel lists, notes: sources the reply may cite, said: what the model is told, action, draft }.
   var PAGES = { resume: ['Résumé', 'resume.html'], askmyastro: ['AskMyAstro', 'askmyastro-demo.html'], filedownloader: ['FileDownloader', 'filedownloader.html'], switchboard: ['Switchboard', 'switchboard.html'] };
+  var beforePageAction = function () {}; // the Ask box sets this to leave full screen, so the visitor sees what go_to did
   var TARGETS = STOPS.map(function (s) { return s.v; }).concat(['terminal', 'contact'], Object.keys(PAGES));
   var TOOL_DOCS = [
-    'search_about(query): search Sarthak\'s own answers and résumé (the résumé has each role\'s dates and details). Use it for anything about him: work, skills, projects, availability, how to reach him. Keep the query to a few words.',
+    'search_about(query): search Sarthak\'s own answers and résumé (the résumé has each role\'s dates and details). Use it for anything about him: work, skills, availability, how to reach him, what he built at each company, and his own products AskMyAstro, FileDownloader and Switchboard. Not for places or general topics. Keep the query to a few words.',
     'web_search(query): look up a general topic on the web (encyclopedia summaries), e.g. what a technology or company is. Not for facts about Sarthak.',
     'live_stats(): today\'s numbers for his live products: AskMyAstro, FileDownloader, Switchboard.',
     'go_to(target): act on this page for the visitor. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
@@ -385,6 +386,7 @@
     go_to: async function (a) {
       var t = a.target, i = eraFromArg(t);
       if (PAGES[t]) return { items: [{ label: 'link ready: ' + PAGES[t][0] }], said: 'a link to ' + PAGES[t][0] + ' is shown under your reply', action: { label: 'Open ' + PAGES[t][0] + ' ↗', href: PAGES[t][1] } };
+      if (!PAGES[t]) beforePageAction();
       if (t === 'terminal') { openTerm(); return { items: [{ label: 'opened the terminal' }], said: 'opened the terminal' }; }
       if (t === 'contact') { $('contact').scrollIntoView({ behavior: 'smooth' }); return { items: [{ label: 'scrolled to the contact form' }], said: 'scrolled the page to the contact form' }; }
       if (i >= 0) { goEra(i); return { items: [{ label: 'scrolled to ' + label(i) }], notes: [{ label: 'this page · ' + label(i), text: 'Scrolled this page to ' + label(i) + ', the part of his history covering: ' + STOPS[i].projects.map(function (p) { return p[0] + ' at ' + p[1]; }).join(', ') }] }; }
@@ -426,7 +428,7 @@
     }
     for (var step = 0; step < 4; step++) {
       var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
-        '\nSearch before answering anything factual, one topic per search, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. ' +
+        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. ' +
         'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}.', talk + '\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
       var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
       ev('thought', { tokens: r.tokens, ms: r.ms, tool: c.tool });
@@ -442,7 +444,10 @@
       if (out.draft) draft = out.draft;
       ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
     }
-    var fin = await gen(BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
+    // No sources after searching: the only honest reply is "couldn't find it" (a model left to itself fills the gap from memory).
+    var empty = !notes.length && Object.keys(done).length;
+    var fin = await gen(empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
+      BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
       'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
       (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
       talk + '\nAssistant:', null, 'reply');
@@ -580,16 +585,29 @@
   });
   $('askHint').onclick = function (e) { if (e.target.tagName === 'BUTTON') { $('askHint').classList.remove('show'); openTerm(); } };
   $('askForm').onsubmit = function (e) { e.preventDefault(); runAsk(); };
-  var chatEl = $('chat'), chat = [], asking = 0, aiBroken = false; // chat: [{ me, text }], the conversation the agent sees
+  var chatEl = $('chat'), card = chatEl.parentNode, chat = [], asking = 0, aiBroken = false; // chat: [{ me, text }], the conversation the agent sees
+  var X_ICON = '<path d="M4 4l8 8M12 4l-8 8"/>', OPEN_ICON = '<path d="M9 3h4v4M7 13H3V9M13 3L9 7M3 13l4-4"/>';
+  function full(on) { // the chat takes the whole screen while a conversation is going; closing keeps it on the page
+    card.classList.toggle('full', on); document.documentElement.classList.toggle('chat-open', on);
+    $('chatFull').querySelector('svg').innerHTML = on ? X_ICON : OPEN_ICON;
+    $('chatFull').setAttribute('aria-label', on ? 'Close full screen' : 'Open full screen');
+    if (on) { pinned = true; stick(); $('askIn').focus(); } else card.scrollIntoView({ block: 'nearest' });
+  }
+  beforePageAction = function () { full(false); };
+  $('chatFull').onclick = function () { full(!card.classList.contains('full')); };
+  addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('full') && !document.querySelector('.term.open')) full(false); });
   chatEl.onclick = function (e) {
     if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); }
     else if (e.target.dataset.exact) runAsk(e.target.dataset.exact);
   };
-  $('chatNew').onclick = function () { chat = []; ++asking; chatEl.innerHTML = ''; this.hidden = true; $('askIn').focus(); };
+  $('chatNew').onclick = function () { chat = []; ++asking; chatEl.innerHTML = ''; $('chatBar').hidden = true; full(false); $('askIn').focus(); };
   $('askIn').addEventListener('focus', function () { engineP.then(function (E) { if (E) E.load().catch(function () { aiBroken = true; }); }); }, { once: true }); // start loading as soon as they mean to ask
   function sec(ms) { return ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(1) + 's'; }
-  function bubble(cls, html) { var el = document.createElement('div'); el.className = 'msg ' + cls; el.innerHTML = html; chatEl.appendChild(el); stick(true); return el; }
-  function stick(force) { if (force || chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight < 80) chatEl.scrollTop = chatEl.scrollHeight; } // follow the run unless they scrolled up to read
+  // Follow the newest text unless the visitor scrolled up to read; scrolling back to the bottom re-pins.
+  var pinned = true;
+  chatEl.addEventListener('scroll', function () { pinned = chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight < 60; }, { passive: true });
+  function stick() { if (pinned) chatEl.scrollTop = chatEl.scrollHeight; }
+  function bubble(cls, html) { var el = document.createElement('div'); el.className = 'msg ' + cls; el.innerHTML = html; chatEl.appendChild(el); stick(); return el; }
 
   // The reply: [n] citations become superscripts, cited sources are listed, then any links or a message draft.
   function renderReply(ans, r) {
@@ -612,57 +630,64 @@
         .catch(function () { b.disabled = false; m.className = 'form-msg err'; m.textContent = 'That didn’t go through. Try again, or email ' + EMAIL + '.'; });
     };
   }
-  // The agent run, drawn live: model card, download bar, one row per step (with the model's raw decision), tool calls and their results.
+  // The activity box: one line saying what the model is doing now; click it for every step, the model's raw decisions and each tool's results.
+  var DID = { search_about: 'Searched about Sarthak', web_search: 'Searched the web', live_stats: 'Read live stats', go_to: 'Went to', send_message: 'Drafted a message' };
+  var DOING = { search_about: 'Searching about Sarthak', web_search: 'Web search', live_stats: 'Reading live stats', go_to: 'Going to', send_message: 'Drafting a message' };
+  function doing(d) { var a = d.args; return DOING[d.name] + (a.query ? ': “' + a.query + '”' : a.target ? ' ' + (eraFromArg(a.target) >= 0 ? label(eraFromArg(a.target)) : a.target) : ''); }
   function runAgent(id, E, trace, ans) {
-    var seen = {}, live = null;
-    trace.innerHTML = '<details class="run agent" open><summary class="ag-h"><span class="ag-dot"></span><b>' + esc(E.name) + '</b><span class="ag-tag">' + esc(E.tag) + '</span><span class="ag-st">loading</span></summary>' +
-      '<div class="ag-dl"><div class="ag-bar"><i></i></div><span></span></div><ol class="ag-steps"></ol><div class="ag-f"></div></details>';
-    var panel = trace.firstChild, steps = panel.querySelector('.ag-steps'), stat = panel.querySelector('.ag-st'), dl = panel.querySelector('.ag-dl');
-    function state(s, done) { stat.textContent = s; panel.classList.toggle('done', !!done); }
-    function row(kind, html) { var li = document.createElement('li'); li.className = 'ag-' + kind + ' on'; li.innerHTML = html; steps.appendChild(li); stick(); return li; }
-    function settle() { if (live) live.classList.remove('on'); }
-    function call(d) { return '<code>' + esc(d.name) + '(<s>' + esc(JSON.stringify(d.args)) + '</s>)</code>'; }
+    var seen = {}, live = null, did = [];
+    trace.className = ''; // the dark .trace look is for the plain answer search; this box has its own
+    trace.innerHTML = '<details class="act"><summary><span class="act-ico"></span><span class="act-now">Loading ' + esc(E.name) + '…</span><span class="act-meta"></span><span class="act-more">details</span>' +
+      '<span class="act-dl"><span class="ag-bar"><i></i></span><span></span></span></summary>' +
+      '<div class="act-body"><p class="act-model"><b>' + esc(E.name) + '</b> · ' + esc(E.tag) + '</p><ol class="act-steps"></ol></div></details>';
+    var box = trace.firstChild, now = box.querySelector('.act-now'), meta = box.querySelector('.act-meta'), steps = box.querySelector('.act-steps'), dl = box.querySelector('.act-dl');
+    function say(t) { now.textContent = t; }
+    function row(html) { var li = document.createElement('li'); li.innerHTML = html; steps.appendChild(li); stick(); return li; }
     return agentTurn(chat, E, function (type, d) {
       if (id !== asking) return;
       if (type === 'download') {
         seen[d.file] = d; var got = 0, all = 0;
         Object.keys(seen).forEach(function (f) { got += seen[f].loaded || 0; all += seen[f].total || 0; });
-        state('downloading, once'); if (all < 5e7) return; // small config files arrive first; wait for the weights so the bar doesn't jump to 100%
+        say('Downloading the AI model, once'); if (all < 5e7) return; // small config files arrive first; wait for the weights so the bar doesn't jump to 100%
         dl.classList.add('show');
         dl.firstChild.firstChild.style.width = (100 * got / all).toFixed(1) + '%';
         dl.lastChild.textContent = Math.round(got / 1e6).toLocaleString() + ' / ' + Math.round(all / 1e6).toLocaleString() + ' MB';
-      } else if (type === 'ready') { dl.classList.remove('show'); state('thinking');
+      } else if (type === 'ready') { dl.classList.remove('show'); say('Thinking…');
       } else if (type === 'think') {
-        settle(); state(d.phase === 'decide' ? 'thinking' : 'writing');
-        live = row('think', '<i>' + (d.phase === 'decide' ? 'think' : 'write') + '</i><span class="ag-m">…</span>' + (d.phase === 'decide' ? '<code class="ag-raw"></code>' : ''));
+        say(d.phase === 'decide' ? 'Thinking…' : 'Writing the answer…');
+        live = row('<div class="act-row"><span>' + (d.phase === 'decide' ? 'Deciding the next step' : 'Writing the answer') + '</span><em>…</em></div>' + (d.phase === 'decide' ? '<code></code>' : ''));
       } else if (type === 'token') {
-        live.querySelector('.ag-m').textContent = d.n + ' tokens · ' + (d.n / d.ms * 1000).toFixed(0) + ' tok/s';
-        if (d.phase === 'decide') live.querySelector('.ag-raw').textContent = d.text.replace(/\s+/g, ' ').slice(0, 200);
+        live.querySelector('em').textContent = d.n + ' tokens · ' + (d.n / d.ms * 1000).toFixed(0) + ' tok/s';
+        if (d.phase === 'decide') live.querySelector('code').textContent = d.text.replace(/\s+/g, ' ').slice(0, 200);
         else { ans.innerHTML = md(unredact(d.text)).replace(/\s*\[(\d+(?:\s*,\s*\d+)*)\]/g, function (m, l) { return '<sup class="cite">' + l.replace(/\s/g, '') + '</sup>'; }).replace(/<\/p>$/, '<span class="ag-caret"></span></p>'); stick(); }
       } else if (type === 'thought') {
-        live.querySelector('.ag-m').textContent = d.tokens + ' tokens · ' + sec(d.ms) + ' · ' + (d.tokens / d.ms * 1000).toFixed(0) + ' tok/s → ' + (d.tool === 'reply' ? 'reply' : d.tool);
+        live.querySelector('span').textContent = d.tool === 'reply' ? (live.querySelector('code') ? 'Decided: answer now' : 'Wrote the answer') : 'Decided: ' + DOING[d.tool];
+        live.querySelector('em').textContent = d.tokens + ' tokens · ' + sec(d.ms);
       } else if (type === 'tool') {
-        settle(); state({ search_about: 'searching', web_search: 'searching the web', live_stats: 'reading live stats', go_to: 'acting on the page', send_message: 'drafting a message' }[d.name] || 'working');
-        live = row('tool', '<i>tool</i>' + call(d));
+        say(doing(d) + '…'); did.push(d);
+        live = row('<div class="act-row tool"><span>' + esc(doing(d)) + '</span><em>…</em></div>');
       } else if (type === 'result') {
-        live.innerHTML = '<details open><summary><i>tool</i>' + call(d) + '<span class="ag-m">' + d.items.length + (d.items.length === 1 ? ' result · ' : ' results · ') + sec(d.ms) + '</span></summary>' +
-          (d.items.length ? '<ol>' + d.items.map(function (x) { return '<li><b>' + (x.score != null ? x.score.toFixed(2) : '→') + '</b><span>' + esc(x.label) + '</span></li>'; }).join('') + '</ol>' : '') + '</details>';
+        live.querySelector('em').textContent = d.items.length + (d.items.length === 1 ? ' result · ' : ' results · ') + sec(d.ms);
+        if (d.items.length) live.insertAdjacentHTML('beforeend', '<ol class="act-res">' + d.items.map(function (x) { return '<li>' + (x.score != null ? '<b>' + x.score.toFixed(2) + '</b>' : '') + esc(x.label) + '</li>'; }).join('') + '</ol>');
         stick();
       } else if (type === 'done') {
-        settle(); state('done', true);
+        box.classList.add('done');
+        var by = {}; did.forEach(function (x) { var v = x.args.query ? '“' + x.args.query + '”' : x.args.target ? doing(x).replace(DOING.go_to + ' ', '') : ''; (by[x.name] = by[x.name] || []).push(v); });
+        say(did.length ? Object.keys(by).map(function (k) { var v = by[k].filter(Boolean); return DID[k] + (v.length ? ': ' + v.join(', ') : ''); }).join(' · ') : 'Answered without searching');
+        meta.textContent = sec(d.ms);
+        row('<div class="act-row"><span>Total</span><em>' + d.tools + (d.tools === 1 ? ' tool call · ' : ' tool calls · ') + d.tokens + ' tokens · ' + sec(d.ms) + '</em></div>');
         renderReply(ans, d);
-        panel.querySelector('.ag-f').textContent = d.tools + (d.tools === 1 ? ' tool call · ' : ' tool calls · ') + d.tokens + ' tokens · ' + sec(d.ms) + ' total';
         stick();
       }
     });
   }
   async function runAsk(exact) { // exact: re-ask this text without the spelling fix
     var q = typeof exact === 'string' ? exact : $('askIn').value.trim(); if (!q) return;
-    $('askIn').value = ''; $('chatNew').hidden = false;
+    $('askIn').value = ''; $('chatBar').hidden = false; pinned = true;
+    if (!card.classList.contains('full')) full(true);
     var id = ++asking, times = {}, searched = q;
-    [].forEach.call(chatEl.querySelectorAll('details.run[open]'), function (d) { d.open = false; }); // earlier runs fold away; click to reopen
     bubble('me', '<p>' + esc(q) + '</p>');
-    var bot = bubble('bot', '<div class="trace show" aria-hidden="true"></div><div class="answer"></div>'), trace = bot.firstChild, ans = bot.lastChild;
+    var bot = bubble('bot', '<div class="trace show"></div><div class="answer"></div>'), trace = bot.firstChild, ans = bot.lastChild;
     chat.push({ me: true, text: q });
     var E = !aiBroken && await engineP;
     if (E) {
@@ -692,7 +717,7 @@
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
           '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
       chat.push({ me: false, text: r.hit ? r.text : '' });
-      stick(true);
+      stick();
     } catch (err) {
       if (id !== asking) return;
       trace.classList.remove('show');
