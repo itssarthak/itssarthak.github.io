@@ -283,15 +283,22 @@
     return q.toLowerCase().replace(/\bsarthak('s)?\b/g, 'you').replace(/\b(he|him|he's)\b/g, 'you').replace(/\bhis\b/g, 'your');
   } // below this cosine score we say "I don't know" instead of guessing
   var indexP, modelP, onAnswered = function () {}; // the Ask box sets onAnswered to retire used suggestions
-  function loadIndex() {
-    return indexP || (indexP = fetch('/answers.json', { cache: 'no-cache' }) /* revalidate each visit: a 304 when unchanged, fresh answers right after a deploy */.then(function (r) { return r.json(); }).then(function (d) {
+  function loadVecs(url) {
+    return fetch(url, { cache: 'no-cache' }) /* revalidate each visit: a 304 when unchanged, fresh answers right after a deploy */.then(function (r) { return r.json(); }).then(function (d) {
       var bin = atob(d.vecs), v = new Int8Array(bin.length);
       for (var i = 0; i < bin.length; i++) v[i] = bin.charCodeAt(i) << 24 >> 24;
       d.v = v; return d;
-    }));
+    });
   }
+  function loadIndex() { return indexP || (indexP = loadVecs('/answers.json')); }
   function loadModel() {
     return modelP || (modelP = import(TF).then(function (m) { return m.pipeline('feature-extraction', MODEL, { dtype: DTYPE }); }));
+  }
+  // The chat agent's knowledge (docs/knowledge.md), searched with a retrieval model. Must match scripts/build-answer-index.mjs.
+  var KB_MODEL = 'Xenova/bge-small-en-v1.5', KB_QUERY = 'Represent this sentence for searching relevant passages: ', kbP, kbModelP;
+  function loadKB() { return kbP || (kbP = loadVecs('/knowledge.json')); }
+  function loadKBModel() {
+    return kbModelP || (kbModelP = import(TF).then(function (m) { return m.pipeline('feature-extraction', KB_MODEL, { dtype: 'q8' }); }));
   }
   // The writer: a model on the visitor's device that answers by calling a search_answers tool over the bank.
   // Chrome's built-in Gemini Nano when it's ready (no download from us, and it doesn't invent facts the way a 1B model does),
@@ -318,22 +325,23 @@
   var NANO = { name: 'Gemini Nano', tag: 'built into Chrome · on your device',
     load: function () { return LanguageModel.create().then(function (s) { s.destroy(); }); }, // the first session loads the model (~10s); later ones are instant
     gen: async function (sys, prompt, schema, onText) {
-      var s = await LanguageModel.create({ initialPrompts: [{ role: 'system', content: sys }] }), text = '', n = 0;
-      try { for await (var x of s.promptStreaming(prompt, schema ? { responseConstraint: schema } : {})) { text += x; n++; onText(text); } }
-      finally { s.destroy(); }
+      // Nano ignores maxLength and once wrote a whole reply into "query" for 4,800 chunks: cut a step off at a length or time limit and use what came
+      var stop = new AbortController(), cap = schema ? 60 : 400, timer = setTimeout(function () { stop.abort(); }, schema ? 20000 : 60000);
+      var s = await LanguageModel.create({ initialPrompts: [{ role: 'system', content: sys }], signal: stop.signal }), text = '', n = 0;
+      try { for await (var x of s.promptStreaming(prompt, Object.assign({ signal: stop.signal }, schema ? { responseConstraint: schema } : {}))) { text += x; n++; onText(text); if (n >= cap) { stop.abort(); break; } } }
+      catch (e) { if (!stop.signal.aborted) throw e; }
+      finally { clearTimeout(timer); s.destroy(); }
       return { text: text.trim(), tokens: n }; // ponytail: Nano doesn't report tokens; streamed chunks are close
     } };
   var engineP = (async function () {
     try { if (typeof LanguageModel !== 'undefined' && await LanguageModel.availability() === 'available') return NANO; } catch (e) {}
     return navigator.gpu ? LLAMA : null;
   })();
-  async function lookup(q) { // the closest bank answers and résumé sections for a query
-    var got = await Promise.all([loadIndex(), loadModel()]), d = got[0];
-    var best = scan(d, (await got[1](norm(q), { pooling: 'mean', normalize: true })).data);
-    var ranked = Object.keys(best).sort(function (a, b) { return best[b] - best[a]; }), pick = function (page, n) { return ranked.filter(function (i) { return !d.answers[i].src === !page; }).slice(0, n); };
-    // the 3 closest answers plus the 2 closest résumé sections: a short answer always outscores a long section, but only the résumé has dates
-    return pick(false, 3).concat(pick(true, 2)).sort(function (a, b) { return best[b] - best[a]; }).map(function (i) { var x = d.answers[i];
-      return { label: x.src ? x.q : 'my answers · ' + x.q, text: plain(fill(x.a)), url: x.src || null, score: best[i] }; });
+  async function lookup(q) { // the 5 knowledge sections closest to a query
+    var got = await Promise.all([loadKB(), loadKBModel()]), d = got[0];
+    var best = scan(d, (await got[1](KB_QUERY + q, { pooling: 'cls', normalize: true })).data);
+    return Object.keys(best).sort(function (a, b) { return best[b] - best[a]; }).slice(0, 5).map(function (i) {
+      return { label: 'profile · ' + d.kb[i].t, text: plain(fill(d.kb[i].a)), url: null, score: best[i] }; });
   }
 
   // ---- the chat agent's tools --------------------------------------------
@@ -342,7 +350,7 @@
   var beforePageAction = function () {}; // the Ask box sets this to leave full screen, so the visitor sees what go_to did
   var TARGETS = STOPS.map(function (s) { return s.v; }).concat(['terminal', 'contact'], Object.keys(PAGES));
   var TOOL_DOCS = [
-    'search_about(query): search Sarthak\'s own answers and résumé (the résumé has each role\'s dates and details). Use it for anything about him: work, skills, availability, how to reach him, what he built at each company, and his own products AskMyAstro, FileDownloader and Switchboard. Not for places or general topics. Keep the query to a few words.',
+    'search_about(query): search Sarthak\'s profile (every role with dates, skills, products, availability). Use it for anything about him: work, skills, availability, how to reach him, what he built at each company, and his own products AskMyAstro, FileDownloader and Switchboard. Not for places or general topics. Keep the query to a few words.',
     'web_search(query): look up a general topic on the web (encyclopedia summaries), e.g. what a technology or company is. Not for facts about Sarthak.',
     'live_stats(): today\'s numbers for his live products: AskMyAstro, FileDownloader, Switchboard.',
     'go_to(target): act on this page for the visitor. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
@@ -354,7 +362,8 @@
   var TOOLS = {
     search_about: async function (a) {
       var res = await lookup(a.query || '');
-      var useful = res.filter(function (x) { return x.score >= (x.url ? 0.2 : 0.3); }).slice(0, 4); // résumé sections are long, so they score lower for the same relevance
+      // BGE scores unrelated text around 0.45-0.6: keep clear matches, and only those close to the best one
+      var useful = res.filter(function (x) { return x.score >= 0.65 && x.score >= res[0].score - 0.15; }).slice(0, 4);
       return { items: res.map(function (x) { return { score: x.score, label: x.label }; }), notes: useful, said: useful.length ? '' : 'nothing relevant found' };
     },
     web_search: async function (a) {
@@ -400,10 +409,12 @@
     }
   };
   function argsOf(c) { return c.tool === 'send_message' ? { name: c.name, email: c.email, message: c.message } : c.tool === 'go_to' ? { target: c.target } : c.tool === 'live_stats' ? {} : { query: c.query }; }
-  function decision(text) { // Nano's JSON is exact; Llama's comes in assorted wrappers, so take the first {...} that parses
+  function decision(text) { // Llama's JSON comes in assorted wrappers, so take the first {...} that parses
     for (var i = text.indexOf('{'); i >= 0; i = text.indexOf('{', i + 1))
       for (var j = text.lastIndexOf('}'); j > i; j = text.lastIndexOf('}', j - 1)) { try { var c = JSON.parse(text.slice(i, j + 1)); if (c && c.tool) return c; } catch (e) {} }
-    return { tool: 'reply' };
+    // cut off mid-JSON (length cap): read the fields one by one; a runaway "query" is a reply in disguise, not a search
+    var f = function (k) { var m = new RegExp('"' + k + '"\\s*:\\s*"([^"]*)"').exec(text); return m && m[1]; }, tool = f('tool');
+    return tool && TOOLS[tool] && (f('query') || f('target')) && (f('query') || '').length <= 80 ? { tool: tool, query: f('query'), target: f('target') } : { tool: 'reply' };
   }
 
   // One visitor message → tool steps → a reply that may only use what the tools returned.
@@ -429,7 +440,8 @@
     for (var step = 0; step < 4; step++) {
       var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
         '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. ' +
-        'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}.', talk + '\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
+        'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}. The query is a few words, never an answer.',
+        talk + '\n\nThe message to handle now: "' + chat[chat.length - 1].text + '" (earlier messages are context only; don\'t research them again).\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
       var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
       ev('thought', { tokens: r.tokens, ms: r.ms, tool: c.tool });
       if (c.tool === 'reply' || !TOOLS[c.tool] || done[key]) break; // the same call twice means it's stuck: answer with what we have
@@ -523,7 +535,7 @@
     }
     step('search', now() - t);
     step('rank', null); t = now();
-    var top = Object.keys(best).filter(function (a) { return !d.answers[a].src; }) /* résumé sections are for the chat agent, not direct answers */.map(function (a) { return { i: +a, score: best[a] }; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    var top = Object.keys(best).map(function (a) { return { i: +a, score: best[a] }; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
     step('rank', now() - t);
     step('answer', null); t = now();
     var r = compose(d, top);
@@ -559,14 +571,16 @@
   var saveData = navigator.connection && navigator.connection.saveData;
   if (saveData) {
     reveal();
-    $('askIn').addEventListener('focus', function () { loadIndex(); loadModel(); }, { once: true });
+    $('askIn').addEventListener('focus', function () { engineP.then(function (E) { if (E) { loadKB(); loadKBModel(); } else { loadIndex(); loadModel(); } }); }, { once: true });
   } else {
     addEventListener('load', function () {
       var idle = window.requestIdleCallback || function (f) { setTimeout(f, 1200); };
       idle(function () {
         var t = performance.now();
-        Promise.all([loadIndex(), loadModel()])
-          .then(function (r) { return r[1]('warm up', { pooling: 'mean', normalize: true }); }) // first run compiles; do it now, not on the visitor's question
+        engineP.then(function (E) { // warm whichever search this visitor will use: the chat agent's, or the direct answers'
+          return E ? Promise.all([loadKB(), loadKBModel()]).then(function (r) { return r[1]('warm up', { pooling: 'cls', normalize: true }); })
+            : Promise.all([loadIndex(), loadModel()]).then(function (r) { return r[1]('warm up', { pooling: 'mean', normalize: true }); }); // first run compiles; do it now, not on the visitor's question
+        })
           .then(function () { reveal('runs in your browser · ready in ' + ((performance.now() - t) / 1000).toFixed(1) + 's'); })
           .catch(function () {}); // model couldn't load: keep the section hidden rather than show a broken box
       }, { timeout: 3000 });
@@ -586,21 +600,18 @@
   $('askHint').onclick = function (e) { if (e.target.tagName === 'BUTTON') { $('askHint').classList.remove('show'); openTerm(); } };
   $('askForm').onsubmit = function (e) { e.preventDefault(); runAsk(); };
   var chatEl = $('chat'), card = chatEl.parentNode, chat = [], asking = 0, aiBroken = false; // chat: [{ me, text }], the conversation the agent sees
-  var X_ICON = '<path d="M4 4l8 8M12 4l-8 8"/>', OPEN_ICON = '<path d="M9 3h4v4M7 13H3V9M13 3L9 7M3 13l4-4"/>';
-  function full(on) { // the chat takes the whole screen while a conversation is going; closing keeps it on the page
+  function full(on) { // the chat takes the whole screen while a conversation is going
     card.classList.toggle('full', on); document.documentElement.classList.toggle('chat-open', on);
-    $('chatFull').querySelector('svg').innerHTML = on ? X_ICON : OPEN_ICON;
-    $('chatFull').setAttribute('aria-label', on ? 'Close full screen' : 'Open full screen');
     if (on) { pinned = true; stick(); $('askIn').focus(); } else card.scrollIntoView({ block: 'nearest' });
   }
   beforePageAction = function () { full(false); };
-  $('chatFull').onclick = function () { full(!card.classList.contains('full')); };
-  addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('full') && !document.querySelector('.term.open')) full(false); });
+  function endChat() { chat = []; ++asking; chatEl.innerHTML = ''; $('chatBar').hidden = true; full(false); } // closing is "new chat": the next question starts fresh
+  $('chatClose').onclick = endChat;
+  addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('full') && !document.querySelector('.term.open')) endChat(); });
   chatEl.onclick = function (e) {
     if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); }
     else if (e.target.dataset.exact) runAsk(e.target.dataset.exact);
   };
-  $('chatNew').onclick = function () { chat = []; ++asking; chatEl.innerHTML = ''; $('chatBar').hidden = true; full(false); $('askIn').focus(); };
   $('askIn').addEventListener('focus', function () { engineP.then(function (E) { if (E) E.load().catch(function () { aiBroken = true; }); }); }, { once: true }); // start loading as soon as they mean to ask
   function sec(ms) { return ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(1) + 's'; }
   // Follow the newest text unless the visitor scrolled up to read; scrolling back to the bottom re-pins.
@@ -693,7 +704,7 @@
     if (E) {
       logAsked(q);
       try { var r = await runAgent(id, E, trace, ans); if (id === asking) chat.push({ me: false, text: r.text }); return; }
-      catch (err) { aiBroken = true; } // model can't run here: answer from the bank instead, and don't retry
+      catch (err) {} // this turn failed: answer from the bank instead (a model that can't load at all is caught on focus and not retried)
       if (id !== asking) return;
     }
     function draw(cur) {

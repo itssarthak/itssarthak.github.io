@@ -1,15 +1,18 @@
-// Builds answers.json for the Ask box: reads docs/answer-bank.csv and embeds every
-// phrasing once, so the browser only ever embeds the visitor's question. Also adds the résumé,
-// one entry per section (src: 'resume.html'), for the chat agent's search tool.
-// Re-run when the answer bank or the résumé changes:
+// Builds the Ask box's two search indexes, so the browser only ever embeds the visitor's text:
+// - answers.json from docs/answer-bank.csv: the direct-answer fallback (and the terminal), matched question to question.
+// - knowledge.json from docs/knowledge.md: what the chat agent's search tool reads, one entry per "## " section.
+// Re-run when either file changes:
 //   npm i --no-save --no-package-lock @huggingface/transformers@4.3.0
 //   node scripts/build-answer-index.mjs
-// MODEL and DTYPE must match app.js, or the vectors won't be comparable.
+// MODEL/DTYPE and KB_MODEL/KB_DTYPE must match app.js, or the vectors won't be comparable.
 import { readFile, writeFile } from "node:fs/promises";
 import { pipeline } from "@huggingface/transformers";
 
 const MODEL = "Xenova/all-MiniLM-L6-v2";
 const DTYPE = "q8";
+// The agent searches passages, not questions, so it gets a retrieval model; queries carry KB_QUERY in front (app.js adds it).
+const KB_MODEL = "Xenova/bge-small-en-v1.5";
+const KB_DTYPE = "q8";
 // Visitors ask about "Sarthak"/"he"; the bank is written as "you". Map both to "you" so the
 // name itself doesn't dominate the match. app.js has the same function; keep them identical.
 export const norm = (q) => q.toLowerCase().replace(/\bsarthak('s)?\b/g, "you").replace(/\b(he|him|he's)\b/g, "you").replace(/\bhis\b/g, "your");
@@ -17,34 +20,20 @@ export const norm = (q) => q.toLowerCase().replace(/\bsarthak('s)?\b/g, "you").r
 const SRC = new URL("../docs/answer-bank.csv", import.meta.url);
 const OUT = new URL("../answers.json", import.meta.url);
 const COMMON = new URL("./common-words.txt", import.meta.url);
-const RESUME = new URL("../resume.html", import.meta.url);
+const KB_SRC = new URL("../docs/knowledge.md", import.meta.url);
+const KB_OUT = new URL("../knowledge.json", import.meta.url);
 
-// Résumé → one entry per <h2>/<h3> section, titled by its headings: { q: title, a: text, src }.
-export function pageSections(html, src, name) {
-  const text = (h) => h.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ").trim();
-  const main = (html.match(/<main[\s\S]*?<\/main>/) || [html])[0].replace(/<(script|style)[\s\S]*?<\/\1>/g, "")
-    .replace(/(<div class="when">[\s\S]*?<\/div>)\s*(<h3[\s\S]*?<\/h3>)/g, "$2 $1");  // a role's dates sit above its title: keep them in its section
-  const out = []; let h2 = "";
-  for (const part of main.split(/(?=<h[23][\s>])/).slice(1)) {
-    const [, lvl, head] = part.match(/^<h([23])[^>]*>([\s\S]*?)<\/h\1>/) || [];
-    if (!lvl) continue;
-    if (lvl === "2") h2 = text(head);
-    const body = text(part.slice(part.indexOf("</h" + lvl + ">") + 5));
-    if (body.length > 20) out.push({ q: [name, h2, lvl === "3" ? text(head) : ""].filter(Boolean).join(" · "), era: "all", a: body, src, phrasings: [] });
-  }
-  // Every role with its dates in one entry, for "how long" and "when" questions that span roles.
-  const M = "jan feb mar apr may jun jul aug sep oct nov dec".split(" ");
-  const span = (w) => { // "Jul 2025 – Feb 2026" → "7 months": small models get date arithmetic wrong, so do it here
-    const d = [...w.toLowerCase().matchAll(/([a-z]{3})[a-z]* (\d{4})/g)].map(([, m, y]) => +y * 12 + M.indexOf(m));
-    if (d.length !== 2 || d.includes(-1)) return "";
-    const n = d[1] - d[0], y = Math.floor(n / 12), m = n % 12;
-    return " (" + [y && y + (y > 1 ? " years" : " year"), m && m + (m > 1 ? " months" : " month")].filter(Boolean).join(" ") + ")";
-  };
-  const roles = [...html.matchAll(/<div class="when">([\s\S]*?)<\/div>\s*<h3[^>]*>([\s\S]*?)<\/h3>/g)].map(([, when, head]) => text(head) + ": " + text(when) + span(text(when)));
-  if (roles.length) out.push({ q: name + " · Career timeline (dates of every role, most recent first)", era: "all", a: roles.join(". ") + ".", src,
-    phrasings: ["how long did you work there", "how long were you at each company", "tenure at each job", "duration of each role", "employment dates", "when did you join", "when did you leave", "work timeline", "career dates"] });
-  return out;
+// knowledge.md → [{ t: heading, a: text, ask: [other ways to ask] }], one per "## " section.
+// HTML comments are notes for the editor; "> " lines are search phrasings, kept out of the text.
+export function sections(md) {
+  return md.replace(/<!--[\s\S]*?-->/g, "").split(/^## /m).slice(1).map((s) => {
+    const [t, ...lines] = s.split("\n");
+    const ask = lines.filter((l) => l.startsWith("> ")).flatMap((l) => l.slice(2).split(",")).map((x) => x.trim()).filter(Boolean);
+    return { t: t.trim(), a: lines.filter((l) => !l.startsWith("> ")).join("\n").trim().replace(/\s*\n\s*/g, " "), ask };
+  }).filter((x) => x.t && x.a);
 }
+// ponytail: int8 quantisation keeps the files ~6x smaller; cosine ranking barely moves
+const int8 = (data) => Array.from(data, (v) => Math.max(-127, Math.min(127, Math.round(v * 127))));
 
 // Minimal RFC 4180 reader: quoted fields, doubled quotes, newlines inside quotes.
 export function readCsv(text) {
@@ -80,27 +69,35 @@ export function parse(csv) {
 }
 
 async function main() {
-  const answers = [...parse(await readFile(SRC, "utf8")), ...pageSections(await readFile(RESUME, "utf8"), "resume.html", "Résumé")];
+  const answers = parse(await readFile(SRC, "utf8"));
   const embed = await pipeline("feature-extraction", MODEL, { dtype: DTYPE });
   const idx = [], vecs = [];
   for (const [i, x] of answers.entries()) {
-    for (const text of x.src ? [x.q, x.q + ". " + x.a, ...x.phrasings] : [x.q, ...x.phrasings]) { // a page section is found by its title, its content or its phrasings
+    for (const text of [x.q, ...x.phrasings]) {
       const out = await embed(norm(text), { pooling: "mean", normalize: true });
       idx.push(i);
-      // ponytail: int8 quantisation keeps the file ~6x smaller; cosine ranking barely moves
-      vecs.push(...Array.from(out.data, (v) => Math.max(-127, Math.min(127, Math.round(v * 127)))));
+      vecs.push(...int8(out.data));
     }
   }
   const dim = vecs.length / idx.length;
   const b64 = Buffer.from(Int8Array.from(vecs).buffer).toString("base64");
   // Vocabulary for the Ask box's spelling fix: every word in the bank with its count, most frequent first.
   const counts = {};
-  for (const x of answers) if (!x.src) for (const w of [x.q, ...x.phrasings, x.a].join(" ").toLowerCase().match(/[a-z][a-z0-9'-]+/g) || []) counts[w] = (counts[w] || 0) + 1;
+  for (const x of answers) for (const w of [x.q, ...x.phrasings, x.a].join(" ").toLowerCase().match(/[a-z][a-z0-9'-]+/g) || []) counts[w] = (counts[w] || 0) + 1;
   const vocab = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).join(" ");
   // Common English words (google-10000-english, Josh Kaufman) the spelling fix leaves alone, so "married" never becomes "carried".
   const common = (await readFile(COMMON, "utf8")).split(/\s+/).filter((w) => w.length >= 5 && !(w in counts)).join(" ");
-  await writeFile(OUT, JSON.stringify({ model: MODEL, dtype: DTYPE, dim, answers: answers.map(({ q, era, a, src }) => (src ? { q, era, a, src } : { q, era, a })), idx, vecs: b64, vocab, common }));
+  await writeFile(OUT, JSON.stringify({ model: MODEL, dtype: DTYPE, dim, answers: answers.map(({ q, era, a }) => ({ q, era, a })), idx, vecs: b64, vocab, common }));
   console.log(`wrote ${answers.length} answers, ${idx.length} vectors × ${dim} dims`);
+
+  const kb = sections(await readFile(KB_SRC, "utf8"));
+  const kbEmbed = await pipeline("feature-extraction", KB_MODEL, { dtype: KB_DTYPE });
+  const kv = [], kidx = []; // a section is found by its full text, its heading, or any of its "> " phrasings; the best match counts
+  for (const [i, x] of kb.entries()) for (const text of [x.t + ". " + x.a, x.t, ...x.ask]) {
+    kv.push(...int8((await kbEmbed(text, { pooling: "cls", normalize: true })).data)); kidx.push(i); // BGE uses the CLS token
+  }
+  await writeFile(KB_OUT, JSON.stringify({ model: KB_MODEL, dtype: KB_DTYPE, dim: kv.length / kidx.length, kb: kb.map(({ t, a }) => ({ t, a })), idx: kidx, vecs: Buffer.from(Int8Array.from(kv).buffer).toString("base64") }));
+  console.log(`wrote ${kb.length} knowledge sections`);
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) main();
