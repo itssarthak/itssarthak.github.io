@@ -293,6 +293,67 @@
   function loadModel() {
     return modelP || (modelP = import(TF).then(function (m) { return m.pipeline('feature-extraction', MODEL, { dtype: DTYPE }); }));
   }
+  // The writer: a model on the visitor's GPU that answers by calling a search_answers tool over the bank.
+  // Browsers without WebGPU (most phones) get the bank answer instead.
+  // ponytail: ~1.24GB download once, WebGPU only; it only knows what the bank says.
+  // Tried and dropped: Qwen2.5 1.5B q4f16 prints "!!!!" on WebGPU (fp16 overflow); Qwen3 1.7B (1.4GB) runs out of browser memory.
+  var LLM = 'onnx-community/Llama-3.2-1B-Instruct-q4f16', llmP, llmProgress = function () {};
+  var TOOLS = [{ type: 'function', function: { name: 'search_answers', description: 'Search Sarthak\'s own answers about his work, skills, career, projects and contact details. Returns the 5 closest answers.',
+    parameters: { type: 'object', properties: { query: { type: 'string', description: 'What to look up, e.g. "work history" or "experience with RAG"' } }, required: ['query'] } } }];
+  function loadLLM() { // may start before the question (on focus), so progress goes to whoever is waiting now
+    return llmP || (llmP = import(TF).then(function (m) {
+      var opt = { progress_callback: function (p) { llmProgress(p); } };
+      return Promise.all([m.AutoTokenizer.from_pretrained(LLM, opt), m.AutoModelForCausalLM.from_pretrained(LLM, Object.assign({ dtype: 'q4f16', device: 'webgpu' }, opt))])
+        .then(function (r) { return { m: m, tok: r[0], model: r[1] }; });
+    }).catch(function (e) { llmP = null; throw e; }));
+  }
+  async function lookup(q) { // the tool: top 5 bank answers for a query
+    var got = await Promise.all([loadIndex(), loadModel()]), d = got[0];
+    var best = scan(d, (await got[1](norm(q), { pooling: 'mean', normalize: true })).data);
+    return Object.keys(best).sort(function (a, b) { return best[b] - best[a]; }).slice(0, 5)
+      .map(function (i) { return { q: d.answers[i].q, a: plain(fill(d.answers[i].a)), score: best[i] }; });
+  }
+  // ev(type, data) reports the run as it happens, for the live panel: download, think, token, tool, result, done
+  async function aiAnswer(q, ev) {
+    llmProgress = function (p) { if (p.status === 'progress') ev('download', p); };
+    var L = await loadLLM(), searched = [], t0 = performance.now(), total = 0;
+    ev('ready');
+    // Round 1 has the tool and decides what to search. Round 2 writes the reply with the results as its own notes, no tool:
+    // a 1B model given results as a tool message ignores them or searches again, but uses them as notes.
+    var persona = 'You are Sarthak Chhabra. A visitor on your portfolio site asks you a question. Reply in first person, in one to three short sentences';
+    var msgs = [{ role: 'system', content: persona + '. For any question about you, your work, skills, career, projects or how to reach you, call search_answers first.' }, { role: 'user', content: q }];
+    for (var round = 0; round < 2; round++) {
+      var inputs = L.tok.apply_chat_template(msgs, { tools: round ? undefined : TOOLS, add_generation_prompt: true, return_dict: true }), text = '', n = 0, t = performance.now();
+      ev('think', { round: round, prompt: inputs.input_ids.dims[1] });
+      var out = await L.model.generate(Object.assign({}, inputs, { max_new_tokens: round ? 200 : 80, do_sample: false, // ponytail: 80 fits a tool call or a greeting; a long tool-less reply gets cut
+        streamer: new L.m.TextStreamer(L.tok, { skip_prompt: true, skip_special_tokens: true, callback_function: function (x) { text += x; ev('token', { text: text, n: ++n, ms: performance.now() - t, answer: !/^\s*(`|[<{])/.test(text) }); } }) }));
+      var made = out.dims[1] - inputs.input_ids.dims[1]; total += made;
+      var raw = L.tok.batch_decode(out.slice(null, [inputs.input_ids.dims[1], null]), { skip_special_tokens: true })[0].trim();
+      // Llama calls a tool by replying with JSON, in varying wrappers (bare, {type, function}, ``` fences, repeated): just pull the query out
+      var qm = !round && /search_answers/.test(raw) && /"query"\s*:\s*"((?:[^"\\]|\\.)+)"/.exec(raw), args = qm ? { query: JSON.parse('"' + qm[1] + '"') } : null;
+      ev('thought', { tokens: made, ms: performance.now() - t, tool: !!args });
+      if (!args) {
+        if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: q.slice(0, 300), corrected: '', result: 'ai answer', matched: raw.slice(0, 300), score: 0, alts: searched.join(' | ') });
+        ev('done', { text: raw, tokens: total, ms: performance.now() - t0, searches: searched.length });
+        return raw;
+      }
+      searched.push(args.query); ev('tool', { query: args.query }); t = performance.now();
+      var res = await lookup(args.query);
+      ev('result', { query: args.query, results: res, ms: performance.now() - t });
+      msgs = [{ role: 'system', content: persona + ', based on your notes below. If your notes don\'t cover the question, say so and suggest emailing ' + EMAIL + '.\n\nYour notes:\n\n' +
+        res.map(function (x) { return 'Q: ' + x.q + '\nA: ' + x.a; }).join('\n\n') }, { role: 'user', content: q }];
+    }
+  }
+  function scan(d, vec) { // best cosine score per answer
+    var n = d.idx.length, dim = d.dim, best = {};
+    for (var i = 0; i < n; i++) {
+      var s = 0, o = i * dim;
+      for (var j = 0; j < dim; j++) s += vec[j] * d.v[o + j];
+      s /= 127;
+      if (!(d.idx[i] in best) || s > best[d.idx[i]]) best[d.idx[i]] = s;
+    }
+    return best;
+  }
   // ---- spelling fix: typos are corrected against the answer bank's own vocabulary ------------------
   function osa(a, b, max) { // optimal-string-alignment distance (edits incl. swapped letters), gives up past max
     if (Math.abs(a.length - b.length) > max) return max + 1;
@@ -342,19 +403,9 @@
     var fv = fixed !== q ? (await embed(norm(fixed), { pooling: 'mean', normalize: true })).data : null;
     step('embed', now() - t);
     step('search', null); t = now();
-    function scan(vec) {
-      var n = d.idx.length, dim = d.dim, best = {};
-      for (var i = 0; i < n; i++) {
-        var s = 0, o = i * dim;
-        for (var j = 0; j < dim; j++) s += vec[j] * d.v[o + j];
-        s /= 127;
-        if (!(d.idx[i] in best) || s > best[d.idx[i]]) best[d.idx[i]] = s;
-      }
-      return best;
-    }
-    var best = scan(qv), corrected = null;
+    var best = scan(d, qv), corrected = null;
     if (fv) { // keep the correction only if it actually matches better
-      var alt = scan(fv), top0 = Math.max.apply(null, Object.values(best)), top1 = Math.max.apply(null, Object.values(alt));
+      var alt = scan(d, fv), top0 = Math.max.apply(null, Object.values(best)), top1 = Math.max.apply(null, Object.values(alt));
       if (top1 >= MATCH && top1 - top0 >= 0.05) { best = alt; corrected = fixed; } // only a clearly better, real match wins
     }
     step('search', now() - t);
@@ -425,8 +476,50 @@
     if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); }
     else if (e.target.dataset.exact) runAsk(true);
   };
-
-  var asking = 0;
+  // The agent run, drawn live into the trace panel: model card, download bar, one row per step, tool calls with their results.
+  function runAgent(q, id) {
+    var trace = $('trace'), box = $('answer'), seen = {}, live = null, panel, steps, stat, dl;
+    var sec = function (ms) { return ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(1) + 's'; };
+    trace.innerHTML = '<div class="agent"><div class="ag-h"><span class="ag-dot"></span><b>Llama 3.2 1B Instruct</b><span class="ag-tag">WebGPU · 4-bit · on your device</span><span class="ag-st">loading</span></div>' +
+      '<div class="ag-dl"><div class="ag-bar"><i></i></div><span></span></div><div class="ag-q"><i>ask</i>“' + esc(q) + '”</div><ol class="ag-steps"></ol><div class="ag-f"></div></div>';
+    panel = trace.firstChild; steps = panel.querySelector('.ag-steps'); stat = panel.querySelector('.ag-st'); dl = panel.querySelector('.ag-dl');
+    box.innerHTML = '';
+    function state(s, cls) { stat.textContent = s; panel.className = 'agent ' + (cls || 'run'); }
+    function row(kind, html) { var li = document.createElement('li'); li.className = 'ag-' + kind + ' on'; li.innerHTML = html; steps.appendChild(li); return li; }
+    function settle() { if (live) live.classList.remove('on'); }
+    return aiAnswer(q, function (type, d) {
+      if (id !== asking) return;
+      if (type === 'download') {
+        seen[d.file] = d; var got = 0, all = 0;
+        Object.keys(seen).forEach(function (f) { got += seen[f].loaded || 0; all += seen[f].total || 0; });
+        state('downloading, once'); if (all < 5e7) return; // small config files arrive first; wait for the weights so the bar doesn't jump to 100%
+        dl.classList.add('show');
+        dl.firstChild.firstChild.style.width = (all ? 100 * got / all : 0).toFixed(1) + '%';
+        dl.lastChild.textContent = Math.round(got / 1e6).toLocaleString() + ' / ' + Math.round(all / 1e6).toLocaleString() + ' MB';
+      } else if (type === 'ready') { dl.classList.remove('show'); state('thinking');
+      } else if (type === 'think') {
+        settle(); state('thinking');
+        live = row('think', '<i>think</i><span class="ag-m">reading ' + d.prompt.toLocaleString() + ' tokens…</span>');
+      } else if (type === 'token') {
+        live.querySelector('.ag-m').textContent = d.n + ' tokens · ' + (d.n / d.ms * 1000).toFixed(0) + ' tok/s';
+        if (d.answer) { state('writing'); box.innerHTML = md(d.text).replace(/<\/p>$/, '<span class="ag-caret"></span></p>'); }
+      } else if (type === 'thought') {
+        live.querySelector('.ag-m').textContent = d.tokens + ' tokens · ' + sec(d.ms) + ' · ' + (d.tokens / d.ms * 1000).toFixed(0) + ' tok/s' + (d.tool ? ' → tool call' : ' → answer');
+      } else if (type === 'tool') {
+        settle(); state('searching');
+        live = row('tool', '<i>tool</i><code>search_answers(<s>{"query": "' + esc(d.query) + '"}</s>)</code>');
+      } else if (type === 'result') {
+        live.innerHTML = '<details open><summary><i>tool</i><code>search_answers(<s>{"query": "' + esc(d.query) + '"}</s>)</code><span class="ag-m">' + d.results.length + ' results · ' + sec(d.ms) + '</span></summary><ol>' +
+          d.results.map(function (x) { return '<li><b>' + x.score.toFixed(2) + '</b><span>' + esc(x.q) + '</span></li>'; }).join('') + '</ol></details>';
+      } else if (type === 'done') {
+        settle(); state('done', 'done');
+        box.innerHTML = md(d.text) + '<p class="matched">Written by an AI in your browser from my answers · it can be wrong</p>';
+        panel.querySelector('.ag-f').textContent = d.searches + (d.searches === 1 ? ' search · ' : ' searches · ') + d.tokens + ' tokens · ' + sec(d.ms) + ' total';
+      }
+    });
+  }
+  var asking = 0, aiBroken = false;
+  $('askIn').addEventListener('focus', function () { if (navigator.gpu) loadLLM().catch(function () { aiBroken = true; }); }, { once: true }); // start the big download as soon as they mean to ask
   async function runAsk(exact) {
     var q = $('askIn').value.trim(); if (!q) return;
     var id = ++asking, trace = $('trace'), times = {}, searched = q;
@@ -445,6 +538,11 @@
       if (id !== asking) return;
       if (r.corrected) { searched = r.corrected; draw(null); }
       trace.innerHTML += '<div class="st done"><i>match</i><b>' + r.score.toFixed(2) + '</b>&nbsp;“' + esc(r.q) + '”</div>';
+      if (navigator.gpu && !aiBroken) {
+        try { await runAgent(q, id); return; }
+        catch (err) { aiBroken = true; } // model can't run here: show the bank's answer instead, and don't retry
+        if (id !== asking) return;
+      }
       var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="1">search “' + esc(q) + '” instead</button></p>' : '';
       $('answer').innerHTML = didYou + (r.hit
         ? '<p class="matched">Answering: <b>' + esc(r.q) + '</b></p>' + (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
