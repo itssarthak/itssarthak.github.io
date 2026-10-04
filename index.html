@@ -81,14 +81,14 @@
     <div class="reveal-in"><div class="reveal-pad">
     <div class="sec-h"><h2>Ask the system</h2><span class="label">runs in your browser</span></div>
     <div class="card ask">
+      <div class="chat" id="chat" aria-live="polite"></div>
       <form id="askForm">
         <input class="ask-in" id="askIn" placeholder="Ask anything about me…" autocomplete="off" spellcheck="true" aria-label="Ask a question">
         <button class="btn p" type="submit">Ask</button>
       </form>
       <p class="ask-hint" id="askHint" role="status"></p>
       <div class="sugg" id="sugg"></div>
-      <div class="answer" id="answer" aria-live="polite"></div>
-      <div class="trace" id="trace" aria-hidden="true"></div>
+      <button type="button" class="chat-new" id="chatNew" hidden>New chat</button>
     </div>
     </div></div>
   </section>

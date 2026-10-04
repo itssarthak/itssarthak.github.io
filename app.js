@@ -293,13 +293,12 @@
   function loadModel() {
     return modelP || (modelP = import(TF).then(function (m) { return m.pipeline('feature-extraction', MODEL, { dtype: DTYPE }); }));
   }
-  // The writer: a model on the visitor's GPU that answers by calling a search_answers tool over the bank.
-  // Browsers without WebGPU (most phones) get the bank answer instead.
-  // ponytail: ~1.24GB download once, WebGPU only; it only knows what the bank says.
+  // The writer: a model on the visitor's device that answers by calling a search_answers tool over the bank.
+  // Chrome's built-in Gemini Nano when it's ready (no download from us, and it doesn't invent facts the way a 1B model does),
+  // else Llama 3.2 1B on WebGPU, else (most phones) the bank answer.
+  // ponytail: Llama is ~1.24GB once and only knows what the bank says.
   // Tried and dropped: Qwen2.5 1.5B q4f16 prints "!!!!" on WebGPU (fp16 overflow); Qwen3 1.7B (1.4GB) runs out of browser memory.
   var LLM = 'onnx-community/Llama-3.2-1B-Instruct-q4f16', llmP, llmProgress = function () {};
-  var TOOLS = [{ type: 'function', function: { name: 'search_answers', description: 'Search Sarthak\'s own answers about his work, skills, career, projects and contact details. Returns the 5 closest answers.',
-    parameters: { type: 'object', properties: { query: { type: 'string', description: 'What to look up, e.g. "work history" or "experience with RAG"' } }, required: ['query'] } } }];
   function loadLLM() { // may start before the question (on focus), so progress goes to whoever is waiting now
     return llmP || (llmP = import(TF).then(function (m) {
       var opt = { progress_callback: function (p) { llmProgress(p); } };
@@ -307,42 +306,146 @@
         .then(function (r) { return { m: m, tok: r[0], model: r[1] }; });
     }).catch(function (e) { llmP = null; throw e; }));
   }
-  async function lookup(q) { // the tool: top 5 bank answers for a query
+  // An engine generates once: gen(system, prompt, schema, onText) → { text, tokens }. A schema asks for JSON matching it.
+  var LLAMA = { name: 'Llama 3.2 1B Instruct', tag: 'WebGPU · 4-bit · on your device', load: loadLLM,
+    gen: async function (sys, prompt, schema, onText) {
+      var L = await loadLLM(), text = '';
+      var inputs = L.tok.apply_chat_template([{ role: 'system', content: sys }, { role: 'user', content: prompt }], { add_generation_prompt: true, return_dict: true });
+      var out = await L.model.generate(Object.assign({}, inputs, { max_new_tokens: schema ? 80 : 300, do_sample: false,
+        streamer: new L.m.TextStreamer(L.tok, { skip_prompt: true, skip_special_tokens: true, callback_function: function (x) { text += x; onText(text); } }) }));
+      return { text: L.tok.batch_decode(out.slice(null, [inputs.input_ids.dims[1], null]), { skip_special_tokens: true })[0].trim(), tokens: out.dims[1] - inputs.input_ids.dims[1] };
+    } };
+  var NANO = { name: 'Gemini Nano', tag: 'built into Chrome · on your device',
+    load: function () { return LanguageModel.create().then(function (s) { s.destroy(); }); }, // the first session loads the model (~10s); later ones are instant
+    gen: async function (sys, prompt, schema, onText) {
+      var s = await LanguageModel.create({ initialPrompts: [{ role: 'system', content: sys }] }), text = '', n = 0;
+      try { for await (var x of s.promptStreaming(prompt, schema ? { responseConstraint: schema } : {})) { text += x; n++; onText(text); } }
+      finally { s.destroy(); }
+      return { text: text.trim(), tokens: n }; // ponytail: Nano doesn't report tokens; streamed chunks are close
+    } };
+  var engineP = (async function () {
+    try { if (typeof LanguageModel !== 'undefined' && await LanguageModel.availability() === 'available') return NANO; } catch (e) {}
+    return navigator.gpu ? LLAMA : null;
+  })();
+  async function lookup(q) { // the closest bank answers and résumé sections for a query
     var got = await Promise.all([loadIndex(), loadModel()]), d = got[0];
     var best = scan(d, (await got[1](norm(q), { pooling: 'mean', normalize: true })).data);
-    return Object.keys(best).sort(function (a, b) { return best[b] - best[a]; }).slice(0, 5)
-      .map(function (i) { return { q: d.answers[i].q, a: plain(fill(d.answers[i].a)), score: best[i] }; });
+    var ranked = Object.keys(best).sort(function (a, b) { return best[b] - best[a]; }), pick = function (page, n) { return ranked.filter(function (i) { return !d.answers[i].src === !page; }).slice(0, n); };
+    // the 3 closest answers plus the 2 closest résumé sections: a short answer always outscores a long section, but only the résumé has dates
+    return pick(false, 3).concat(pick(true, 2)).sort(function (a, b) { return best[b] - best[a]; }).map(function (i) { var x = d.answers[i];
+      return { label: x.src ? x.q : 'my answers · ' + x.q, text: plain(fill(x.a)), url: x.src || null, score: best[i] }; });
   }
-  // ev(type, data) reports the run as it happens, for the live panel: download, think, token, tool, result, done
-  async function aiAnswer(q, ev) {
-    llmProgress = function (p) { if (p.status === 'progress') ev('download', p); };
-    var L = await loadLLM(), searched = [], t0 = performance.now(), total = 0;
-    ev('ready');
-    // Round 1 has the tool and decides what to search. Round 2 writes the reply with the results as its own notes, no tool:
-    // a 1B model given results as a tool message ignores them or searches again, but uses them as notes.
-    var persona = 'You are Sarthak Chhabra. A visitor on your portfolio site asks you a question. Reply in first person, in one to three short sentences';
-    var msgs = [{ role: 'system', content: persona + '. For any question about you, your work, skills, career, projects or how to reach you, call search_answers first.' }, { role: 'user', content: q }];
-    for (var round = 0; round < 2; round++) {
-      var inputs = L.tok.apply_chat_template(msgs, { tools: round ? undefined : TOOLS, add_generation_prompt: true, return_dict: true }), text = '', n = 0, t = performance.now();
-      ev('think', { round: round, prompt: inputs.input_ids.dims[1] });
-      var out = await L.model.generate(Object.assign({}, inputs, { max_new_tokens: round ? 200 : 80, do_sample: false, // ponytail: 80 fits a tool call or a greeting; a long tool-less reply gets cut
-        streamer: new L.m.TextStreamer(L.tok, { skip_prompt: true, skip_special_tokens: true, callback_function: function (x) { text += x; ev('token', { text: text, n: ++n, ms: performance.now() - t, answer: !/^\s*(`|[<{])/.test(text) }); } }) }));
-      var made = out.dims[1] - inputs.input_ids.dims[1]; total += made;
-      var raw = L.tok.batch_decode(out.slice(null, [inputs.input_ids.dims[1], null]), { skip_special_tokens: true })[0].trim();
-      // Llama calls a tool by replying with JSON, in varying wrappers (bare, {type, function}, ``` fences, repeated): just pull the query out
-      var qm = !round && /search_answers/.test(raw) && /"query"\s*:\s*"((?:[^"\\]|\\.)+)"/.exec(raw), args = qm ? { query: JSON.parse('"' + qm[1] + '"') } : null;
-      ev('thought', { tokens: made, ms: performance.now() - t, tool: !!args });
-      if (!args) {
-        if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: q.slice(0, 300), corrected: '', result: 'ai answer', matched: raw.slice(0, 300), score: 0, alts: searched.join(' | ') });
-        ev('done', { text: raw, tokens: total, ms: performance.now() - t0, searches: searched.length });
-        return raw;
+
+  // ---- the chat agent's tools --------------------------------------------
+  // Each returns { items: what the panel lists, notes: sources the reply may cite, said: what the model is told, action, draft }.
+  var PAGES = { resume: ['Résumé', 'resume.html'], askmyastro: ['AskMyAstro', 'askmyastro-demo.html'], filedownloader: ['FileDownloader', 'filedownloader.html'], switchboard: ['Switchboard', 'switchboard.html'] };
+  var TARGETS = STOPS.map(function (s) { return s.v; }).concat(['terminal', 'contact'], Object.keys(PAGES));
+  var TOOL_DOCS = [
+    'search_about(query): search Sarthak\'s own answers and résumé (the résumé has each role\'s dates and details). Use it for anything about him: work, skills, projects, availability, how to reach him. Keep the query to a few words.',
+    'web_search(query): look up a general topic on the web (encyclopedia summaries), e.g. what a technology or company is. Not for facts about Sarthak.',
+    'live_stats(): today\'s numbers for his live products: AskMyAstro, FileDownloader, Switchboard.',
+    'go_to(target): act on this page for the visitor. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
+      return s.v + ' (' + s.title + (cos.length ? ', ' + cos.join(' and ') : '') + ')'; }).join(', ') + ', terminal, contact, resume, askmyastro, filedownloader, switchboard.',
+    'send_message(name, email, message): draft a message to Sarthak for the visitor to check and send. Only once the visitor has given their name, email and message.',
+    'reply: answer the visitor now.'];
+  var DECIDE = { type: 'object', required: ['tool'], properties: { tool: { type: 'string', enum: ['search_about', 'web_search', 'live_stats', 'go_to', 'send_message', 'reply'] },
+    query: { type: 'string', maxLength: 80 }, target: { type: 'string', enum: TARGETS }, name: { type: 'string' }, email: { type: 'string' }, message: { type: 'string' } } };
+  var TOOLS = {
+    search_about: async function (a) {
+      var res = await lookup(a.query || '');
+      var useful = res.filter(function (x) { return x.score >= (x.url ? 0.2 : 0.3); }).slice(0, 4); // résumé sections are long, so they score lower for the same relevance
+      return { items: res.map(function (x) { return { score: x.score, label: x.label }; }), notes: useful, said: useful.length ? '' : 'nothing relevant found' };
+    },
+    web_search: async function (a) {
+      var d = await fetch('https://api.duckduckgo.com/?format=json&no_html=1&skip_disambig=1&t=sarthakchhabra&q=' + encodeURIComponent(a.query || '')).then(function (r) { return r.json(); });
+      var notes = [];
+      if (d.AbstractText) notes.push({ label: 'web · ' + (d.AbstractSource || 'DuckDuckGo') + ' · ' + d.Heading, text: d.AbstractText, url: d.AbstractURL });
+      if (d.Answer) notes.push({ label: 'web · DuckDuckGo answer', text: String(d.Answer), url: 'https://duckduckgo.com/?q=' + encodeURIComponent(a.query) });
+      (d.RelatedTopics || []).filter(function (t) { return t.Text; }).slice(0, notes.length ? 1 : 3).forEach(function (t) { notes.push({ label: 'web · ' + t.Text.split(' - ')[0], text: t.Text, url: t.FirstURL }); });
+      if (!notes.length) { // DuckDuckGo's free API only knows exact topic names; fall back to Wikipedia's full-text search (also free, keyless)
+        var terms = (a.query || '').toLowerCase().split(/[^a-z0-9+#.]+/).filter(function (w) { return w.length > 2 && !/^(what|definition|meaning|explain|about|does|the|and|for|how|who|why)$/.test(w); });
+        var W = 'https://en.wikipedia.org/', hits = (await fetch(W + 'w/api.php?action=query&list=search&format=json&origin=*&srlimit=2&srsearch=' + encodeURIComponent(terms.join(' ') || a.query || '')).then(function (r) { return r.json(); })).query.search
+          .filter(function (h) { var t = (h.title + ' ' + h.snippet).toLowerCase(); return terms.every(function (w) { return t.indexOf(w) >= 0; }); }); // only pages that actually mention every term: "LangGraph" once matched a maths article
+        for (var h of hits) { var p = await fetch(W + 'api/rest_v1/page/summary/' + encodeURIComponent(h.title)).then(function (r) { return r.json(); });
+          if (p.extract) notes.push({ label: 'web · Wikipedia · ' + p.title, text: p.extract.slice(0, 600) + (h.snippet ? ' (Matched: ' + h.snippet.replace(/<[^>]+>/g, '') + ')' : ''), url: p.content_urls && p.content_urls.desktop.page }); }
       }
-      searched.push(args.query); ev('tool', { query: args.query }); t = performance.now();
-      var res = await lookup(args.query);
-      ev('result', { query: args.query, results: res, ms: performance.now() - t });
-      msgs = [{ role: 'system', content: persona + ', based on your notes below. If your notes don\'t cover the question, say so and suggest emailing ' + EMAIL + '.\n\nYour notes:\n\n' +
-        res.map(function (x) { return 'Q: ' + x.q + '\nA: ' + x.a; }).join('\n\n') }, { role: 'user', content: q }];
+      return { items: notes.map(function (x) { return { label: x.label }; }), notes: notes, said: notes.length ? '' : 'the web search found nothing for that' };
+    },
+    live_stats: async function () {
+      await statsReady;
+      if (!stats) return { items: [], notes: [], said: 'live stats are unavailable right now' };
+      var notes = SERVICES.map(function (s) { var m = s.metric(stats); return { label: 'live stats · ' + s.name, text: s.name + ' (' + s.d + '): ' + m[0] + ' ' + m[1] + (healthy() ? ', refreshed daily' : ', but the daily refresh is behind'), url: s.url }; });
+      return { items: notes.map(function (x) { return { label: x.text }; }), notes: notes };
+    },
+    go_to: async function (a) {
+      var t = a.target, i = eraFromArg(t);
+      if (PAGES[t]) return { items: [{ label: 'link ready: ' + PAGES[t][0] }], said: 'a link to ' + PAGES[t][0] + ' is shown under your reply', action: { label: 'Open ' + PAGES[t][0] + ' ↗', href: PAGES[t][1] } };
+      if (t === 'terminal') { openTerm(); return { items: [{ label: 'opened the terminal' }], said: 'opened the terminal' }; }
+      if (t === 'contact') { $('contact').scrollIntoView({ behavior: 'smooth' }); return { items: [{ label: 'scrolled to the contact form' }], said: 'scrolled the page to the contact form' }; }
+      if (i >= 0) { goEra(i); return { items: [{ label: 'scrolled to ' + label(i) }], notes: [{ label: 'this page · ' + label(i), text: 'Scrolled this page to ' + label(i) + ', the part of his history covering: ' + STOPS[i].projects.map(function (p) { return p[0] + ' at ' + p[1]; }).join(', ') }] }; }
+      return { items: [{ label: 'unknown target' }], said: 'unknown target' };
+    },
+    send_message: async function (a) {
+      var miss = ['name', 'email', 'message'].filter(function (k) { return !(a[k] || '').trim(); });
+      if (!miss.length && !EMAIL_RE.test(a.email.trim())) miss = ['a valid email'];
+      if (miss.length) return { items: [{ label: 'missing: ' + miss.join(', ') }], said: 'not drafted: ask the visitor for their ' + miss.join(', ') };
+      return { items: [{ label: 'draft ready for the visitor to send' }], said: 'drafted; the visitor must press Send under your reply, so tell them to check it and press Send', draft: { fullname: a.name.trim(), email: a.email.trim(), message: a.message.trim() } };
     }
+  };
+  function argsOf(c) { return c.tool === 'send_message' ? { name: c.name, email: c.email, message: c.message } : c.tool === 'go_to' ? { target: c.target } : c.tool === 'live_stats' ? {} : { query: c.query }; }
+  function decision(text) { // Nano's JSON is exact; Llama's comes in assorted wrappers, so take the first {...} that parses
+    for (var i = text.indexOf('{'); i >= 0; i = text.indexOf('{', i + 1))
+      for (var j = text.lastIndexOf('}'); j > i; j = text.lastIndexOf('}', j - 1)) { try { var c = JSON.parse(text.slice(i, j + 1)); if (c && c.tool) return c; } catch (e) {} }
+    return { tool: 'reply' };
+  }
+
+  // One visitor message → tool steps → a reply that may only use what the tools returned.
+  // ev(type, data) drives the live panel: download, ready, think, token, thought, tool, result, done.
+  // Models trained on scraped pages write Cloudflare's "[email protected]" placeholder for addresses; the only address we ever mention is EMAIL.
+  function unredact(t) { return t.replace(/\[\s*email[\s\u00a0]*protected\s*\]/gi, EMAIL); }
+  var BOT = 'You are the assistant on Sarthak Chhabra\'s portfolio website, chatting with a visitor about Sarthak. ';
+  async function agentTurn(chat, E, ev) {
+    llmProgress = function (p) { if (p.status === 'progress') ev('download', p); };
+    await E.load();
+    ev('ready', E);
+    var t0 = performance.now(), total = 0, notes = [], said = [], actions = [], draft = null, done = {};
+    var talk = chat.slice(-8).map(function (m) { return (m.me ? 'Visitor: ' : 'Assistant: ') + m.text; }).join('\n');
+    function noteText() {
+      return (notes.length ? notes.map(function (n, i) { return '[' + (i + 1) + '] ' + n.label + ': ' + n.text; }).join('\n') : '(none yet)') + (said.length ? '\nTool log: ' + said.join('; ') : '');
+    }
+    async function gen(sys, prompt, schema, phase) {
+      var t = performance.now(), n = 0;
+      ev('think', { phase: phase });
+      var r = await E.gen(sys, prompt, schema, function (text) { ev('token', { text: text, n: ++n, ms: performance.now() - t, phase: phase }); });
+      total += r.tokens; r.ms = performance.now() - t; return r;
+    }
+    for (var step = 0; step < 4; step++) {
+      var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
+        '\nSearch before answering anything factual, one topic per search, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. ' +
+        'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}.', talk + '\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
+      var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
+      ev('thought', { tokens: r.tokens, ms: r.ms, tool: c.tool });
+      if (c.tool === 'reply' || !TOOLS[c.tool] || done[key]) break; // the same call twice means it's stuck: answer with what we have
+      done[key] = 1;
+      var args = argsOf(c), t = performance.now();
+      ev('tool', { name: c.tool, args: args });
+      var out;
+      try { out = await TOOLS[c.tool](args); } catch (e) { out = { items: [{ label: 'failed: ' + e.message }], said: 'the tool failed' }; }
+      (out.notes || []).forEach(function (n) { if (!notes.some(function (m) { return m.text === n.text; })) notes.push(n); });
+      if (out.said) said.push(c.tool + ': ' + out.said);
+      if (out.action) actions.push(out.action);
+      if (out.draft) draft = out.draft;
+      ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
+    }
+    var fin = await gen(BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
+      'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own.' +
+      (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
+      talk + '\nAssistant:', null, 'reply');
+    ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
+    var res = { text: unredact(fin.text.replace(/^Assistant:\s*/, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
+    if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: chat[chat.length - 1].text.slice(0, 300), corrected: '', result: 'chat · ' + E.name, matched: res.text.slice(0, 300), score: 0, alts: Object.keys(done).join(' | ').slice(0, 300) });
+    ev('done', res);
+    return res;
   }
   function scan(d, vec) { // best cosine score per answer
     var n = d.idx.length, dim = d.dim, best = {};
@@ -410,7 +513,7 @@
     }
     step('search', now() - t);
     step('rank', null); t = now();
-    var top = Object.keys(best).map(function (a) { return { i: +a, score: best[a] }; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    var top = Object.keys(best).filter(function (a) { return !d.answers[a].src; }) /* résumé sections are for the chat agent, not direct answers */.map(function (a) { return { i: +a, score: best[a] }; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
     step('rank', now() - t);
     step('answer', null); t = now();
     var r = compose(d, top);
@@ -472,58 +575,97 @@
   });
   $('askHint').onclick = function (e) { if (e.target.tagName === 'BUTTON') { $('askHint').classList.remove('show'); openTerm(); } };
   $('askForm').onsubmit = function (e) { e.preventDefault(); runAsk(); };
-  $('answer').onclick = function (e) {
+  var chatEl = $('chat'), chat = [], asking = 0, aiBroken = false; // chat: [{ me, text }], the conversation the agent sees
+  chatEl.onclick = function (e) {
     if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); }
-    else if (e.target.dataset.exact) runAsk(true);
+    else if (e.target.dataset.exact) runAsk(e.target.dataset.exact);
   };
-  // The agent run, drawn live into the trace panel: model card, download bar, one row per step, tool calls with their results.
-  function runAgent(q, id) {
-    var trace = $('trace'), box = $('answer'), seen = {}, live = null, panel, steps, stat, dl;
-    var sec = function (ms) { return ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(1) + 's'; };
-    trace.innerHTML = '<div class="agent"><div class="ag-h"><span class="ag-dot"></span><b>Llama 3.2 1B Instruct</b><span class="ag-tag">WebGPU · 4-bit · on your device</span><span class="ag-st">loading</span></div>' +
-      '<div class="ag-dl"><div class="ag-bar"><i></i></div><span></span></div><div class="ag-q"><i>ask</i>“' + esc(q) + '”</div><ol class="ag-steps"></ol><div class="ag-f"></div></div>';
-    panel = trace.firstChild; steps = panel.querySelector('.ag-steps'); stat = panel.querySelector('.ag-st'); dl = panel.querySelector('.ag-dl');
-    box.innerHTML = '';
-    function state(s, cls) { stat.textContent = s; panel.className = 'agent ' + (cls || 'run'); }
-    function row(kind, html) { var li = document.createElement('li'); li.className = 'ag-' + kind + ' on'; li.innerHTML = html; steps.appendChild(li); return li; }
+  $('chatNew').onclick = function () { chat = []; ++asking; chatEl.innerHTML = ''; this.hidden = true; $('askIn').focus(); };
+  $('askIn').addEventListener('focus', function () { engineP.then(function (E) { if (E) E.load().catch(function () { aiBroken = true; }); }); }, { once: true }); // start loading as soon as they mean to ask
+  function sec(ms) { return ms < 1000 ? Math.round(ms) + 'ms' : (ms / 1000).toFixed(1) + 's'; }
+  function bubble(cls, html) { var el = document.createElement('div'); el.className = 'msg ' + cls; el.innerHTML = html; chatEl.appendChild(el); stick(true); return el; }
+  function stick(force) { if (force || chatEl.scrollHeight - chatEl.scrollTop - chatEl.clientHeight < 80) chatEl.scrollTop = chatEl.scrollHeight; } // follow the run unless they scrolled up to read
+
+  // The reply: [n] citations become superscripts, cited sources are listed, then any links or a message draft.
+  function renderReply(ans, r) {
+    var cited = [];
+    var html = md(r.text).replace(/\s*\[(\d+(?:\s*,\s*\d+)*)\]/g, function (m, list) { // [1] or [1, 6]; numbers with no source are dropped
+      return list.split(',').map(function (n) { n = +n; if (!r.notes[n - 1]) return ''; if (cited.indexOf(n) < 0) cited.push(n); return '<sup class="cite">' + n + '</sup>'; }).join('');
+    });
+    html += cited.length ? '<ol class="srcs">' + cited.sort(function (a, b) { return a - b; }).map(function (n) { var s = r.notes[n - 1];
+      return '<li value="' + n + '">' + (s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + '</a>' : esc(s.label)) + '</li>'; }).join('') + '</ol>' : '';
+    html += r.actions.length ? '<div class="acts">' + r.actions.map(function (a) { return '<a class="btn" href="' + esc(a.href) + '" target="_blank" rel="noopener">' + esc(a.label) + '</a>'; }).join('') + '</div>' : '';
+    if (r.draft) html += '<form class="draft"><p class="matched">Message to Sarthak · check it, then send</p><input name="fullname" required aria-label="Your name" value="' + esc(r.draft.fullname) + '">' +
+      '<input name="email" type="email" required aria-label="Your email" value="' + esc(r.draft.email) + '"><textarea name="message" required rows="3" aria-label="Message">' + esc(r.draft.message) + '</textarea>' +
+      '<div><button class="btn p" type="submit">Send</button> <span class="form-msg"></span></div></form>';
+    ans.innerHTML = html + '<p class="matched">Written by an AI in your browser from the sources above · it can still be wrong</p>';
+    var f = ans.querySelector('form.draft');
+    if (f) f.onsubmit = function (e) {
+      e.preventDefault(); var b = f.querySelector('button'), m = f.querySelector('.form-msg'); b.disabled = true;
+      sendMail({ fullname: f.fullname.value.trim(), email: f.email.value.trim(), message: f.message.value.trim() }, 'ask chat')
+        .then(function () { m.className = 'form-msg ok'; m.textContent = 'Sent. He’ll reply within a day.'; [].forEach.call(f.elements, function (el) { el.disabled = true; }); })
+        .catch(function () { b.disabled = false; m.className = 'form-msg err'; m.textContent = 'That didn’t go through. Try again, or email ' + EMAIL + '.'; });
+    };
+  }
+  // The agent run, drawn live: model card, download bar, one row per step (with the model's raw decision), tool calls and their results.
+  function runAgent(id, E, trace, ans) {
+    var seen = {}, live = null;
+    trace.innerHTML = '<details class="run agent" open><summary class="ag-h"><span class="ag-dot"></span><b>' + esc(E.name) + '</b><span class="ag-tag">' + esc(E.tag) + '</span><span class="ag-st">loading</span></summary>' +
+      '<div class="ag-dl"><div class="ag-bar"><i></i></div><span></span></div><ol class="ag-steps"></ol><div class="ag-f"></div></details>';
+    var panel = trace.firstChild, steps = panel.querySelector('.ag-steps'), stat = panel.querySelector('.ag-st'), dl = panel.querySelector('.ag-dl');
+    function state(s, done) { stat.textContent = s; panel.classList.toggle('done', !!done); }
+    function row(kind, html) { var li = document.createElement('li'); li.className = 'ag-' + kind + ' on'; li.innerHTML = html; steps.appendChild(li); stick(); return li; }
     function settle() { if (live) live.classList.remove('on'); }
-    return aiAnswer(q, function (type, d) {
+    function call(d) { return '<code>' + esc(d.name) + '(<s>' + esc(JSON.stringify(d.args)) + '</s>)</code>'; }
+    return agentTurn(chat, E, function (type, d) {
       if (id !== asking) return;
       if (type === 'download') {
         seen[d.file] = d; var got = 0, all = 0;
         Object.keys(seen).forEach(function (f) { got += seen[f].loaded || 0; all += seen[f].total || 0; });
         state('downloading, once'); if (all < 5e7) return; // small config files arrive first; wait for the weights so the bar doesn't jump to 100%
         dl.classList.add('show');
-        dl.firstChild.firstChild.style.width = (all ? 100 * got / all : 0).toFixed(1) + '%';
+        dl.firstChild.firstChild.style.width = (100 * got / all).toFixed(1) + '%';
         dl.lastChild.textContent = Math.round(got / 1e6).toLocaleString() + ' / ' + Math.round(all / 1e6).toLocaleString() + ' MB';
       } else if (type === 'ready') { dl.classList.remove('show'); state('thinking');
       } else if (type === 'think') {
-        settle(); state('thinking');
-        live = row('think', '<i>think</i><span class="ag-m">reading ' + d.prompt.toLocaleString() + ' tokens…</span>');
+        settle(); state(d.phase === 'decide' ? 'thinking' : 'writing');
+        live = row('think', '<i>' + (d.phase === 'decide' ? 'think' : 'write') + '</i><span class="ag-m">…</span>' + (d.phase === 'decide' ? '<code class="ag-raw"></code>' : ''));
       } else if (type === 'token') {
         live.querySelector('.ag-m').textContent = d.n + ' tokens · ' + (d.n / d.ms * 1000).toFixed(0) + ' tok/s';
-        if (d.answer) { state('writing'); box.innerHTML = md(d.text).replace(/<\/p>$/, '<span class="ag-caret"></span></p>'); }
+        if (d.phase === 'decide') live.querySelector('.ag-raw').textContent = d.text.replace(/\s+/g, ' ').slice(0, 200);
+        else { ans.innerHTML = md(unredact(d.text)).replace(/\s*\[(\d+(?:\s*,\s*\d+)*)\]/g, function (m, l) { return '<sup class="cite">' + l.replace(/\s/g, '') + '</sup>'; }).replace(/<\/p>$/, '<span class="ag-caret"></span></p>'); stick(); }
       } else if (type === 'thought') {
-        live.querySelector('.ag-m').textContent = d.tokens + ' tokens · ' + sec(d.ms) + ' · ' + (d.tokens / d.ms * 1000).toFixed(0) + ' tok/s' + (d.tool ? ' → tool call' : ' → answer');
+        live.querySelector('.ag-m').textContent = d.tokens + ' tokens · ' + sec(d.ms) + ' · ' + (d.tokens / d.ms * 1000).toFixed(0) + ' tok/s → ' + (d.tool === 'reply' ? 'reply' : d.tool);
       } else if (type === 'tool') {
-        settle(); state('searching');
-        live = row('tool', '<i>tool</i><code>search_answers(<s>{"query": "' + esc(d.query) + '"}</s>)</code>');
+        settle(); state({ search_about: 'searching', web_search: 'searching the web', live_stats: 'reading live stats', go_to: 'acting on the page', send_message: 'drafting a message' }[d.name] || 'working');
+        live = row('tool', '<i>tool</i>' + call(d));
       } else if (type === 'result') {
-        live.innerHTML = '<details open><summary><i>tool</i><code>search_answers(<s>{"query": "' + esc(d.query) + '"}</s>)</code><span class="ag-m">' + d.results.length + ' results · ' + sec(d.ms) + '</span></summary><ol>' +
-          d.results.map(function (x) { return '<li><b>' + x.score.toFixed(2) + '</b><span>' + esc(x.q) + '</span></li>'; }).join('') + '</ol></details>';
+        live.innerHTML = '<details open><summary><i>tool</i>' + call(d) + '<span class="ag-m">' + d.items.length + (d.items.length === 1 ? ' result · ' : ' results · ') + sec(d.ms) + '</span></summary>' +
+          (d.items.length ? '<ol>' + d.items.map(function (x) { return '<li><b>' + (x.score != null ? x.score.toFixed(2) : '→') + '</b><span>' + esc(x.label) + '</span></li>'; }).join('') + '</ol>' : '') + '</details>';
+        stick();
       } else if (type === 'done') {
-        settle(); state('done', 'done');
-        box.innerHTML = md(d.text) + '<p class="matched">Written by an AI in your browser from my answers · it can be wrong</p>';
-        panel.querySelector('.ag-f').textContent = d.searches + (d.searches === 1 ? ' search · ' : ' searches · ') + d.tokens + ' tokens · ' + sec(d.ms) + ' total';
+        settle(); state('done', true);
+        renderReply(ans, d);
+        panel.querySelector('.ag-f').textContent = d.tools + (d.tools === 1 ? ' tool call · ' : ' tool calls · ') + d.tokens + ' tokens · ' + sec(d.ms) + ' total';
+        stick();
       }
     });
   }
-  var asking = 0, aiBroken = false;
-  $('askIn').addEventListener('focus', function () { if (navigator.gpu) loadLLM().catch(function () { aiBroken = true; }); }, { once: true }); // start the big download as soon as they mean to ask
-  async function runAsk(exact) {
-    var q = $('askIn').value.trim(); if (!q) return;
-    var id = ++asking, trace = $('trace'), times = {}, searched = q;
-    trace.classList.add('show'); $('answer').innerHTML = '';
+  async function runAsk(exact) { // exact: re-ask this text without the spelling fix
+    var q = typeof exact === 'string' ? exact : $('askIn').value.trim(); if (!q) return;
+    $('askIn').value = ''; $('chatNew').hidden = false;
+    var id = ++asking, times = {}, searched = q;
+    [].forEach.call(chatEl.querySelectorAll('details.run[open]'), function (d) { d.open = false; }); // earlier runs fold away; click to reopen
+    bubble('me', '<p>' + esc(q) + '</p>');
+    var bot = bubble('bot', '<div class="trace show" aria-hidden="true"></div><div class="answer"></div>'), trace = bot.firstChild, ans = bot.lastChild;
+    chat.push({ me: true, text: q });
+    var E = !aiBroken && await engineP;
+    if (E) {
+      logAsked(q);
+      try { var r = await runAgent(id, E, trace, ans); if (id === asking) chat.push({ me: false, text: r.text }); return; }
+      catch (err) { aiBroken = true; } // model can't run here: answer from the bank instead, and don't retry
+      if (id !== asking) return;
+    }
     function draw(cur) {
       trace.innerHTML = '<div class="st done"><i>searched</i><b>“' + esc(searched) + '”</b></div>' + STEPS.map(function (s) {
         if (s === 'load' && times.load != null && times.load < 50) return ''; // already warm: don't show the one-time download
@@ -534,25 +676,22 @@
       }).join('');
     }
     try {
-      var r = await search(q, function (name, ms) { if (id !== asking) return; if (ms != null) times[name] = ms; draw(ms == null ? name : null); }, { exact: exact === true });
+      var r = await search(q, function (name, ms) { if (id !== asking) return; if (ms != null) times[name] = ms; draw(ms == null ? name : null); }, { exact: typeof exact === 'string' });
       if (id !== asking) return;
       if (r.corrected) { searched = r.corrected; draw(null); }
       trace.innerHTML += '<div class="st done"><i>match</i><b>' + r.score.toFixed(2) + '</b>&nbsp;“' + esc(r.q) + '”</div>';
-      if (navigator.gpu && !aiBroken) {
-        try { await runAgent(q, id); return; }
-        catch (err) { aiBroken = true; } // model can't run here: show the bank's answer instead, and don't retry
-        if (id !== asking) return;
-      }
-      var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="1">search “' + esc(q) + '” instead</button></p>' : '';
-      $('answer').innerHTML = didYou + (r.hit
+      var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="' + esc(q) + '">search “' + esc(q) + '” instead</button></p>' : '';
+      ans.innerHTML = didYou + (r.hit
         ? '<p class="matched">Answering: <b>' + esc(r.q) + '</b></p>' + (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
         : '<p>' + (r.near ? 'Did you mean:' : 'No answer for that. Closest I can answer:') + '</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
           '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
+      chat.push({ me: false, text: r.hit ? r.text : '' });
+      stick(true);
     } catch (err) {
       if (id !== asking) return;
       trace.classList.remove('show');
-      $('answer').innerHTML = '<p>The search engine couldn’t load (offline, or the model download was blocked). Ask me directly: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.</p>';
+      ans.innerHTML = '<p>The search engine couldn’t load (offline, or the model download was blocked). Ask me directly: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.</p>';
     }
   }
 
