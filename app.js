@@ -357,19 +357,24 @@
       return { items: res.map(function (x) { return { score: x.score, label: x.label }; }), notes: useful, said: useful.length ? '' : 'nothing relevant found' };
     },
     web_search: async function (a) {
-      var d = await fetch('https://api.duckduckgo.com/?format=json&no_html=1&skip_disambig=1&t=sarthakchhabra&q=' + encodeURIComponent(a.query || '')).then(function (r) { return r.json(); });
-      var notes = [];
-      if (d.AbstractText) notes.push({ label: 'web · ' + (d.AbstractSource || 'DuckDuckGo') + ' · ' + d.Heading, text: d.AbstractText, url: d.AbstractURL });
-      if (d.Answer) notes.push({ label: 'web · DuckDuckGo answer', text: String(d.Answer), url: 'https://duckduckgo.com/?q=' + encodeURIComponent(a.query) });
-      (d.RelatedTopics || []).filter(function (t) { return t.Text; }).slice(0, notes.length ? 1 : 3).forEach(function (t) { notes.push({ label: 'web · ' + t.Text.split(' - ')[0], text: t.Text, url: t.FirstURL }); });
-      if (!notes.length) { // DuckDuckGo's free API only knows exact topic names; fall back to Wikipedia's full-text search (also free, keyless)
-        var terms = (a.query || '').toLowerCase().split(/[^a-z0-9+#.]+/).filter(function (w) { return w.length > 2 && !/^(what|definition|meaning|explain|about|does|the|and|for|how|who|why)$/.test(w); });
-        var W = 'https://en.wikipedia.org/', hits = (await fetch(W + 'w/api.php?action=query&list=search&format=json&origin=*&srlimit=2&srsearch=' + encodeURIComponent(terms.join(' ') || a.query || '')).then(function (r) { return r.json(); })).query.search
-          .filter(function (h) { var t = (h.title + ' ' + h.snippet).toLowerCase(); return terms.every(function (w) { return t.indexOf(w) >= 0; }); }); // only pages that actually mention every term: "LangGraph" once matched a maths article
-        for (var h of hits) { var p = await fetch(W + 'api/rest_v1/page/summary/' + encodeURIComponent(h.title)).then(function (r) { return r.json(); });
-          if (p.extract) notes.push({ label: 'web · Wikipedia · ' + p.title, text: p.extract.slice(0, 600) + (h.snippet ? ' (Matched: ' + h.snippet.replace(/<[^>]+>/g, '') + ')' : ''), url: p.content_urls && p.content_urls.desktop.page }); }
-      }
-      return { items: notes.map(function (x) { return { label: x.label }; }), notes: notes, said: notes.length ? '' : 'the web search found nothing for that' };
+      var q = a.query || '', notes = [], failed = 0, W = 'https://en.wikipedia.org/';
+      var get = function (url) { return fetch(url).then(function (r) { return r.json(); }); };
+      try { // DuckDuckGo's free API: instant answers only, and only for exact topic names
+        var d = await get('https://api.duckduckgo.com/?format=json&no_html=1&skip_disambig=1&t=sarthakchhabra&q=' + encodeURIComponent(q));
+        if (d.AbstractText) notes.push({ label: 'web · ' + (d.AbstractSource || 'DuckDuckGo') + ' · ' + d.Heading, text: d.AbstractText, url: d.AbstractURL });
+        if (d.Answer) notes.push({ label: 'web · DuckDuckGo answer', text: String(d.Answer), url: 'https://duckduckgo.com/?q=' + encodeURIComponent(q) });
+        (d.RelatedTopics || []).filter(function (t) { return t.Text; }).slice(0, notes.length ? 1 : 3).forEach(function (t) { notes.push({ label: 'web · ' + t.Text.split(' - ')[0], text: t.Text, url: t.FirstURL }); });
+      } catch (e) { failed++; }
+      if (!notes.length) try { // fall back to Wikipedia's full-text search (also free, keyless)
+        var terms = q.toLowerCase().split(/[^a-z0-9+#.]+/).filter(function (w) { return w.length > 2 && !/^(what|definition|meaning|explain|about|does|the|and|for|how|who|why|info|information|details)$/.test(w); });
+        // keep pages that mention most of the terms: all-of-them dropped "LPU" for "... location"; none-of-them let "LangGraph" match a maths article
+        var hits = (await get(W + 'w/api.php?action=query&list=search&format=json&origin=*&srlimit=3&srsearch=' + encodeURIComponent(terms.join(' ') || q))).query.search
+          .filter(function (h) { var t = (h.title + ' ' + h.snippet).toLowerCase(); return terms.filter(function (w) { return t.indexOf(w) >= 0; }).length >= Math.max(1, Math.ceil(terms.length * 0.6)); }).slice(0, 2);
+        for (var h of hits) { var p = await get(W + 'api/rest_v1/page/summary/' + encodeURIComponent(h.title));
+          if (p.extract) notes.push({ label: 'web · Wikipedia · ' + p.title, text: p.extract.slice(0, 600), url: p.content_urls && p.content_urls.desktop.page }); }
+      } catch (e) { failed++; }
+      return { items: notes.length ? notes.map(function (x) { return { label: x.label }; }) : [{ label: failed ? 'search failed (network)' : 'nothing found' }], notes: notes,
+        said: notes.length ? '' : failed ? 'the web search failed this time (network error); say so and suggest trying again' : 'the web search found nothing for that' };
     },
     live_stats: async function () {
       await statsReady;
@@ -438,7 +443,7 @@
       ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
     }
     var fin = await gen(BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
-      'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own.' +
+      'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
       (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
       talk + '\nAssistant:', null, 'reply');
     ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
