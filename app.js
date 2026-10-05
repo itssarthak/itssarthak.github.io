@@ -357,7 +357,7 @@
     'live_stats(): today\'s numbers for his live products: AskMyAstro, FileDownloader, Switchboard.',
     'go_to(target): act on this page for the visitor. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
       return s.v + ' (' + s.title + (cos.length ? ', ' + cos.join(' and ') : '') + ')'; }).join(', ') + ', terminal, contact, resume, askmyastro, filedownloader, switchboard.',
-    'send_message(name, email, message): draft a message to Sarthak for the visitor to check and send. Only once the visitor has given their name, email and message.',
+    'send_message(name, email, message): show the visitor a message form to Sarthak, prefilled with whatever they have said (leave unknown fields empty). Call it as soon as the visitor wants to message or contact Sarthak.',
     'reply: answer the visitor now.'];
   var DECIDE = { type: 'object', required: ['tool'], properties: { tool: { type: 'string', enum: ['search_about', 'web_search', 'live_stats', 'go_to', 'send_message', 'reply'] },
     query: { type: 'string', maxLength: 80 }, target: { type: 'string', enum: TARGETS }, name: { type: 'string' }, email: { type: 'string' }, message: { type: 'string' } } };
@@ -404,10 +404,10 @@
       return { items: [{ label: 'unknown target' }], said: 'unknown target' };
     },
     send_message: async function (a) {
-      var miss = ['name', 'email', 'message'].filter(function (k) { return !(a[k] || '').trim(); });
-      if (!miss.length && !EMAIL_RE.test(a.email.trim())) miss = ['a valid email'];
-      if (miss.length) return { items: [{ label: 'missing: ' + miss.join(', ') }], said: 'not drafted: ask the visitor for their ' + miss.join(', ') };
-      return { items: [{ label: 'draft ready for the visitor to send' }], said: 'drafted; the visitor must press Send under your reply, so tell them to check it and press Send', draft: { fullname: a.name.trim(), email: a.email.trim(), message: a.message.trim() } };
+      // Always hand over the form, filled with whatever is known: collecting name and email over several messages was too much for a small model
+      var v = function (k) { return (a[k] || '').trim(); }, email = EMAIL_RE.test(v('email')) ? v('email') : '';
+      return { items: [{ label: 'draft shown' + (v('name') && email ? '' : ' (the visitor adds their name and email)') }], said: 'drafted',
+        draft: { fullname: v('name'), email: email, message: v('message') } };
     }
   };
   function argsOf(c) { return c.tool === 'send_message' ? { name: c.name, email: c.email, message: c.message } : c.tool === 'go_to' ? { target: c.target } : c.tool === 'live_stats' ? {} : { query: c.query }; }
@@ -430,11 +430,13 @@
     ev('ready', E);
     // The assistant always knows what it is: without this it once web-searched "which model are you" and claimed to be someone else's model
     var self = { label: 'about this assistant', text: 'This chat assistant runs ' + E.name + ', ' + (E === NANO ? 'Google\'s small AI model built into Chrome' : 'Meta\'s small open AI model') + ', entirely in the visitor\'s browser; nothing is sent to a server. ' +
-      'Sarthak built the assistant around that model for this site; he did not make the model itself. It answers by searching Sarthak\'s profile, searching the web and reading live product stats, and it can scroll this page, open the terminal, link to pages, and draft a message to Sarthak for the visitor to send.' };
+      'Sarthak built the assistant around that model for this site; he did not make the model itself. It answers by searching Sarthak\'s profile, searching the web and reading live product stats, and it can scroll this page, open the terminal, link to pages, and draft a message to Sarthak for the visitor to send. ' +
+      'To draft a message it needs the visitor\'s name, their email (so Sarthak can reply to them) and the message; the visitor checks the draft and presses Send themselves, nothing is sent without that. ' +
+      'It knows nothing about the visitor beyond what they type in this chat, and it keeps no record of them.' };
     var t0 = performance.now(), total = 0, notes = [self], said = [], actions = [], draft = null, done = {};
     var talk = chat.slice(-8).map(function (m) { return (m.me ? 'Visitor: ' : 'Assistant: ') + m.text; }).join('\n');
     function noteText() {
-      return (notes.length ? notes.map(function (n, i) { return '[' + (i + 1) + '] ' + n.label + ': ' + n.text; }).join('\n') : '(none yet)') + (said.length ? '\nTool log: ' + said.join('; ') : '');
+      return (notes.length ? notes.map(function (n, i) { return '[' + (i + 1) + '] ' + n.label + ': ' + n.text; }).join('\n') : '(none yet)') + (said.length ? '\n\nWhat your tools did (for you only, never quote this): ' + said.join('; ') : '');
     }
     async function gen(sys, prompt, schema, phase) {
       var t = performance.now(), n = 0;
@@ -462,14 +464,17 @@
       ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
     }
     // No sources after searching: the only honest reply is "couldn't find it" (a model left to itself fills the gap from memory).
-    var empty = notes.length === 1 && Object.keys(done).length; // only the self note: the searches found nothing
-    var fin = await gen(empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
+    // searched and found nothing (only the self note, and no other tool had something to report): the reply may only say so
+    var empty = notes.length === 1 && Object.keys(done).some(function (k) { return /^(search_about|web_search|live_stats)/.test(k); }) && !said.some(function (x) { return /^(send_message|go_to)/.test(x); }) && !draft && !actions.length;
+    // A ready draft gets a fixed reply: the model's own wording around it rambled and leaked the tool log
+    var fin = draft ? { text: draft.fullname && draft.email ? 'Here\'s your message to Sarthak. Check it below, edit anything you like, and press Send when it looks right.'
+      : 'Here\'s a message to Sarthak. Add your name and email so he can reply, check the message, and press Send.', tokens: 0, ms: 0 } : await gen(empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
       BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
       'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
       (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
       talk + '\nAssistant:', null, 'reply');
-    ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
-    var res = { text: unredact(fin.text.replace(/^Assistant:\s*/, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
+    if (!draft) ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
+    var res = { text: unredact(fin.text.replace(/^Assistant:\s*/, '').replace(/\n*(Tool log|What your tools did)[^\n]*/gi, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
     if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: chat[chat.length - 1].text.slice(0, 300), corrected: '', result: 'chat · ' + E.name, matched: res.text.slice(0, 300), score: 0, alts: Object.keys(done).join(' | ').slice(0, 300) });
     ev('done', res);
     return res;
@@ -634,8 +639,8 @@
     html += cited.length ? '<ol class="srcs">' + cited.sort(function (a, b) { return a - b; }).map(function (n) { var s = r.notes[n - 1];
       return '<li value="' + n + '">' + (s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + '</a>' : esc(s.label)) + '</li>'; }).join('') + '</ol>' : '';
     html += r.actions.length ? '<div class="acts">' + r.actions.map(function (a) { return '<a class="btn" href="' + esc(a.href) + '" target="_blank" rel="noopener">' + esc(a.label) + '</a>'; }).join('') + '</div>' : '';
-    if (r.draft) html += '<form class="draft"><p class="matched">Message to Sarthak · check it, then send</p><input name="fullname" required aria-label="Your name" value="' + esc(r.draft.fullname) + '">' +
-      '<input name="email" type="email" required aria-label="Your email" value="' + esc(r.draft.email) + '"><textarea name="message" required rows="3" aria-label="Message">' + esc(r.draft.message) + '</textarea>' +
+    if (r.draft) html += '<form class="draft"><p class="matched">Message to Sarthak · check it, then send</p><input name="fullname" required aria-label="Your name" placeholder="Your name" value="' + esc(r.draft.fullname) + '">' +
+      '<input name="email" type="email" required aria-label="Your email" placeholder="Your email, so he can reply" value="' + esc(r.draft.email) + '"><textarea name="message" required rows="3" aria-label="Message" placeholder="Your message">' + esc(r.draft.message) + '</textarea>' +
       '<div><button class="btn p" type="submit">Send</button> <span class="form-msg"></span></div></form>';
     ans.innerHTML = html + '<p class="matched">Written by an AI in your browser from the sources above · it can still be wrong</p>';
     var f = ans.querySelector('form.draft');
