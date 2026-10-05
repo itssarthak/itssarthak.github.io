@@ -277,3 +277,9 @@ html.chat-open{overflow:hidden}
 .ask.full .chat{flex:1;min-height:0;max-height:none;margin-bottom:12px;padding:16px 0 8px}
 @media (prefers-reduced-motion:reduce){.act-ico{animation:none;border-top-color:var(--acc)}.act-steps>li{animation:none}}
 .ask:not(.full) .chat-title{visibility:hidden} /* the section heading already says it */
+/* chat scrollbar: thin, in the site's colours; in full screen it sits at the window's edge, not beside the text */
+.chat{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--muted) 35%,transparent) transparent}
+.chat::-webkit-scrollbar{width:8px}
+.chat::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted) 35%,transparent);border-radius:8px}
+.chat::-webkit-scrollbar-track{background:transparent}
+.ask.full>.chat{max-width:none;margin-left:-16px;margin-right:-16px;width:auto;padding-left:max(16px,calc((100% - 760px)/2 + 16px));padding-right:max(16px,calc((100% - 760px)/2 + 16px))} /* 100% is the card inside its 16px padding: add it back so the text lines up with the header and input */
