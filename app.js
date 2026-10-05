@@ -425,16 +425,17 @@
   function unredact(t) { return t.replace(/\[\s*email[\s\u00a0]*protected\s*\]/gi, EMAIL); }
   // ---- agent logs → PostHog LLM analytics ---------------------------------------------------------
   // One trace per visitor message: every model call ($ai_generation, with its full prompt and output) and every tool call ($ai_span),
-  // grouped by conversation ($ai_session_id). Anonymous: a random id per browser, no person profiles. Local runs are tagged env=local.
+  // grouped by conversation ($ai_session_id). Anonymous: a random id per browser, no person profiles. Local previews aren't logged.
   // Message-form fields (name, email, message) are never logged; only which ones the model filled in.
   var PH = 'https://us.i.posthog.com', PH_KEY = 'phc_p9KkWWiqmPikawWRbJnLLdyYcGu5FAEXoHW65JLfkbUv';
   var LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   function uid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); }
   var vid = (function () { try { var v = localStorage.getItem('sv.vid'); if (!v) localStorage.setItem('sv.vid', v = uid()); return v; } catch (e) { return uid(); } })();
   function phLog(chat, events) {
+    if (LOCAL) return; // like the site's other analytics: local previews don't count
     var now = new Date().toISOString();
     var body = JSON.stringify({ api_key: PH_KEY, batch: events.map(function (e) {
-      return { event: e.event, timestamp: now, distinct_id: vid, properties: Object.assign({ $process_person_profile: false, $ai_session_id: chat.id, env: LOCAL ? 'local' : 'live', page: location.pathname }, e.properties) };
+      return { event: e.event, timestamp: now, distinct_id: vid, properties: Object.assign({ $process_person_profile: false, $ai_session_id: chat.id, env: 'live', page: location.pathname }, e.properties) };
     }) });
     try { fetch(PH + '/batch/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: body.length < 60000 }).catch(function () {}); } catch (e) {} // keepalive caps the body at 64KB
   }
