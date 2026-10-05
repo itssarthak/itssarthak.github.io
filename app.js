@@ -314,7 +314,7 @@
     }).catch(function (e) { llmP = null; throw e; }));
   }
   // An engine generates once: gen(system, prompt, schema, onText) → { text, tokens }. A schema asks for JSON matching it.
-  var LLAMA = { name: 'Llama 3.2 1B Instruct', tag: 'WebGPU · 4-bit · on your device', load: loadLLM,
+  var LLAMA = { name: 'Llama 3.2 1B Instruct', id: 'llama-3.2-1b-instruct', provider: 'transformers.js webgpu', tag: 'WebGPU · 4-bit · on your device', load: loadLLM,
     gen: async function (sys, prompt, schema, onText) {
       var L = await loadLLM(), text = '';
       var inputs = L.tok.apply_chat_template([{ role: 'system', content: sys }, { role: 'user', content: prompt }], { add_generation_prompt: true, return_dict: true });
@@ -322,7 +322,7 @@
         streamer: new L.m.TextStreamer(L.tok, { skip_prompt: true, skip_special_tokens: true, callback_function: function (x) { text += x; onText(text); } }) }));
       return { text: L.tok.batch_decode(out.slice(null, [inputs.input_ids.dims[1], null]), { skip_special_tokens: true })[0].trim(), tokens: out.dims[1] - inputs.input_ids.dims[1] };
     } };
-  var NANO = { name: 'Gemini Nano', tag: 'built into Chrome · on your device',
+  var NANO = { name: 'Gemini Nano', id: 'gemini-nano', provider: 'chrome built-in ai', tag: 'built into Chrome · on your device',
     // Started when the visitor clicks into the Ask box. The first session loads the model (~10s); keeping it open keeps
     // the model in memory, so the sessions each step creates start instantly. Asked twice, it loads once.
     load: function () { return NANO.warm || (NANO.warm = LanguageModel.create().catch(function (e) { NANO.warm = null; throw e; })); },
@@ -423,16 +423,46 @@
   // ev(type, data) drives the live panel: download, ready, think, token, thought, tool, result, done.
   // Models trained on scraped pages write Cloudflare's "[email protected]" placeholder for addresses; the only address we ever mention is EMAIL.
   function unredact(t) { return t.replace(/\[\s*email[\s\u00a0]*protected\s*\]/gi, EMAIL); }
-  var BOT = 'You are the assistant on Sarthak Chhabra\'s portfolio website, chatting with a visitor about Sarthak. ';
+  // ---- agent logs → PostHog LLM analytics ---------------------------------------------------------
+  // One trace per visitor message: every model call ($ai_generation, with its full prompt and output) and every tool call ($ai_span),
+  // grouped by conversation ($ai_session_id). Anonymous: a random id per browser, no person profiles. Local runs are tagged env=local.
+  // Message-form fields (name, email, message) are never logged; only which ones the model filled in.
+  var PH = 'https://us.i.posthog.com', PH_KEY = 'phc_p9KkWWiqmPikawWRbJnLLdyYcGu5FAEXoHW65JLfkbUv';
+  var LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  function uid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); }
+  var vid = (function () { try { var v = localStorage.getItem('sv.vid'); if (!v) localStorage.setItem('sv.vid', v = uid()); return v; } catch (e) { return uid(); } })();
+  function phLog(chat, events) {
+    var now = new Date().toISOString();
+    var body = JSON.stringify({ api_key: PH_KEY, batch: events.map(function (e) {
+      return { event: e.event, timestamp: now, distinct_id: vid, properties: Object.assign({ $process_person_profile: false, $ai_session_id: chat.id, env: LOCAL ? 'local' : 'live', page: location.pathname }, e.properties) };
+    }) });
+    try { fetch(PH + '/batch/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body, keepalive: body.length < 60000 }).catch(function () {}); } catch (e) {} // keepalive caps the body at 64KB
+  }
+  function logArgs(tool, a) { // the message form's contents stay out of the logs
+    return tool === 'send_message' ? { name_given: !!(a.name || '').trim(), email_given: !!(a.email || '').trim(), message_length: (a.message || '').trim().length } : a;
+  }
+  // Wraps a turn: whatever happens (answer, timeout, crash), its trace is sent.
   async function agentTurn(chat, E, ev) {
+    var trace = uid(), log = [], t0 = performance.now(), res, err;
+    try { return (res = await runTurn(chat, E, ev, { trace: trace, push: function (e) { e.properties.$ai_trace_id = trace; e.properties.$ai_parent_id = e.properties.$ai_parent_id || trace; log.push(e); } })); }
+    catch (e) { err = e; throw e; }
+    finally {
+      log.push({ event: '$ai_trace', properties: { $ai_trace_id: trace, $ai_span_name: 'chat turn', $ai_input_state: chat[chat.length - 1].text, $ai_output_state: res ? res.text : null,
+        $ai_latency: (performance.now() - t0) / 1000, $ai_is_error: !!err, $ai_error: err ? String(err.message || err) : null, model: E.id, turn: chat.filter(function (m) { return m.me; }).length,
+        tools_used: res ? res.toolsUsed : [], sources: res ? res.notes.map(function (n) { return n.label; }) : [], draft_shown: !!(res && res.draft) } });
+      phLog(chat, log);
+    }
+  }
+  var BOT = 'You are the assistant on Sarthak Chhabra\'s portfolio website, chatting with a visitor about Sarthak. ';
+  async function runTurn(chat, E, ev, L) {
     llmProgress = function (p) { if (p.status === 'progress') ev('download', p); };
     await E.load();
     ev('ready', E);
     // The assistant always knows what it is: without this it once web-searched "which model are you" and claimed to be someone else's model
-    var self = { label: 'about this assistant', text: 'This chat assistant runs ' + E.name + ', ' + (E === NANO ? 'Google\'s small AI model built into Chrome' : 'Meta\'s small open AI model') + ', entirely in the visitor\'s browser; nothing is sent to a server. ' +
+    var self = { label: 'about this assistant', text: 'This chat assistant runs ' + E.name + ', ' + (E === NANO ? 'Google\'s small AI model built into Chrome' : 'Meta\'s small open AI model') + ', entirely in the visitor\'s browser. ' +
       'Sarthak built the assistant around that model for this site; he did not make the model itself. It answers by searching Sarthak\'s profile, searching the web and reading live product stats, and it can scroll this page, open the terminal, link to pages, and draft a message to Sarthak for the visitor to send. ' +
       'To draft a message it needs the visitor\'s name, their email (so Sarthak can reply to them) and the message; the visitor checks the draft and presses Send themselves, nothing is sent without that. ' +
-      'It knows nothing about the visitor beyond what they type in this chat, and it keeps no record of them.' };
+      'It knows nothing about the visitor beyond what they type in this chat. Chats are logged anonymously (no account, name or identity attached) so Sarthak can improve the answers; what a visitor types into the message form is never logged.' };
     var t0 = performance.now(), total = 0, notes = [self], said = [], actions = [], draft = null, done = {};
     var talk = chat.slice(-8).map(function (m) { return (m.me ? 'Visitor: ' : 'Assistant: ') + m.text; }).join('\n');
     function noteText() {
@@ -441,7 +471,13 @@
     async function gen(sys, prompt, schema, phase) {
       var t = performance.now(), n = 0;
       ev('think', { phase: phase });
-      var r = await E.gen(sys, prompt, schema, function (text) { ev('token', { text: text, n: ++n, ms: performance.now() - t, phase: phase }); });
+      var r, err;
+      try { r = await E.gen(sys, prompt, schema, function (text) { ev('token', { text: text, n: ++n, ms: performance.now() - t, phase: phase }); }); }
+      catch (e) { err = e; throw e; }
+      finally {
+        L.push({ event: '$ai_generation', properties: { $ai_span_name: phase, $ai_model: E.id, $ai_provider: E.provider, $ai_input: [{ role: 'system', content: sys }, { role: 'user', content: prompt }],
+          $ai_output_choices: r ? [{ role: 'assistant', content: r.text }] : [], $ai_output_tokens: r ? r.tokens : n, $ai_latency: (performance.now() - t) / 1000, $ai_is_error: !!err, $ai_error: err ? String(err.message || err) : null } });
+      }
       total += r.tokens; r.ms = performance.now() - t; return r;
     }
     for (var step = 0; step < 4; step++) {
@@ -462,6 +498,8 @@
       if (out.action) actions.push(out.action);
       if (out.draft) draft = out.draft;
       ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
+      L.push({ event: '$ai_span', properties: { $ai_span_id: uid(), $ai_span_name: c.tool, $ai_input_state: logArgs(c.tool, args), $ai_latency: (performance.now() - t) / 1000,
+        $ai_output_state: { results: out.items, said: out.said || null, sources: (out.notes || []).map(function (n) { return n.label; }) }, $ai_is_error: /^failed/.test((out.items[0] || {}).label || '') } });
     }
     // No sources after searching: the only honest reply is "couldn't find it" (a model left to itself fills the gap from memory).
     // searched and found nothing (only the self note, and no other tool had something to report): the reply may only say so
@@ -474,7 +512,7 @@
       (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
       talk + '\nAssistant:', null, 'reply');
     if (!draft) ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
-    var res = { text: unredact(fin.text.replace(/^Assistant:\s*/, '').replace(/\n*(Tool log|What your tools did)[^\n]*/gi, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
+    var res = { toolsUsed: Object.keys(done), text: unredact(fin.text.replace(/^Assistant:\s*/, '').replace(/\n*(Tool log|What your tools did)[^\n]*/gi, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
     if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: chat[chat.length - 1].text.slice(0, 300), corrected: '', result: 'chat · ' + E.name, matched: res.text.slice(0, 300), score: 0, alts: Object.keys(done).join(' | ').slice(0, 300) });
     ev('done', res);
     return res;
@@ -709,12 +747,13 @@
     var id = ++asking, times = {}, searched = q;
     bubble('me', '<p>' + esc(q) + '</p>');
     var bot = bubble('bot', '<div class="trace show"></div><div class="answer"></div>'), trace = bot.firstChild, ans = bot.lastChild;
+    if (!chat.id) chat.id = uid(); // one conversation id until the chat is closed
     chat.push({ me: true, text: q });
     var E = !aiBroken && await engineP;
     if (E) {
       logAsked(q);
       try { var r = await runAgent(id, E, trace, ans); if (id === asking) chat.push({ me: false, text: r.text }); return; }
-      catch (err) {} // this turn failed: answer from the bank instead (a model that can't load at all is caught on focus and not retried)
+      catch (err) { var failed = err; } // this turn failed: answer from the bank instead (a model that can't load at all is caught on focus and not retried)
       if (id !== asking) return;
     }
     function draw(cur) {
@@ -738,6 +777,8 @@
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
           '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
       chat.push({ me: false, text: r.hit ? r.text : '' });
+      phLog(chat, [{ event: '$ai_trace', properties: { $ai_trace_id: uid(), $ai_span_name: 'chat turn', $ai_input_state: q, $ai_output_state: r.hit ? r.text : (r.near ? 'did you mean: ' : 'no answer; closest: ') + r.alts.join(' | '),
+        model: 'answer-bank', fallback_reason: E ? 'agent failed: ' + String((failed && failed.message) || failed) : 'no on-device model', match: r.q, match_score: r.score, corrected: r.corrected || null } }]);
       stick();
     } catch (err) {
       if (id !== asking) return;

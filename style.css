@@ -283,3 +283,4 @@ html.chat-open{overflow:hidden}
 .chat::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted) 35%,transparent);border-radius:8px}
 .chat::-webkit-scrollbar-track{background:transparent}
 .ask.full>.chat{max-width:none;margin-left:-16px;margin-right:-16px;width:auto;padding-left:max(16px,calc((100% - 760px)/2 + 16px));padding-right:max(16px,calc((100% - 760px)/2 + 16px))} /* 100% is the card inside its 16px padding: add it back so the text lines up with the header and input */
+.chat-note{font-size:12px;color:var(--muted);margin-right:4px}
