@@ -428,7 +428,10 @@
     llmProgress = function (p) { if (p.status === 'progress') ev('download', p); };
     await E.load();
     ev('ready', E);
-    var t0 = performance.now(), total = 0, notes = [], said = [], actions = [], draft = null, done = {};
+    // The assistant always knows what it is: without this it once web-searched "which model are you" and claimed to be someone else's model
+    var self = { label: 'about this assistant', text: 'This chat assistant runs ' + E.name + ', ' + (E === NANO ? 'Google\'s small AI model built into Chrome' : 'Meta\'s small open AI model') + ', entirely in the visitor\'s browser; nothing is sent to a server. ' +
+      'Sarthak built the assistant around that model for this site; he did not make the model itself. It answers by searching Sarthak\'s profile, searching the web and reading live product stats, and it can scroll this page, open the terminal, link to pages, and draft a message to Sarthak for the visitor to send.' };
+    var t0 = performance.now(), total = 0, notes = [self], said = [], actions = [], draft = null, done = {};
     var talk = chat.slice(-8).map(function (m) { return (m.me ? 'Visitor: ' : 'Assistant: ') + m.text; }).join('\n');
     function noteText() {
       return (notes.length ? notes.map(function (n, i) { return '[' + (i + 1) + '] ' + n.label + ': ' + n.text; }).join('\n') : '(none yet)') + (said.length ? '\nTool log: ' + said.join('; ') : '');
@@ -441,7 +444,7 @@
     }
     for (var step = 0; step < 4; step++) {
       var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
-        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. ' +
+        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered from the "about this assistant" note: never search for them. ' +
         'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}. The query is a few words, never an answer.',
         talk + '\n\nThe message to handle now: "' + chat[chat.length - 1].text + '" (earlier messages are context only; don\'t research them again).\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
       var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
@@ -459,7 +462,7 @@
       ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
     }
     // No sources after searching: the only honest reply is "couldn't find it" (a model left to itself fills the gap from memory).
-    var empty = !notes.length && Object.keys(done).length;
+    var empty = notes.length === 1 && Object.keys(done).length; // only the self note: the searches found nothing
     var fin = await gen(empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
       BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
       'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
