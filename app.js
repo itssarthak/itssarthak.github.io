@@ -323,7 +323,9 @@
       return { text: L.tok.batch_decode(out.slice(null, [inputs.input_ids.dims[1], null]), { skip_special_tokens: true })[0].trim(), tokens: out.dims[1] - inputs.input_ids.dims[1] };
     } };
   var NANO = { name: 'Gemini Nano', tag: 'built into Chrome · on your device',
-    load: function () { return LanguageModel.create().then(function (s) { s.destroy(); }); }, // the first session loads the model (~10s); later ones are instant
+    // Started when the visitor clicks into the Ask box. The first session loads the model (~10s); keeping it open keeps
+    // the model in memory, so the sessions each step creates start instantly. Asked twice, it loads once.
+    load: function () { return NANO.warm || (NANO.warm = LanguageModel.create().catch(function (e) { NANO.warm = null; throw e; })); },
     gen: async function (sys, prompt, schema, onText) {
       // Nano ignores maxLength and once wrote a whole reply into "query" for 4,800 chunks: cut a step off at a length or time limit and use what came
       var stop = new AbortController(), cap = schema ? 60 : 400, timer = setTimeout(function () { stop.abort(); }, schema ? 20000 : 60000);
