@@ -79,3 +79,8 @@ Going through everything the assistant is fed, one part at a time. Nothing gets 
 ## Still open (raise after building)
 - Résumé page says "Software Engineer" for Signcatch; the assistant now says "Software Developer".
 - The phone fallback (docs/answer-bank.csv) still has hiring/availability answers ("Why should we hire you?", "Are you open to work?", salary…), which the review removed from the assistant.
+
+## Suggestions (chips under the Ask box)
+- Removed 8 hiring/availability chips and "hardest problem" (duplicate of "proudest project").
+- "non-tech teams" → "people outside engineering".
+- Added: outside work, languages, where he is based. 34 chips now.
