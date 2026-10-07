@@ -294,7 +294,7 @@ html.chat-open{overflow:hidden}
 .avatar-perch .avatar{width:120px;height:120px;border:0;border-radius:0;background:none}
 /* full-screen chat: the avatar sits small in the bottom-left corner, just above the text box (flex order moves it below the chat) */
 .ask.full .chat-bar{order:0}.ask.full .chat{order:1}.ask.full .avatar-wrap{order:2}.ask.full #askForm{order:3}.ask.full .ask-hint{order:4}.ask.full .sugg{order:5}
-.avatar-perch .ask.full .avatar-wrap{display:flex;position:static;transform:none;justify-content:flex-start;margin:0 auto -1px;pointer-events:none} /* sits on the text box: shoulders tuck 1px behind its top border */
+.avatar-perch .ask.full .avatar-wrap{display:flex;position:static;transform:none;justify-content:flex-start;margin:0 auto -1px;padding-left:14px;pointer-events:none} /* sits on the text box (shoulders tuck 1px behind its border), inset to where the typed text starts */
 .avatar-perch .ask.full .avatar{width:56px;height:56px}
 @media (max-width:640px){
   .avatar-perch .avatar-wrap{left:auto;right:8px;transform:none}
