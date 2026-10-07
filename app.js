@@ -165,7 +165,7 @@
   function renderServices() { // "live now": only your own products, only at HEAD (the section sits above the history, so it always is)
     // People who use the products, added up: only products that count users (clones aren't users; this site isn't a product)
     var people = stats ? ['askmyastro', 'filedownloader', 'discretedocs'].reduce(function (n, id) { return n + ((stats[id] && stats[id].users) || 0); }, 0) : 0;
-    $('svcPeople').textContent = people ? k(people) + ' people use these' : '';
+    $('svcPeople').textContent = people ? k(people) + ' users' : '';
     $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
     $('svc').innerHTML = SERVICES.map(function (s, i) {
       var live = stats && stats[s.id], m = live ? s.metric(stats) : ['—', ''], v = live && stats[s.id].series ? stats[s.id].series.values : [];
