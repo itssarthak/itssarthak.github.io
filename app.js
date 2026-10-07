@@ -40,7 +40,8 @@
       n: function (s) { return s.castbar.clones; }, metric: function (s) { return [k(s.castbar.clones), 'clones on GitHub']; } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', tag: 'New',
       n: function (s) { return s.discretedocs.files; }, metric: function (s) { var d = s.discretedocs, mb = (d.kb || 0) / 1024;
-        return [k(d.files), (d.files === 1 ? 'file processed' : 'files processed') + (mb >= 1 ? ' · ' + (mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB') : '')]; } } // size shown once there's at least 1 MB
+        var size = mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : mb >= 1 ? Math.round(mb) + ' MB' : d.kb ? Math.round(d.kb) + ' KB' : '';
+        return [k(d.files), (d.files === 1 ? 'file processed' : 'files processed') + (size ? ' · ' + size : '')]; } } // size of everything processed
   ];
   // Ask-box suggestions: [what the chip says, the answer-bank question it leads to]. 3 show at a time; see initSuggestions().
   var SUGGEST = [
