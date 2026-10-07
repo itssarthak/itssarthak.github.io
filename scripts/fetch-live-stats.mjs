@@ -23,7 +23,7 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "users", switchboard: "clones", castbar: "clones" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones" };
 /* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
    the sum of files_in on tool_run, once files_in is registered as a GA4 custom metric; until
    then each run counts as one file (every run processes at least one, so it never overstates). */
@@ -168,7 +168,7 @@ const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
 async function fetchSeries(token, propertyId, name) {
   const body = { dateRanges: [{ startDate: `${SERIES_DAYS}daysAgo`, endDate: "yesterday" }], dimensions: [{ name: "date" }] };
   const report = EVENTS[name] ? await eventReport(token, propertyId, EVENTS[name], body)
-    : await runReport(token, propertyId, { ...body, metrics: [{ name: "activeUsers" }] });
+    : await runReport(token, propertyId, { ...body, metrics: [{ name: SERIES_METRIC[name] === "visits" ? "sessions" : "activeUsers" }] });
   if (!report.rows?.length) throw new Error(`empty series for property ${propertyId}`);
 
   const byDate = new Map(

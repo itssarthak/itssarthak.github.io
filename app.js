@@ -136,7 +136,8 @@
     var st = sysState();
     $('sysDot').className = 'dot' + (st ? ' ' + st : ''); $('sys').className = st;
     $('sys').textContent = sysText();
-    $('visits').textContent = stats && stats.portfolio && stats.portfolio.visits ? ' · ' + k(stats.portfolio.visits) + ' visits' : ''; // this site's all-time visits (GA4 sessions)
+    var pv = stats && stats.portfolio; // this site's all-time visits (GA4 sessions), with a tiny line of the last 30 days
+    $('visits').innerHTML = pv && pv.visits ? ' · ' + k(pv.visits) + ' visits' + (pv.series && pv.series.metric === 'visits' ? trendSvg(pv.series.values) : '') : '';
   }
   // The last 30 days as a small line under each number (inline SVG; stretches to the card's width).
   var SHOW_WEEK = false; // the '+N this week' badge on each card: hidden for now (Sarthak, Oct 2026); true brings it back
