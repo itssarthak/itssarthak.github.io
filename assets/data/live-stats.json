@@ -2,7 +2,7 @@
   "updated": "2026-10-07",
   "askmyastro": {
     "users": 5183,
-    "pageviews": 16165,
+    "pageviews": 16167,
     "series": {
       "metric": "users",
       "from": "2026-09-07",
@@ -41,9 +41,9 @@
     }
   },
   "filedownloader": {
-    "users": 7276,
-    "pageviews": 28159,
-    "downloads": 717264,
+    "users": 7277,
+    "pageviews": 28162,
+    "downloads": 717631,
     "series": {
       "metric": "downloads",
       "from": "2026-09-07",
@@ -81,9 +81,56 @@
       ]
     }
   },
+  "discretedocs": {
+    "users": 6,
+    "pageviews": 24,
+    "files": 1,
+    "series": {
+      "metric": "files",
+      "from": "2026-09-07",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  },
+  "castbar": {
+    "downloads": 5,
+    "totals": {
+      "2026-10-07": 5
+    }
+  },
   "switchboard": {
-    "clones": 483,
-    "uniques": 239,
+    "clones": 472,
+    "uniques": 236,
     "stars": 4,
     "days": {
       "2026-08-13": [
@@ -301,16 +348,13 @@
       "2026-10-05": [
         5,
         2
-      ],
-      "2026-10-06": [
-        11,
-        3
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-09-07",
+      "from": "2026-09-06",
       "values": [
+        4,
         7,
         9,
         8,
@@ -339,8 +383,7 @@
         3,
         5,
         6,
-        5,
-        11
+        5
       ]
     }
   }

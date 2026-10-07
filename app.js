@@ -35,11 +35,11 @@
     { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', n: function (s) { return s.askmyastro.users; }, metric: function (s) { return [k(s.askmyastro.users), 'users']; } },
     { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in', n: function (s) { return s.filedownloader.downloads; }, metric: function (s) { return [k(s.filedownloader.downloads), 'downloads served']; } },
     { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', n: function (s) { return s.switchboard.clones; }, metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } },
-    // No live numbers yet (Sarthak, Oct 2026): these cards show a 'New' tag instead; give them n/metric from live-stats once they grow
-    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar',
-      tag: 'New · launched on Product Hunt', metric: function () { return ['new', '· launched on Product Hunt']; } },
-    { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com',
-      tag: 'New', metric: function () { return ['new', '']; } }
+    // New products (Oct 2026): the live number plus a 'New' pill beside it; drop tag once they're established
+    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New',
+      n: function (s) { return s.castbar.downloads; }, metric: function (s) { return [k(s.castbar.downloads), s.castbar.downloads === 1 ? 'download' : 'downloads']; } },
+    { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', tag: 'New',
+      n: function (s) { return s.discretedocs.files; }, metric: function (s) { return [k(s.discretedocs.files), s.discretedocs.files === 1 ? 'file processed' : 'files processed']; } }
   ];
   // Ask-box suggestions: [what the chip says, the answer-bank question it leads to]. 3 show at a time; see initSuggestions().
   var SUGGEST = [
@@ -163,11 +163,11 @@
   function renderServices() { // "live now": only your own products, only at HEAD (the section sits above the history, so it always is)
     $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
     $('svc').innerHTML = SERVICES.map(function (s, i) {
-      var m = stats || s.tag ? s.metric(stats) : ['—', ''], v = stats && stats[s.id] && stats[s.id].series ? stats[s.id].series.values : [];
+      var live = stats && stats[s.id], m = live ? s.metric(stats) : ['—', ''], v = live && stats[s.id].series ? stats[s.id].series.values : [];
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
       return '<div class="card in" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
-        '<span class="d">' + s.d + '</span>' + (s.tag ? '<span class="m tag"><span class="new">' + s.tag + '</span>' : '<span class="m"><span class="num"' + (stats ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>') +
-        (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + (s.tag ? '' : '<small>' + m[1] + '</small>') + '</span>' + trendSvg(v) +
+        '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (live ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' + (s.tag ? '<span class="new">' + s.tag + '</span>' : '') +
+        (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
         '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
     }).join('');
     if (stats) countUp();
@@ -442,7 +442,7 @@
     live_stats: async function () {
       await statsReady;
       if (!stats) return { items: [], notes: [], said: 'live stats are unavailable right now' };
-      var notes = SERVICES.filter(function (s) { return s.n; }).map(function (s) { var m = s.metric(stats); return { label: 'live stats · ' + s.name, text: s.name + ' (' + s.d + '): ' + m[0] + ' ' + m[1] + (healthy() ? ', refreshed daily' : ', but the daily refresh is behind'), url: s.url }; });
+      var notes = SERVICES.filter(function (s) { return s.n && stats[s.id]; }).map(function (s) { var m = s.metric(stats); return { label: 'live stats · ' + s.name, text: s.name + ' (' + s.d + '): ' + m[0] + ' ' + m[1] + (healthy() ? ', refreshed daily' : ', but the daily refresh is behind'), url: s.url }; });
       return { items: notes.map(function (x) { return { label: x.text }; }), notes: notes };
     },
     go_to: async function (a) {
@@ -966,7 +966,7 @@
 
   function statusText() {
     var lines = ['version ' + label(era), 'system  ' + sysText()];
-    if (era === HEAD && stats) SERVICES.forEach(function (s) { var m = s.metric(stats); lines.push((healthy() ? '● ' : '◐ ') + s.name.padEnd(15) + m[0] + ' ' + m[1]); });
+    if (era === HEAD && stats) SERVICES.forEach(function (s) { if (!stats[s.id]) return; var m = s.metric(stats); lines.push((healthy() ? '● ' : '◐ ') + s.name.padEnd(15) + m[0] + ' ' + m[1]); });
     return lines.join('\n');
   }
   function slug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
@@ -989,7 +989,7 @@
   } };
   SERVICES.forEach(function (sv) {
     FS.dir['side-quests'].dir[sv.id + '.md'] = file(function () {
-      var m = stats ? sv.metric(stats) : ['—', ''];
+      var m = stats && stats[sv.id] ? sv.metric(stats) : ['—', ''];
       return '# ' + sv.name + '\n' + sv.d + '\n\nlive      ' + m[0] + ' ' + m[1] + '\nsite      ' + sv.url + (sv.href ? '\n\nwatch it run: `open ' + sv.id + '`' : '');
     });
   });
@@ -1047,7 +1047,7 @@
   }
   function topFrame(tick) {
     if (!stats) return 'live stats are still loading…';
-    var rows = SERVICES.filter(function (sv) { return sv.n; }).map(function (sv) { // top only shows products with live numbers
+    var rows = SERVICES.filter(function (sv) { return sv.n && stats[sv.id]; }).map(function (sv) { // top only shows products with live numbers
       var ser = (stats[sv.id] && stats[sv.id].series) || { values: [], metric: '' }, vals = ser.values.slice(-21), m = sv.metric(stats);
       var sp = spark(vals), cur = tick % Math.max(1, vals.length);
       sp = sp.slice(0, cur) + '<span class="a">' + sp[cur] + '</span>' + sp.slice(cur + 1);

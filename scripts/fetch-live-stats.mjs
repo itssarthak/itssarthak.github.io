@@ -6,7 +6,10 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 const PROPERTIES = {
   askmyastro: "541034254",
   filedownloader: "214739151",
+  discretedocs: "557639183", // launched Oct 2026; read access granted to the service account on 2026-10-07
 };
+/* Young properties: a failed fetch with nothing stored yet must not fail the whole run. */
+const OPTIONAL = new Set(["discretedocs"]);
 const START_DATE = "2016-01-01"; // GA4 Data API rejects anything before 2015-08-14
 /* Switchboard ships as a Claude Code plugin, so there is no download counter — a
    `/plugin marketplace add` is a git clone, and GitHub's traffic API is the only
@@ -19,7 +22,22 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", switchboard: "clones" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", switchboard: "clones" };
+/* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
+   the sum of files_in on tool_run, once files_in is registered as a GA4 custom metric; until
+   then each run counts as one file (every run processes at least one, so it never overstates). */
+const EVENTS = {
+  filedownloader: { event: "file_download", key: "downloads" },
+  discretedocs: { event: "tool_run", key: "files", param: "customEvent:files_in" },
+};
+async function eventReport(token, propertyId, cfg, body) {
+  const filter = { dimensionFilter: { filter: { fieldName: "eventName", stringFilter: { value: cfg.event } } } };
+  if (cfg.param) {
+    try { return await runReport(token, propertyId, { ...body, metrics: [{ name: cfg.param }], ...filter }); }
+    catch (err) { if (!/customEvent|not a valid metric|Did you mean/i.test(err.message)) throw err; } // not registered yet
+  }
+  return runReport(token, propertyId, { ...body, metrics: [{ name: "eventCount" }], ...filter });
+}
 
 /* Merge a fresh 14-day traffic window into the stored history. The API is
    authoritative for the days it covers (today's row keeps growing), so those
@@ -72,6 +90,23 @@ function cloneSeries(days) {
     from: ymd(addDays(from, start)),
     values: values.slice(start),
   };
+}
+
+/* Castbar is a Mac app: its count is downloads of its GitHub release assets (Homebrew
+   installs fetch the same zip, so they're included). The API only gives running totals,
+   so each run stores today's total and the daily series is the difference between runs. */
+const CASTBAR_REPO = "itssarthak/castbar";
+async function fetchCastbar(previous) {
+  const headers = { Accept: "application/vnd.github+json" };
+  if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
+  const res = await fetch(`https://api.github.com/repos/${CASTBAR_REPO}/releases?per_page=100`, { headers });
+  if (!res.ok) throw new Error(`castbar releases: ${res.status} ${await res.text()}`);
+  const downloads = (await res.json()).reduce((n, r) => n + r.assets.reduce((m, a) => m + a.download_count, 0), 0);
+  const totals = { ...previous?.totals, [ymd(new Date())]: downloads };
+  const days = Object.keys(totals).sort().slice(-CLONE_HISTORY_DAYS);
+  const kept = Object.fromEntries(days.map((d) => [d, totals[d]]));
+  const values = days.slice(1).map((d, i) => Math.max(0, kept[d] - kept[days[i]])).slice(-SERIES_DAYS);
+  return { downloads, totals: kept, series: values.length ? { metric: "downloads", from: days[days.length - values.length], values } : undefined };
 }
 
 function b64url(str) {
@@ -134,17 +169,9 @@ const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
 /* Daily values for one product's headline metric, densified: GA4 omits rows for days
    with no activity, and a chart needs one slot per day or the x-axis lies. */
 async function fetchSeries(token, propertyId, name) {
-  const isDownloads = SERIES_METRIC[name] === "downloads";
-  const report = await runReport(token, propertyId, {
-    dateRanges: [{ startDate: `${SERIES_DAYS}daysAgo`, endDate: "yesterday" }],
-    dimensions: [{ name: "date" }],
-    metrics: [{ name: isDownloads ? "eventCount" : "activeUsers" }],
-    ...(isDownloads && {
-      dimensionFilter: {
-        filter: { fieldName: "eventName", stringFilter: { value: "file_download" } },
-      },
-    }),
-  });
+  const body = { dateRanges: [{ startDate: `${SERIES_DAYS}daysAgo`, endDate: "yesterday" }], dimensions: [{ name: "date" }] };
+  const report = EVENTS[name] ? await eventReport(token, propertyId, EVENTS[name], body)
+    : await runReport(token, propertyId, { ...body, metrics: [{ name: "activeUsers" }] });
   if (!report.rows?.length) throw new Error(`empty series for property ${propertyId}`);
 
   const byDate = new Map(
@@ -167,23 +194,17 @@ async function fetchSeries(token, propertyId, name) {
   return { metric: SERIES_METRIC[name], from: ymd(from), values };
 }
 
-async function fetchSite(token, propertyId, withDownloads) {
+async function fetchSite(token, propertyId, name) {
   const totals = await runReport(token, propertyId, {
     dateRanges: [{ startDate: START_DATE, endDate: "today" }],
     metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }],
   });
   const site = { users: metric(totals, 0), pageviews: metric(totals, 1) };
   if (!site.users) throw new Error(`empty report for property ${propertyId}`);
-  if (withDownloads) {
-    const dl = await runReport(token, propertyId, {
-      dateRanges: [{ startDate: START_DATE, endDate: "today" }],
-      metrics: [{ name: "eventCount" }],
-      dimensionFilter: {
-        filter: { fieldName: "eventName", stringFilter: { value: "file_download" } },
-      },
-    });
-    site.downloads = metric(dl, 0);
-    if (!site.downloads) throw new Error(`empty download report for property ${propertyId}`);
+  const cfg = EVENTS[name];
+  if (cfg) {
+    site[cfg.key] = metric(await eventReport(token, propertyId, cfg, { dateRanges: [{ startDate: START_DATE, endDate: "today" }] }), 0);
+    if (!site[cfg.key] && name === "filedownloader") throw new Error(`empty download report for property ${propertyId}`);
   }
   return site;
 }
@@ -197,7 +218,7 @@ async function main() {
   const out = {};
   for (const [site, id] of Object.entries(PROPERTIES)) {
     try {
-      out[site] = await fetchSite(token, id, site === "filedownloader");
+      out[site] = await fetchSite(token, id, site);
     } catch (err) {
       console.warn(`WARN keeping previous stats for ${site}: ${err.message}`);
       if (previous[site]) out[site] = previous[site];
@@ -214,7 +235,13 @@ async function main() {
     }
   }
   for (const site of Object.keys(PROPERTIES)) {
-    if (!out[site]) throw new Error(`no data for ${site} and no previous value to fall back on`);
+    if (!out[site] && !OPTIONAL.has(site)) throw new Error(`no data for ${site} and no previous value to fall back on`);
+  }
+  try {
+    out.castbar = await fetchCastbar(previous.castbar);
+  } catch (err) {
+    console.warn(`WARN keeping previous castbar stats: ${err.message}`);
+    if (previous.castbar) out.castbar = previous.castbar;
   }
   /* GitHub is a side signal: a failure here must never drop the GA4 numbers. */
   try {
