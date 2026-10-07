@@ -316,3 +316,7 @@ html.chat-open{overflow:hidden}
 .svc .card{min-width:0}
 /* a new side quest: a 'New' pill beside its number */
 .svc .m .new{font:600 12px var(--body);color:var(--acc);background:var(--acc-soft);border-radius:999px;padding:3px 10px;transform:translateY(-6px)}
+/* the numbers in the headers: readable at a glance, not grey fine print */
+#visits{color:var(--ink);font-weight:600}
+.sec-h .people{display:inline-block;vertical-align:middle;margin-left:10px;font:600 13px var(--body);color:var(--acc);background:var(--acc-soft);border-radius:999px;padding:5px 12px;transform:translateY(-3px)}
+.sec-h .people:empty{display:none}
