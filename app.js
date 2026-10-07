@@ -340,7 +340,9 @@
     try { if (typeof LanguageModel !== 'undefined' && await LanguageModel.availability() === 'available') return NANO; } catch (e) {}
     // Llama only on a computer: a phone with WebGPU downloaded all 1.2GB, then crashed loading it (and it's mobile data).
     // A fine pointer means a mouse or trackpad; deviceMemory (Chrome-only) under 8GB rules out small machines.
-    var computer = matchMedia('(pointer: fine)').matches && !(navigator.deviceMemory < 8);
+    // Belt and braces: browsers that say they're mobile, or iPads posing as Macs (touch points on "MacIntel"), never get it either.
+    var ua = navigator.userAgent, mobile = (navigator.userAgentData && navigator.userAgentData.mobile) || /Mobi|Android|iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var computer = !mobile && matchMedia('(pointer: fine)').matches && !(navigator.deviceMemory < 8);
     return navigator.gpu && computer ? LLAMA : null;
   })();
   async function lookup(q) { // the 5 knowledge sections closest to a query
