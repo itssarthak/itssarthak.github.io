@@ -84,3 +84,6 @@ Going through everything the assistant is fed, one part at a time. Nothing gets 
 - Removed 8 hiring/availability chips and "hardest problem" (duplicate of "proudest project").
 - "non-tech teams" → "people outside engineering".
 - Added: outside work, languages, where he is based. 34 chips now.
+
+## Open
+- Phone version of the AI chat (smaller ~300-500MB model, behind a "Load the AI chat" button): asked 2026-10-07, not answered yet.
