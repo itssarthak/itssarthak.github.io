@@ -38,26 +38,27 @@
   ];
   // Ask-box suggestions: [what the chip says, the answer-bank question it leads to]. 3 show at a time; see initSuggestions().
   var SUGGEST = [
-    ['Is he open to remote roles?', 'Remote or relocation?'], ['What is AskMyAstro?', 'What is AskMyAstro?'],
-    ['Has he led a team?', 'Do you have team-leading experience?'], ['What role is he looking for?', 'What role are you looking for?'],
-    ['When can he start?', 'When can you start?'], ['Why should we hire him?', 'Why should we hire you?'],
+    ['What is AskMyAstro?', 'What is AskMyAstro?'],
+    ['Has he led a team?', 'Do you have team-leading experience?'], 
+    
     ['What has he built on his own?', 'What have you built yourself?'], ['What is Switchboard?', 'What is Switchboard?'],
     ['What is FileDownloader?', 'What is FileDownloader?'], ['Are these numbers real?', 'Are these numbers real?'],
     ['What did he build at Stashfin?', 'What did you do at Stashfin?'], ['How does his LLM router work?', "What's the LLM routing engine?"],
     ['How did the companion hit 46% retention?', 'How did the companion reach 46% D15 retention?'], ['How does he reduce hallucinations?', 'How do you reduce hallucinations?'],
     ['How does he keep LLM costs down?', 'How do you control LLM costs?'], ['How does he evaluate LLM outputs?', 'How do you evaluate LLM outputs?'],
     ['What\u2019s his tech stack?', "What's your tech stack?"], ['Which LLMs has he worked with?', 'Which LLM providers have you worked with?'],
-    ['What\u2019s the hardest problem he\u2019s solved?', "What's the hardest technical problem you've solved?"], ['Which project is he proudest of?', 'What project are you proudest of?'],
+    ['Which project is he proudest of?', 'What project are you proudest of?'],
     ['What\u2019s his leadership style?', "What's your leadership style?"], ['How does he mentor engineers?', 'How do you mentor engineers?'],
-    ['IC or manager?', 'Individual contributor or manager?'], ['Is he open to early-stage startups?', 'Are you open to early-stage startups?'],
-    ['Can he work US or European hours?', 'Can you work US or European hours?'], ['Is he open to contract work?', 'Are you open to contract or freelance work?'],
+    
+    
     ['Does he do system design?', 'Do you do system design?'], ['Why LangGraph?', 'Why LangGraph?'],
     ['How does he handle prompt injection?', 'How do you handle prompt injection?'], ['How does he monitor agents in production?', 'How do you monitor AI agents in production?'],
     ['Has he built MCP servers?', 'Have you built MCP servers?'], ['Does he use AI coding tools?', 'Do you use AI coding tools?'],
     ['How does this Ask box work?', 'How does this Ask box work?'], ['Any hidden features?', 'Any hidden features?'],
     ['Why did he build Switchboard?', 'Why did you build Switchboard?'], ['Why astrology?', 'Why astrology?'],
-    ['How does he work with non-tech teams?', 'How do you work with non-technical stakeholders?'], ['What\u2019s his career story?', "What's your career story?"],
-    ['Where did he study?', 'Where did you study?'], ['Frontend or backend?', 'Frontend or backend?']
+    ['How does he work with people outside engineering?', 'How do you work with non-technical stakeholders?'], ['What\u2019s his career story?', "What's your career story?"],
+    ['Where did he study?', 'Where did you study?'], ['Frontend or backend?', 'Frontend or backend?'],
+    ['What does he do outside work?', 'What do you do outside work?'], ['What languages does he speak?', 'What languages do you speak?'], ['Where is he based?', 'Where are you based?']
   ];
   var EMAIL = 'hello@sarthakchhabra.com';
 
