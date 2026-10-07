@@ -515,6 +515,8 @@
   // Chat memory: as many recent messages as fit the budget, newest first, with long replies shortened. The visitor's first
   // message always stays (it's often who they are and why they came). When the middle drops out, the model is told, so it
   // asks the visitor to remind it instead of guessing. ponytail: a character budget, not the model's real token count.
+  // Messages that need no lookup: greetings, thanks, acknowledgements (anything else gets at least one profile search)
+  var SMALL_TALK = /^(hi+|hello|hey+|yo|hiya|good (morning|afternoon|evening)|thanks?( you)?|thank you( so much)?|ty|ok(ay)?|cool|nice|great|awesome|bye|see ya|lol|haha)\b[\s!.?,:)]*\S{0,12}$/i;
   var HISTORY_CHARS = 6000, MSG_CHARS = 1500, REPLY_CHARS = 400;
   function clip(t, n) { return t.length > n ? t.slice(0, n) + '…' : t; }
   function history(chat) {
@@ -547,14 +549,7 @@
       }
       total += r.tokens; r.ms = performance.now() - t; return r;
     }
-    for (var step = 0; step < 4; step++) {
-      var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
-        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products (' + SERVICES.map(function (x) { return x.name; }).join(', ') + '), and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered with about_assistant: never search or web-search for them. Questions about Sarthak himself, including hiring, availability or salary, always go to search_about first. ' +
-        'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}. The query is a few words, never an answer.',
-        talk + '\n\nThe message to handle now: "' + chat[chat.length - 1].text + '" (earlier messages are context only; don\'t research them again).\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
-      var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
-      ev('thought', { tokens: r.tokens, ms: r.ms, tool: c.tool });
-      if (c.tool === 'reply' || !TOOLS[c.tool] || done[key]) break; // the same call twice means it's stuck: answer with what we have
+    async function runTool(c, key) {
       done[key] = 1;
       var args = argsOf(c), t = performance.now();
       ev('tool', { name: c.tool, args: args });
@@ -567,6 +562,20 @@
       ev('result', { name: c.tool, args: args, items: out.items, ms: performance.now() - t });
       L.push({ event: '$ai_span', properties: { $ai_span_id: uid(), $ai_span_name: c.tool, $ai_input_state: logArgs(c.tool, args), $ai_latency: (performance.now() - t) / 1000,
         $ai_output_state: { results: out.items, said: out.said || null, sources: (out.notes || []).map(function (n) { return n.label; }) }, $ai_is_error: /^failed/.test((out.items[0] || {}).label || '') } });
+    }
+    // Every real question first searches the profile with the visitor's own words; the model then searches more if it needs to.
+    // A small model's own queries miss ("Any hidden features?" became "AskMyAstro features"); the raw message finds the right section.
+    var msg = chat[chat.length - 1].text;
+    if (!SMALL_TALK.test(msg.trim())) { var first = { tool: 'search_about', query: msg.slice(0, 80) }; await runTool(first, first.tool + JSON.stringify(argsOf(first))); }
+    for (var step = 0; step < 4; step++) {
+      var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
+        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products (' + SERVICES.map(function (x) { return x.name; }).join(', ') + '), and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered with about_assistant: never search or web-search for them. Questions about Sarthak himself, including hiring, availability or salary, always go to search_about first. ' +
+        'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}. The query is a few words, never an answer.',
+        talk + '\n\nThe message to handle now: "' + chat[chat.length - 1].text + '" (earlier messages are context only; don\'t research them again).\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
+      var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
+      ev('thought', { tokens: r.tokens, ms: r.ms, tool: c.tool });
+      if (c.tool === 'reply' || !TOOLS[c.tool] || done[key]) break; // the same call twice means it's stuck: answer with what we have
+      await runTool(c, key);
     }
     // No sources after searching: the only honest reply is "couldn't find it" (a model left to itself fills the gap from memory).
     // searched and found nothing (only the self note, and no other tool had something to report): the reply may only say so
@@ -724,6 +733,7 @@
   beforePageAction = function () { full(false); };
   function endChat() { chat = []; ++asking; chatEl.innerHTML = ''; $('chatBar').hidden = true; full(false); window.siteAvatar && siteAvatar.answered(); } // closing is "new chat": the next question starts fresh
   $('chatClose').onclick = endChat;
+  $('chatExpand').onclick = function () { full(true); }; // back to full screen after a page action (e.g. opening the terminal) left it
   addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('full') && !document.querySelector('.term.open')) endChat(); });
   chatEl.onclick = function (e) {
     if (e.target.dataset.q) { $('askIn').value = e.target.dataset.q; runAsk(); }
