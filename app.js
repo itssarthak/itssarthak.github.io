@@ -394,7 +394,7 @@
         var terms = q.toLowerCase().split(/[^a-z0-9+#.]+/).filter(function (w) { return w.length > 2 && !/^(what|definition|meaning|explain|about|does|the|and|for|how|who|why|info|information|details)$/.test(w); });
         // keep pages that mention most of the terms: all-of-them dropped "LPU" for "... location"; none-of-them let "LangGraph" match a maths article
         var hits = (await get(W + 'w/api.php?action=query&list=search&format=json&origin=*&srlimit=3&srsearch=' + encodeURIComponent(terms.join(' ') || q))).query.search
-          .filter(function (h) { var t = (h.title + ' ' + h.snippet).toLowerCase(); return terms.filter(function (w) { return t.indexOf(w) >= 0; }).length >= Math.max(1, Math.ceil(terms.length * 0.6)); }).slice(0, 2);
+          .filter(function (h) { var t = (h.title + ' ' + h.snippet).toLowerCase(); return terms.filter(function (w) { return t.indexOf(w) >= 0; }).length >= Math.max(1, Math.ceil(terms.length * 0.5)); }).slice(0, 2); // half: "LPU location" lost LPU's page over "location"
         for (var h of hits) { var p = await get(W + 'api/rest_v1/page/summary/' + encodeURIComponent(h.title));
           if (p.extract) notes.push({ label: 'web · Wikipedia · ' + p.title, text: p.extract.slice(0, 600), url: p.content_urls && p.content_urls.desktop.page }); }
       } catch (e) { failed++; }
@@ -533,7 +533,7 @@
     var fin = draft ? { text: draft.fullname && draft.email ? 'Here\'s your message to Sarthak. Check it below, edit anything you like, and press Send when it looks right.'
       : 'Here\'s a message to Sarthak. Add your name and email so he can reply, check the message, and press Send.', tokens: 0, ms: 0 } : await gen(bare ? BOT + 'You have not looked anything up for this message, so you know no facts right now. Reply in one or two friendly sentences: respond to what the visitor said and offer to help them get to know Sarthak (his work, projects, skills). State no facts about Sarthak at all.' : empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
       BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
-      'If a note says Sarthak would prefer people reach out to him directly about something, that is the answer: share it warmly, not as a failure. If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
+      'If a note says Sarthak would prefer people reach out to him directly about something, that is the answer: share it warmly, not as a failure. If notes are about different things that share a name, say which is which and never merge them. If the notes don\'t cover something, say you couldn\'t verify it; suggest emailing ' + EMAIL + ' only when it is about Sarthak, and otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
       (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
       talk + '\nAssistant:', null, 'reply');
     if (!draft) ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
@@ -719,13 +719,33 @@
   var DID = { search_about: 'Searched about Sarthak', web_search: 'Searched the web', live_stats: 'Read live stats', go_to: 'Went to', send_message: 'Drafted a message' };
   var DOING = { search_about: 'Searching about Sarthak', web_search: 'Web search', live_stats: 'Reading live stats', go_to: 'Going to', send_message: 'Drafting a message' };
   function doing(d) { var a = d.args; return DOING[d.name] + (a.query ? ': “' + a.query + '”' : a.target ? ' ' + (eraFromArg(a.target) >= 0 ? label(eraFromArg(a.target)) : a.target) : ''); }
+  // Each step in the details says what it is and how it works, so the details read as the architecture.
+  var HOW = {
+    decide: 'The model reads your message and the notes so far, then picks the next tool (its raw choice is below, as JSON).',
+    write: 'The model writes the reply using only the notes the tools returned, citing each one.',
+    search_about: 'Searches Sarthak\'s profile by meaning: a small embedding model (BGE) turns the query into numbers in your browser and compares it with every section; the closest come back with their similarity scores.',
+    web_search: 'Asks DuckDuckGo\'s free answer API for a summary, falling back to Wikipedia\'s search when it has none.',
+    live_stats: 'Reads today\'s product numbers, refreshed daily from Google Analytics and GitHub.',
+    go_to: 'Acts on this page for you: scrolls to a part of it, opens the terminal, or adds a link under the reply.',
+    send_message: 'Opens a message form to Sarthak, filled in from the chat. Nothing is sent until you press Send.',
+    about_assistant: 'Returns the assistant\'s own description: what it is, the model it runs and what it can do.'
+  };
+  var detailsOpen = false; // the chat header's toggle: every run's details open or closed at once, new ones included
+  $('chatDetails').onclick = function () {
+    detailsOpen = !detailsOpen; this.setAttribute('aria-pressed', detailsOpen);
+    this.querySelector('span').textContent = detailsOpen ? 'Hide details' : 'Show details';
+    [].forEach.call(chatEl.querySelectorAll('details.act'), function (d) { d.open = detailsOpen; });
+  };
   function runAgent(id, E, trace, ans) {
     var seen = {}, live = null, did = [];
     trace.className = ''; // the dark .trace look is for the plain answer search; this box has its own
     trace.innerHTML = '<details class="act"><summary><span class="act-ico"></span><span class="act-now">Loading ' + esc(E.name) + '…</span><span class="act-meta"></span><span class="act-more">details</span>' +
       '<span class="act-dl"><span class="ag-bar"><i></i></span><span></span></span></summary>' +
-      '<div class="act-body"><p class="act-model"><b>' + esc(E.name) + '</b> · ' + esc(E.tag) + '</p><ol class="act-steps"></ol></div></details>';
-    var box = trace.firstChild, now = box.querySelector('.act-now'), meta = box.querySelector('.act-meta'), steps = box.querySelector('.act-steps'), dl = box.querySelector('.act-dl');
+      '<div class="act-body"><p class="act-model"><b>' + esc(E.name) + '</b> · ' + esc(E.tag) + '</p>' +
+      '<p class="act-arch">How this works: the model runs in your browser. For each message it loops (decide on a tool, use it, read the results) until it has enough, then writes a reply from only what the tools returned.</p>' +
+      '<ol class="act-steps"></ol></div></details>';
+    var box = trace.firstChild; box.open = detailsOpen;
+    var now = box.querySelector('.act-now'), meta = box.querySelector('.act-meta'), steps = box.querySelector('.act-steps'), dl = box.querySelector('.act-dl');
     function say(t) { now.textContent = t; }
     function row(html) { var li = document.createElement('li'); li.innerHTML = html; steps.appendChild(li); stick(); return li; }
     return agentTurn(chat, E, function (type, d) {
@@ -740,7 +760,7 @@
       } else if (type === 'ready') { dl.classList.remove('show'); say('Thinking…');
       } else if (type === 'think') {
         say(d.phase === 'decide' ? 'Thinking…' : 'Writing the answer…');
-        live = row('<div class="act-row"><span>' + (d.phase === 'decide' ? 'Deciding the next step' : 'Writing the answer') + '</span><em>…</em></div>' + (d.phase === 'decide' ? '<code></code>' : ''));
+        live = row('<div class="act-row"><span>' + (d.phase === 'decide' ? 'Deciding the next step' : 'Writing the answer') + '</span><em>…</em></div><p class="act-how">' + HOW[d.phase === 'decide' ? 'decide' : 'write'] + '</p>' + (d.phase === 'decide' ? '<code></code>' : ''));
       } else if (type === 'token') {
         live.querySelector('em').textContent = d.n + ' tokens · ' + (d.n / d.ms * 1000).toFixed(0) + ' tok/s';
         if (d.phase === 'decide') live.querySelector('code').textContent = d.text.replace(/\s+/g, ' ').slice(0, 200);
@@ -750,7 +770,7 @@
         live.querySelector('em').textContent = d.tokens + ' tokens · ' + sec(d.ms);
       } else if (type === 'tool') {
         say(doing(d) + '…'); did.push(d);
-        live = row('<div class="act-row tool"><span>' + esc(doing(d)) + '</span><em>…</em></div>');
+        live = row('<div class="act-row tool"><span>' + esc(doing(d)) + '</span><em>…</em></div><p class="act-how">Tool call <code class="act-call">' + esc(d.name) + '(' + esc(JSON.stringify(d.args)) + ')</code>. ' + esc(HOW[d.name] || '') + '</p>');
       } else if (type === 'result') {
         live.querySelector('em').textContent = d.items.length + (d.items.length === 1 ? ' result · ' : ' results · ') + sec(d.ms);
         if (d.items.length) live.insertAdjacentHTML('beforeend', '<ol class="act-res">' + d.items.map(function (x) { return '<li>' + (x.score != null ? '<b>' + x.score.toFixed(2) + '</b>' : '') + esc(x.label) + '</li>'; }).join('') + '</ol>');
