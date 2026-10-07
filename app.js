@@ -787,6 +787,7 @@
   function reveal(label) {
     var sec = $('ask');
     sec.classList.add('ready'); sec.removeAttribute('aria-hidden'); sec.inert = false;
+    setTimeout(function () { sec.classList.add('unfolded'); }, 1300); // after the unfold animation: stop clipping, so the thought bubble can rise above
     if (label) sec.querySelector('.sec-h .label').textContent = label;
   }
   var saveData = navigator.connection && navigator.connection.saveData;
