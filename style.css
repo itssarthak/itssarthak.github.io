@@ -292,7 +292,10 @@ html.chat-open{overflow:hidden}
 .avatar-perch .ask:not(.full){position:relative}
 .avatar-perch .avatar-wrap{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin:0;pointer-events:none}
 .avatar-perch .avatar{width:120px;height:120px;border:0;border-radius:0;background:none}
-.avatar-perch .ask.full .avatar-wrap{display:none}
+/* full-screen chat: the avatar sits small in the bottom-left corner, just above the text box (flex order moves it below the chat) */
+.ask.full .chat-bar{order:0}.ask.full .chat{order:1}.ask.full .avatar-wrap{order:2}.ask.full #askForm{order:3}.ask.full .ask-hint{order:4}.ask.full .sugg{order:5}
+.avatar-perch .ask.full .avatar-wrap{display:flex;position:static;transform:none;justify-content:flex-start;margin:0 auto 6px;pointer-events:none}
+.avatar-perch .ask.full .avatar{width:56px;height:56px}
 @media (max-width:640px){
   .avatar-perch .avatar-wrap{left:auto;right:8px;transform:none}
   .avatar-perch .avatar{width:96px;height:96px}
