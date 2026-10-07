@@ -194,9 +194,9 @@ async function fetchSeries(token, propertyId, name) {
 async function fetchSite(token, propertyId, name) {
   const totals = await runReport(token, propertyId, {
     dateRanges: [{ startDate: START_DATE, endDate: "today" }],
-    metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }],
+    metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }, { name: "sessions" }],
   });
-  const site = { users: metric(totals, 0), pageviews: metric(totals, 1) };
+  const site = { users: metric(totals, 0), pageviews: metric(totals, 1), visits: metric(totals, 2) };
   if (!site.users) throw new Error(`empty report for property ${propertyId}`);
   const cfg = EVENTS[name];
   if (cfg) {

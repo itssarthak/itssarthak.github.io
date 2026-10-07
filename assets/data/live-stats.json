@@ -3,6 +3,7 @@
   "askmyastro": {
     "users": 5183,
     "pageviews": 16167,
+    "visits": 5943,
     "series": {
       "metric": "users",
       "from": "2026-09-07",
@@ -43,6 +44,7 @@
   "filedownloader": {
     "users": 7277,
     "pageviews": 28162,
+    "visits": 9135,
     "downloads": 717631,
     "series": {
       "metric": "downloads",
@@ -84,6 +86,7 @@
   "discretedocs": {
     "users": 6,
     "pageviews": 24,
+    "visits": 14,
     "files": 1,
     "series": {
       "metric": "files",
@@ -125,6 +128,7 @@
   "portfolio": {
     "users": 184,
     "pageviews": 583,
+    "visits": 287,
     "series": {
       "metric": "users",
       "from": "2026-09-07",

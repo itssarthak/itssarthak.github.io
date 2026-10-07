@@ -135,7 +135,8 @@
   function renderStatus() {
     var st = sysState();
     $('sysDot').className = 'dot' + (st ? ' ' + st : ''); $('sys').className = st;
-    $('sys').textContent = sysText() + (stats && stats.portfolio && st !== 'boot' ? ' · ' + k(stats.portfolio.users) + ' visitors' : ''); // this site's own all-time visitors (GA4)
+    $('sys').textContent = sysText();
+    $('visits').textContent = stats && stats.portfolio && stats.portfolio.visits ? ' · ' + k(stats.portfolio.visits) + ' visits' : ''; // this site's all-time visits (GA4 sessions)
   }
   // The last 30 days as a small line under each number (inline SVG; stretches to the card's width).
   var SHOW_WEEK = false; // the '+N this week' badge on each card: hidden for now (Sarthak, Oct 2026); true brings it back
@@ -162,7 +163,9 @@
     io.observe($('svc'));
   }
   function renderServices() { // "live now": only your own products, only at HEAD (the section sits above the history, so it always is)
-    $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
+    // People who use the products, added up: only products that count users (clones aren't users; this site isn't a product)
+    var people = stats ? ['askmyastro', 'filedownloader', 'discretedocs'].reduce(function (n, id) { return n + ((stats[id] && stats[id].users) || 0); }, 0) : 0;
+    $('svcNote').textContent = (people ? k(people) + ' people use these · ' : '') + (stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily');
     $('svc').innerHTML = SERVICES.map(function (s, i) {
       var live = stats && stats[s.id], m = live ? s.metric(stats) : ['—', ''], v = live && stats[s.id].series ? stats[s.id].series.values : [];
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
