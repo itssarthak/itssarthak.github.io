@@ -352,16 +352,29 @@
   var beforePageAction = function () {}; // the Ask box sets this to leave full screen, so the visitor sees what go_to did
   var TARGETS = STOPS.map(function (s) { return s.v; }).concat(['terminal', 'contact'], Object.keys(PAGES));
   var TOOL_DOCS = [
-    'search_about(query): search Sarthak\'s profile (every role with dates, skills, products, availability). Use it for anything about him: work, skills, availability, how to reach him, what he built at each company, and his own products AskMyAstro, FileDownloader and Switchboard. Not for places or general topics. Keep the query to a few words.',
+    'search_about(query): search Sarthak\'s profile (every role with dates, skills, products, availability). Use it for anything about him: work, skills, availability, whether he is open to work, salary, how to reach him, what he built at each company, and his own products AskMyAstro, FileDownloader and Switchboard. Not for places or general topics. Keep the query to a few words.',
     'web_search(query): look up a general topic on the web (encyclopedia summaries), e.g. what a technology or company is. Not for facts about Sarthak.',
     'live_stats(): today\'s numbers for his live products: AskMyAstro, FileDownloader, Switchboard.',
-    'go_to(target): act on this page for the visitor. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
+    'go_to(target): act on this page for the visitor, only when they ask to see or go somewhere. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
       return s.v + ' (' + s.title + (cos.length ? ', ' + cos.join(' and ') : '') + ')'; }).join(', ') + ', terminal, contact, resume, askmyastro, filedownloader, switchboard.',
     'send_message(name, email, message): show the visitor a message form to Sarthak, prefilled with whatever they have said (leave unknown fields empty). Call it as soon as the visitor wants to message or contact Sarthak.',
+    'about_assistant(): everything about you, the assistant: what you are, which model you run, what you can do, and how chats are logged. Use it whenever the visitor asks about you.',
     'reply: answer the visitor now.'];
-  var DECIDE = { type: 'object', required: ['tool'], properties: { tool: { type: 'string', enum: ['search_about', 'web_search', 'live_stats', 'go_to', 'send_message', 'reply'] },
+  var DECIDE = { type: 'object', required: ['tool'], properties: { tool: { type: 'string', enum: ['search_about', 'web_search', 'live_stats', 'go_to', 'send_message', 'about_assistant', 'reply'] },
     query: { type: 'string', maxLength: 80 }, target: { type: 'string', enum: TARGETS }, name: { type: 'string' }, email: { type: 'string' }, message: { type: 'string' } } };
   var TOOLS = {
+    // What it knows about itself, fetched only when asked (it once web-searched "which model are you" and claimed to be another model)
+    about_assistant: async function () {
+      var E = await engineP, nano = E === NANO;
+      var note = { label: 'about this assistant', text: 'This chat assistant runs ' + E.name + ', ' + (nano ? 'Google\'s small AI model built into Chrome' : 'Meta\'s small open AI model') + ', entirely in the visitor\'s browser. ' +
+        'Sarthak built the assistant around that model for this site; he did not make the model itself. It is here to help people get to know Sarthak. ' +
+        'How it works: Sarthak wrote a profile of facts about himself; the assistant searches it by meaning, using a small search model that also runs in the browser, decides step by step which tool to use, and only states what it found. ' +
+        'It can search Sarthak\'s profile, search the web and read live product stats, and it can scroll this page, open the terminal, link to pages, and show a message form to Sarthak. ' +
+        'Its limits: it is a small model and can get things wrong, and it answers only from Sarthak\'s profile, web searches and live stats, not from general knowledge. ' +
+        'To send Sarthak a message, the visitor fills in their name, their email (so Sarthak can reply to them) and the message in the form, and presses Send themselves; nothing is sent without that. ' +
+        'It knows nothing about the visitor beyond what they type in this chat. Chats are logged anonymously (no account, name or identity attached) so Sarthak can improve the answers; what a visitor types into the message form is never logged.' };
+      return { items: [{ label: 'about this assistant' }], notes: [note] };
+    },
     search_about: async function (a) {
       var res = await lookup(a.query || '');
       // BGE scores unrelated text around 0.45-0.6: keep clear matches, and only those close to the best one
@@ -410,7 +423,7 @@
         draft: { fullname: v('name'), email: email, message: v('message') } };
     }
   };
-  function argsOf(c) { return c.tool === 'send_message' ? { name: c.name, email: c.email, message: c.message } : c.tool === 'go_to' ? { target: c.target } : c.tool === 'live_stats' ? {} : { query: c.query }; }
+  function argsOf(c) { return c.tool === 'send_message' ? { name: c.name, email: c.email, message: c.message } : c.tool === 'go_to' ? { target: c.target } : /^(live_stats|about_assistant)$/.test(c.tool) ? {} : { query: c.query }; }
   function decision(text) { // Llama's JSON comes in assorted wrappers, so take the first {...} that parses
     for (var i = text.indexOf('{'); i >= 0; i = text.indexOf('{', i + 1))
       for (var j = text.lastIndexOf('}'); j > i; j = text.lastIndexOf('}', j - 1)) { try { var c = JSON.parse(text.slice(i, j + 1)); if (c && c.tool) return c; } catch (e) {} }
@@ -450,22 +463,31 @@
     finally {
       log.push({ event: '$ai_trace', properties: { $ai_trace_id: trace, $ai_span_name: 'chat turn', $ai_input_state: chat[chat.length - 1].text, $ai_output_state: res ? res.text : null,
         $ai_latency: (performance.now() - t0) / 1000, $ai_is_error: !!err, $ai_error: err ? String(err.message || err) : null, model: E.id, turn: chat.filter(function (m) { return m.me; }).length,
+        unverified: !!(res && (res.empty || /couldn['’]t (verify|find)|could not (verify|find)/i.test(res.text))), history_dropped: res ? res.historyDropped : 0, message_cut: !!chat[chat.length - 1].cut,
         tools_used: res ? res.toolsUsed : [], sources: res ? res.notes.map(function (n) { return n.label; }) : [], draft_shown: !!(res && res.draft) } });
       phLog(chat, log);
     }
   }
-  var BOT = 'You are the assistant on Sarthak Chhabra\'s portfolio website, chatting with a visitor about Sarthak. ';
+  // Chat memory: as many recent messages as fit the budget, newest first, with long replies shortened. The visitor's first
+  // message always stays (it's often who they are and why they came). When the middle drops out, the model is told, so it
+  // asks the visitor to remind it instead of guessing. ponytail: a character budget, not the model's real token count.
+  var HISTORY_CHARS = 6000, MSG_CHARS = 1500, REPLY_CHARS = 400;
+  function clip(t, n) { return t.length > n ? t.slice(0, n) + '…' : t; }
+  function history(chat) {
+    var line = function (m) { return (m.me ? 'Visitor: ' : 'Assistant: ') + clip(m.text, m.me ? MSG_CHARS : REPLY_CHARS); };
+    var kept = [], used = line(chat[0]).length, i;
+    for (i = chat.length - 1; i > 0; i--) { var l = line(chat[i]); if (used + l.length > HISTORY_CHARS) break; kept.unshift(l); used += l.length; }
+    var dropped = i; // messages 1..i didn't fit
+    return { dropped: dropped, text: [line(chat[0])].concat(dropped > 0 ? ['(Earlier messages in this chat are no longer visible to you. If the visitor refers to them, ask them to remind you; never guess.)'] : [], kept).join('\n') };
+  }
+  var BOT = 'You are the assistant on Sarthak Chhabra\'s portfolio website, chatting with a visitor about Sarthak. You speak in your own voice and refer to him as Sarthak. ' +
+    'Your tone is friendly and warm. You are here to help people get to know Sarthak; never push hiring him, contacting him or any other goal yourself (if a visitor asks about those, search and share what you find). ';
   async function runTurn(chat, E, ev, L) {
     llmProgress = function (p) { if (p.status === 'progress') ev('download', p); };
     await E.load();
     ev('ready', E);
-    // The assistant always knows what it is: without this it once web-searched "which model are you" and claimed to be someone else's model
-    var self = { label: 'about this assistant', text: 'This chat assistant runs ' + E.name + ', ' + (E === NANO ? 'Google\'s small AI model built into Chrome' : 'Meta\'s small open AI model') + ', entirely in the visitor\'s browser. ' +
-      'Sarthak built the assistant around that model for this site; he did not make the model itself. It answers by searching Sarthak\'s profile, searching the web and reading live product stats, and it can scroll this page, open the terminal, link to pages, and draft a message to Sarthak for the visitor to send. ' +
-      'To draft a message it needs the visitor\'s name, their email (so Sarthak can reply to them) and the message; the visitor checks the draft and presses Send themselves, nothing is sent without that. ' +
-      'It knows nothing about the visitor beyond what they type in this chat. Chats are logged anonymously (no account, name or identity attached) so Sarthak can improve the answers; what a visitor types into the message form is never logged.' };
-    var t0 = performance.now(), total = 0, notes = [self], said = [], actions = [], draft = null, done = {};
-    var talk = chat.slice(-8).map(function (m) { return (m.me ? 'Visitor: ' : 'Assistant: ') + m.text; }).join('\n');
+    var t0 = performance.now(), total = 0, notes = [], said = [], actions = [], draft = null, done = {};
+    var mem = history(chat), talk = mem.text;
     function noteText() {
       return (notes.length ? notes.map(function (n, i) { return '[' + (i + 1) + '] ' + n.label + ': ' + n.text; }).join('\n') : '(none yet)') + (said.length ? '\n\nWhat your tools did (for you only, never quote this): ' + said.join('; ') : '');
     }
@@ -483,7 +505,7 @@
     }
     for (var step = 0; step < 4; step++) {
       var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
-        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered from the "about this assistant" note: never search for them. ' +
+        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered with about_assistant: never search or web-search for them. Questions about Sarthak himself, including hiring, availability or salary, always go to search_about first. ' +
         'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}. The query is a few words, never an answer.',
         talk + '\n\nThe message to handle now: "' + chat[chat.length - 1].text + '" (earlier messages are context only; don\'t research them again).\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
       var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
@@ -504,16 +526,18 @@
     }
     // No sources after searching: the only honest reply is "couldn't find it" (a model left to itself fills the gap from memory).
     // searched and found nothing (only the self note, and no other tool had something to report): the reply may only say so
-    var empty = notes.length === 1 && Object.keys(done).some(function (k) { return /^(search_about|web_search|live_stats)/.test(k); }) && !said.some(function (x) { return /^(send_message|go_to)/.test(x); }) && !draft && !actions.length;
+    var empty = !notes.length && Object.keys(done).some(function (k) { return /^(search_about|web_search|live_stats)/.test(k); }) && !said.some(function (x) { return /^(send_message|go_to)/.test(x); }) && !draft && !actions.length;
     // A ready draft gets a fixed reply: the model's own wording around it rambled and leaked the tool log
+    // No notes at all (a greeting, small talk): nothing to state, and a small model left with nothing invents a bio. Greet and offer help only.
+    var bare = !notes.length && !Object.keys(done).length;
     var fin = draft ? { text: draft.fullname && draft.email ? 'Here\'s your message to Sarthak. Check it below, edit anything you like, and press Send when it looks right.'
-      : 'Here\'s a message to Sarthak. Add your name and email so he can reply, check the message, and press Send.', tokens: 0, ms: 0 } : await gen(empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
+      : 'Here\'s a message to Sarthak. Add your name and email so he can reply, check the message, and press Send.', tokens: 0, ms: 0 } : await gen(bare ? BOT + 'You have not looked anything up for this message, so you know no facts right now. Reply in one or two friendly sentences: respond to what the visitor said and offer to help them get to know Sarthak (his work, projects, skills). State no facts about Sarthak at all.' : empty ? BOT + 'Your searches found nothing for this. In one or two sentences, say you couldn\'t find or verify it' + (said.length ? ' (' + said.join('; ') + ')' : '') + ' and suggest emailing ' + EMAIL + '. Don\'t describe or guess anything about the topic.' :
       BOT + 'Reply in two to four short sentences. Use ONLY facts from your notes, and cite each one with its number, like [1]. ' +
-      'If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
+      'If a note says Sarthak would prefer people reach out to him directly about something, that is the answer: share it warmly, not as a failure. If the notes don\'t cover something, say you couldn\'t verify it and suggest emailing ' + EMAIL + '; otherwise don\'t mention email. Never guess or add facts of your own. You can search the web, so never say you can\'t; if a search failed or found nothing, say that.' +
       (draft ? ' A message to Sarthak is drafted under your reply: tell the visitor to check it and press Send. Don\'t say you can\'t contact him.' : '') + '\n\nYour notes:\n' + noteText(),
       talk + '\nAssistant:', null, 'reply');
     if (!draft) ev('thought', { tokens: fin.tokens, ms: fin.ms, tool: 'reply' });
-    var res = { toolsUsed: Object.keys(done), text: unredact(fin.text.replace(/^Assistant:\s*/, '').replace(/\n*(Tool log|What your tools did)[^\n]*/gi, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
+    var res = { historyDropped: mem.dropped, empty: !!empty, toolsUsed: Object.keys(done), text: unredact(fin.text.replace(/^Assistant:\s*/, '').replace(/\n*(Tool log|What your tools did)[^\n]*/gi, '')), notes: notes, actions: actions, draft: draft, tokens: total, ms: performance.now() - t0, tools: Object.keys(done).length };
     if (window.sheetBeacon) sheetBeacon({ kind: 'ask', visit: sess.start, question: chat[chat.length - 1].text.slice(0, 300), corrected: '', result: 'chat · ' + E.name, matched: res.text.slice(0, 300), score: 0, alts: Object.keys(done).join(' | ').slice(0, 300) });
     ev('done', res);
     return res;
@@ -654,7 +678,7 @@
     if (on) { pinned = true; stick(); $('askIn').focus(); } else card.scrollIntoView({ block: 'nearest' });
   }
   beforePageAction = function () { full(false); };
-  function endChat() { chat = []; ++asking; chatEl.innerHTML = ''; $('chatBar').hidden = true; full(false); } // closing is "new chat": the next question starts fresh
+  function endChat() { chat = []; ++asking; chatEl.innerHTML = ''; $('chatBar').hidden = true; full(false); window.siteAvatar && siteAvatar.answered(); } // closing is "new chat": the next question starts fresh
   $('chatClose').onclick = endChat;
   addEventListener('keydown', function (e) { if (e.key === 'Escape' && card.classList.contains('full') && !document.querySelector('.term.open')) endChat(); });
   chatEl.onclick = function (e) {
@@ -681,12 +705,13 @@
     if (r.draft) html += '<form class="draft"><p class="matched">Message to Sarthak · check it, then send</p><input name="fullname" required aria-label="Your name" placeholder="Your name" value="' + esc(r.draft.fullname) + '">' +
       '<input name="email" type="email" required aria-label="Your email" placeholder="Your email, so he can reply" value="' + esc(r.draft.email) + '"><textarea name="message" required rows="3" aria-label="Message" placeholder="Your message">' + esc(r.draft.message) + '</textarea>' +
       '<div><button class="btn p" type="submit">Send</button> <span class="form-msg"></span></div></form>';
-    ans.innerHTML = html + '<p class="matched">Written by an AI in your browser from the sources above · it can still be wrong</p>';
+    ans.innerHTML = (r.cut ? '<p class="note">I only read the beginning of that, it was long. Ask me about any part of it.</p>' : '') + html +
+      '<p class="matched">Written by an AI in your browser' + (cited.length ? ' from the sources above' : '') + ' · it can still be wrong</p>';
     var f = ans.querySelector('form.draft');
     if (f) f.onsubmit = function (e) {
       e.preventDefault(); var b = f.querySelector('button'), m = f.querySelector('.form-msg'); b.disabled = true;
       sendMail({ fullname: f.fullname.value.trim(), email: f.email.value.trim(), message: f.message.value.trim() }, 'ask chat')
-        .then(function () { m.className = 'form-msg ok'; m.textContent = 'Sent. He’ll reply within a day.'; [].forEach.call(f.elements, function (el) { el.disabled = true; }); })
+        .then(function () { m.className = 'form-msg ok'; m.textContent = 'Sent. He’ll get back to you soon.'; [].forEach.call(f.elements, function (el) { el.disabled = true; }); })
         .catch(function () { b.disabled = false; m.className = 'form-msg err'; m.textContent = 'That didn’t go through. Try again, or email ' + EMAIL + '.'; });
     };
   }
@@ -736,24 +761,24 @@
         say(did.length ? Object.keys(by).map(function (k) { var v = by[k].filter(Boolean); return DID[k] + (v.length ? ': ' + v.join(', ') : ''); }).join(' · ') : 'Answered without searching');
         meta.textContent = sec(d.ms);
         row('<div class="act-row"><span>Total</span><em>' + d.tools + (d.tools === 1 ? ' tool call · ' : ' tool calls · ') + d.tokens + ' tokens · ' + sec(d.ms) + '</em></div>');
-        renderReply(ans, d);
+        d.cut = chat[chat.length - 1].cut; renderReply(ans, d);
         stick();
       }
     });
   }
   async function runAsk(exact) { // exact: re-ask this text without the spelling fix
     var q = typeof exact === 'string' ? exact : $('askIn').value.trim(); if (!q) return;
-    $('askIn').value = ''; $('chatBar').hidden = false; pinned = true;
+    $('askIn').value = ''; $('chatBar').hidden = false; pinned = true; window.siteAvatar && siteAvatar.thinking(); // the avatar looks down while it works
     if (!card.classList.contains('full')) full(true);
     var id = ++asking, times = {}, searched = q;
     bubble('me', '<p>' + esc(q) + '</p>');
     var bot = bubble('bot', '<div class="trace show"></div><div class="answer"></div>'), trace = bot.firstChild, ans = bot.lastChild;
     if (!chat.id) chat.id = uid(); // one conversation id until the chat is closed
-    chat.push({ me: true, text: q });
+    chat.push({ me: true, text: q, cut: q.length > MSG_CHARS }); // a very long paste: only the beginning reaches the model
     var E = !aiBroken && await engineP;
     if (E) {
       logAsked(q);
-      try { var r = await runAgent(id, E, trace, ans); if (id === asking) chat.push({ me: false, text: r.text }); return; }
+      try { var r = await runAgent(id, E, trace, ans); if (id === asking) { chat.push({ me: false, text: r.text }); window.siteAvatar && siteAvatar.answered(); } return; }
       catch (err) { var failed = err; } // this turn failed: answer from the bank instead (a model that can't load at all is caught on focus and not retried)
       if (id !== asking) return;
     }
@@ -776,15 +801,16 @@
         ? '<p class="matched">Answering: <b>' + esc(r.q) + '</b></p>' + (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
         : '<p>' + (r.near ? 'Did you mean:' : 'No answer for that. Closest I can answer:') + '</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
-          '</div><p>Or email <a href="mailto:' + EMAIL + '">' + EMAIL + '</a></p>');
+          '</div>');
       chat.push({ me: false, text: r.hit ? r.text : '' });
       phLog(chat, [{ event: '$ai_trace', properties: { $ai_trace_id: uid(), $ai_span_name: 'chat turn', $ai_input_state: q, $ai_output_state: r.hit ? r.text : (r.near ? 'did you mean: ' : 'no answer; closest: ') + r.alts.join(' | '),
         model: 'answer-bank', fallback_reason: E ? 'agent failed: ' + String((failed && failed.message) || failed) : 'no on-device model', match: r.q, match_score: r.score, corrected: r.corrected || null } }]);
-      stick();
+      stick(); window.siteAvatar && siteAvatar.answered();
     } catch (err) {
       if (id !== asking) return;
       trace.classList.remove('show');
       ans.innerHTML = '<p>The search engine couldn’t load (offline, or the model download was blocked). Ask me directly: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>.</p>';
+      window.siteAvatar && siteAvatar.answered();
     }
   }
 
