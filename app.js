@@ -338,7 +338,10 @@
     } };
   var engineP = (async function () {
     try { if (typeof LanguageModel !== 'undefined' && await LanguageModel.availability() === 'available') return NANO; } catch (e) {}
-    return navigator.gpu ? LLAMA : null;
+    // Llama only on a computer: a phone with WebGPU downloaded all 1.2GB, then crashed loading it (and it's mobile data).
+    // A fine pointer means a mouse or trackpad; deviceMemory (Chrome-only) under 8GB rules out small machines.
+    var computer = matchMedia('(pointer: fine)').matches && !(navigator.deviceMemory < 8);
+    return navigator.gpu && computer ? LLAMA : null;
   })();
   async function lookup(q) { // the 5 knowledge sections closest to a query
     var got = await Promise.all([loadKB(), loadKBModel()]), d = got[0];
@@ -818,7 +821,9 @@
       if (r.corrected) { searched = r.corrected; draw(null); }
       trace.innerHTML += '<div class="st done"><i>match</i><b>' + r.score.toFixed(2) + '</b>&nbsp;“' + esc(r.q) + '”</div>';
       var didYou = r.corrected ? '<p class="didyou">Showing results for <b>' + esc(r.corrected) + '</b> · <button type="button" data-exact="' + esc(q) + '">search “' + esc(q) + '” instead</button></p>' : '';
-      ans.innerHTML = didYou + (r.hit
+      // No on-device AI here (Safari before 26, Firefox, phones): say so once per chat, so visitors know what they're getting
+      var hint = !E && !chat.hinted ? (chat.hinted = true, '<p class="note">The full AI chat runs in Chrome or Edge on a computer. Here you get Sarthak\u2019s pre-written answers.</p>') : '';
+      ans.innerHTML = hint + didYou + (r.hit
         ? '<p class="matched">Answering: <b>' + esc(r.q) + '</b></p>' + (r.note ? '<p class="note">' + md(r.note).slice(3, -4) + '</p>' : '') + md(r.text)
         : '<p>' + (r.near ? 'Did you mean:' : 'No answer for that. Closest I can answer:') + '</p><div class="alts">' +
           r.alts.map(function (a) { return '<button type="button" data-q="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') +
