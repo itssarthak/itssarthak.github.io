@@ -736,7 +736,8 @@
       if (mac && Math.random() < 0.5) return 'mac';
       return hour >= 23 || hour < 5 ? 'night' : hour < 11 ? 'morning' : hour >= 18 ? 'evening' : 'hello';
     }
-    function phEvent(name, props) { phLog({ id: null }, [{ event: name, properties: Object.assign({ variant: variant }, props) }]); }
+    var LOOK = 'cartoon-cloud-v2'; // the bubble's design: bump when it changes, so test results before and after stay separable
+    function phEvent(name, props) { phLog({ id: null }, [{ event: name, properties: Object.assign({ variant: variant, look: LOOK }, props) }]); }
     async function aiThought(situation, example) { // B: one line from Chrome's AI, or null (slow, odd, too long) → the written one
       try {
         var r = await Promise.race([NANO.gen('You are Sarthak Chhabra, a software engineer, writing a tiny thought bubble above your own cartoon avatar on your portfolio site. ' +
@@ -758,9 +759,9 @@
       bub.className = 'thought'; bub.textContent = text; bub.dataset.id = id; bub.dataset.ask = t[1] || ''; bub.dataset.how = how;
       bub.setAttribute('aria-label', 'Thought: ' + text + (t[1] ? '. Click to ask: ' + t[1] : ''));
       phEvent('thought shown', { thought: id, trigger: trigger, how: how, text: text });
-      hideT = setTimeout(hide, 9000); busy = false;
+      hideT = setTimeout(function () { hide('timed out'); }, 9000); busy = false;
     }
-    function hide() { bub.hidden = true; }
+    function hide(why) { if (!bub.hidden && bub.dataset.id && typeof why === 'string') phEvent('thought gone', { thought: bub.dataset.id, why: why }); bub.hidden = true; }
     function inView() { var r = wrap.getBoundingClientRect(); return r.width > 0 && r.bottom > 0 && r.top < innerHeight; } // measured when needed: background tabs never report visibility
     bub.onclick = function () {
       var id = bub.dataset.id, ask = bub.dataset.ask;
@@ -768,7 +769,7 @@
       hide(); thoughtAsk = id + ':' + variant;
       if (ask) { $('askIn').value = ask; runAsk(); } else $('askIn').focus();
     };
-    new IntersectionObserver(function (es) { if (!es[0].isIntersecting) hide(); }).observe(wrap); // scrolled away: the thought goes with it
+    new IntersectionObserver(function (es) { if (!es[0].isIntersecting) hide('scrolled away'); }).observe(wrap); // scrolled away: the thought goes with it
     function idle() { clearTimeout(idleT); idleT = setTimeout(function () { show('idle', 'idle'); }, 25000); }
     ['pointermove', 'scroll', 'keydown'].forEach(function (e) { addEventListener(e, idle, { passive: true }); });
     $('svc').addEventListener('mouseover', function (e) { var c = e.target.closest('.card[data-id]'); if (c && T[c.dataset.id]) show(c.dataset.id, 'hover'); });
@@ -777,6 +778,7 @@
         var v; try { v = localStorage.getItem('sv.thoughtAB'); if (!v) localStorage.setItem('sv.thoughtAB', v = Math.random() < 0.5 ? 'A' : 'B'); } catch (e) { v = Math.random() < 0.5 ? 'A' : 'B'; }
         variant = v; if (v === 'B') NANO.load().catch(function () {});
       } else variant = 'A-only';
+      phEvent('thought test assigned', { has_ai: E === NANO, phone: phone, source: src || 'direct' }); // one per page view: the denominator for each group
       var sec = $('ask'), go = function () { ready = true; setTimeout(function () { show(opener(), 'arrival'); }, 2500); idle(); };
       if (sec.classList.contains('ready')) go();
       else new MutationObserver(function (m, ob) { if (sec.classList.contains('ready')) { ob.disconnect(); go(); } }).observe(sec, { attributes: true, attributeFilter: ['class'] });
