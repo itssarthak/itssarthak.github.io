@@ -173,7 +173,7 @@
     $('svc').innerHTML = SERVICES.map(function (s, i) {
       var live = stats && stats[s.id], m = live ? s.metric(stats) : ['—', ''], v = live && stats[s.id].series ? stats[s.id].series.values : [];
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
-      return '<div class="card in" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
+      return '<div class="card in" data-id="' + s.id + '" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
         '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (live ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' + (s.tag ? '<span class="new">' + s.tag + '</span>' : '') +
         (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
         '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
@@ -509,6 +509,7 @@
     finally {
       log.push({ event: '$ai_trace', properties: { $ai_trace_id: trace, $ai_span_name: 'chat turn', $ai_input_state: chat[chat.length - 1].text, $ai_output_state: res ? res.text : null,
         $ai_latency: (performance.now() - t0) / 1000, $ai_is_error: !!err, $ai_error: err ? String(err.message || err) : null, model: E.id, turn: chat.filter(function (m) { return m.me; }).length,
+        from_thought: chat.fromThought || null,
         unverified: !!(res && (res.empty || /couldn['’]t (verify|find)|could not (verify|find)/i.test(res.text))), history_dropped: res ? res.historyDropped : 0, message_cut: !!chat[chat.length - 1].cut,
         tools_used: res ? res.toolsUsed : [], sources: res ? res.notes.map(function (n) { return n.label; }) : [], draft_shown: !!(res && res.draft) } });
       phLog(chat, log);
@@ -689,6 +690,98 @@
   if (HOME) (function () {
   var STEPS = ['load', 'embed', 'search', 'rank', 'answer'];
   initSuggestions();
+  var thoughtAsk = null; // set when a thought bubble is clicked: '<id>:<variant>', so the chat it starts is tagged
+
+  // ---- the avatar's thought bubble: an A/B test (Sarthak, Oct 2026) ---------------------------------
+  // A: written thoughts, picked by rules from what the browser shares (where they came from, local time, device,
+  //    a return visit, idling, hovering a Side quests card). B: the same situation, written live by Chrome's AI.
+  // Only browsers with Chrome's AI are split 50/50 (sticky per browser); everyone else gets A outside the test ('A-only').
+  // Each shown and clicked thought goes to PostHog with its variant; a chat started from one carries its id.
+  (function thoughts() {
+    var wrap = document.querySelector('.avatar-wrap'); if (!wrap) return;
+    var bub = document.createElement('button'); bub.type = 'button'; bub.className = 'thought'; bub.hidden = true;
+    wrap.appendChild(bub); wrap.removeAttribute('aria-hidden');
+    var host = ''; try { host = new URL(sess.ref).hostname; } catch (e) {}
+    var src = String(sess.utm.utm_source || sess.utm.ref || host).toLowerCase(), hour = new Date().getHours(), ua = navigator.userAgent;
+    var phone = /Mobi|Android|iPhone|iPod/i.test(ua), mac = /Macintosh/.test(ua) && navigator.maxTouchPoints < 2;
+    var shown = {}; try { shown = JSON.parse(sessionStorage.getItem('sv.thoughts')) || {}; } catch (e) {}
+    var count = 0, MAX = 4, variant = 'A', ready = false, busy = false, hideT, idleT;
+    // id → [written thought (or a function of live stats), question a click asks (null: just focus the box), the situation for B]
+    var T = {
+      linkedin: ['A LinkedIn visitor! Want the 30-second version of me?', 'Who is Sarthak?', 'the visitor came from LinkedIn'],
+      producthunt: ['Here for Castbar? Ask me how I built it.', 'What is Castbar?', 'the visitor came from Product Hunt, where his Castbar app launched'],
+      github: ['Hello from GitHub! Switchboard is my favourite open-source bit.', 'What is Switchboard?', 'the visitor came from GitHub'],
+      search: ['Found me through a search? Ask me anything.', 'Who is Sarthak?', 'the visitor came from a search engine'],
+      back: ['Welcome back! 👋 What would you like to know this time?', null, 'the visitor has been here before'],
+      night: ['Burning the midnight oil too? 🌙', 'What does he do outside work?', 'it is late at night where the visitor is'],
+      morning: ['Good morning! ☕ Coffee and a portfolio?', 'Who is Sarthak?', 'it is morning where the visitor is'],
+      evening: ['Evening! Want to hear about the thing I’m proudest of?', 'Which project is he proudest of?', 'it is evening where the visitor is'],
+      hello: ['Ask me anything about my work 🙂', null, 'the visitor just arrived on the site'],
+      mac: ['On a Mac? Castbar can live in your menu bar.', 'What is Castbar?', 'the visitor is on a Mac, and Castbar is his Mac menu-bar app'],
+      phone: ['Tap a question below 👇', null, 'the visitor is on a phone'],
+      idle: ['Psst… you can ask me anything.', null, 'the visitor has been idle on the page for a while'],
+      askmyastro: ['An AI astrologer that’s honest with you. Ask me why.', 'Why astrology?', 'the visitor is looking at AskMyAstro, his honest AI astrologer'],
+      filedownloader: [function () { return stats ? k(stats.filedownloader.downloads) + ' downloads and counting!' : 'Paste links, get every file at once.'; }, 'What is FileDownloader?', 'the visitor is looking at FileDownloader, his bulk file-download tool with hundreds of thousands of downloads'],
+      switchboard: ['I built Switchboard to tame 12 Claude Code sessions.', 'Why did he build Switchboard?', 'the visitor is looking at Switchboard, his dashboard for Claude Code sessions'],
+      castbar: ['My Chromecast remote, right in the menu bar.', 'What is Castbar?', 'the visitor is looking at Castbar, his Chromecast remote for the Mac menu bar'],
+      discretedocs: ['PDF tools that never upload your files.', 'What is DiscreteDocs?', 'the visitor is looking at DiscreteDocs, his private in-browser PDF tools']
+    };
+    function opener() {
+      if (/linkedin|lnkd/.test(src)) return 'linkedin';
+      if (/producthunt/.test(src)) return 'producthunt';
+      if (/github/.test(src)) return 'github';
+      if (/google|bing|duckduckgo|yahoo|ecosia|brave/.test(src)) return 'search';
+      if (firstSeen) return 'back';
+      if (phone) return 'phone';
+      if (mac && Math.random() < 0.5) return 'mac';
+      return hour >= 23 || hour < 5 ? 'night' : hour < 11 ? 'morning' : hour >= 18 ? 'evening' : 'hello';
+    }
+    function phEvent(name, props) { phLog({ id: null }, [{ event: name, properties: Object.assign({ variant: variant }, props) }]); }
+    async function aiThought(situation, example) { // B: one line from Chrome's AI, or null (slow, odd, too long) → the written one
+      try {
+        var r = await Promise.race([NANO.gen('You are Sarthak Chhabra, a software engineer, writing a tiny thought bubble above your own cartoon avatar on your portfolio site. ' +
+          'Write ONE friendly, playful line of at most 12 words, in the first person, reacting to this: ' + situation + '. Style example: "' + example + '". ' +
+          'No hashtags, no quotes, no facts beyond the situation, never mention hiring, jobs or salary.', 'Write the thought.', null, function () {}),
+          new Promise(function (_, no) { setTimeout(function () { no(new Error('slow')); }, 3000); })]);
+        var line = r.text.split('\n')[0].replace(/^["'“]+|["'”]+$/g, '').trim();
+        return line && line.split(/\s+/).length <= 16 && line.length <= 110 && !/hire|hiring|\bjob|salary|recruit/i.test(line) ? line : null;
+      } catch (e) { return null; }
+    }
+    async function show(id, trigger) {
+      if (!ready || busy || count >= MAX || shown[id] || !inView() || card.classList.contains('full')) return;
+      busy = true; shown[id] = 1; count++;
+      try { sessionStorage.setItem('sv.thoughts', JSON.stringify(shown)); } catch (e) {}
+      var t = T[id], text = typeof t[0] === 'function' ? t[0]() : t[0], how = 'written', t0 = Date.now();
+      clearTimeout(hideT); bub.hidden = false; bub.className = 'thought typing'; bub.innerHTML = '<i></i><i></i><i></i>';
+      if (variant === 'B') { var g = await aiThought(t[2], text); if (g) { text = g; how = 'ai'; } else how = 'ai-fallback'; }
+      await new Promise(function (r) { setTimeout(r, Math.max(0, 900 - (Date.now() - t0))); }); // a beat of "thinking" either way
+      bub.className = 'thought'; bub.textContent = text; bub.dataset.id = id; bub.dataset.ask = t[1] || ''; bub.dataset.how = how;
+      bub.setAttribute('aria-label', 'Thought: ' + text + (t[1] ? '. Click to ask: ' + t[1] : ''));
+      phEvent('thought shown', { thought: id, trigger: trigger, how: how, text: text });
+      hideT = setTimeout(hide, 9000); busy = false;
+    }
+    function hide() { bub.hidden = true; }
+    function inView() { var r = wrap.getBoundingClientRect(); return r.width > 0 && r.bottom > 0 && r.top < innerHeight; } // measured when needed: background tabs never report visibility
+    bub.onclick = function () {
+      var id = bub.dataset.id, ask = bub.dataset.ask;
+      phEvent('thought clicked', { thought: id, how: bub.dataset.how, text: bub.textContent });
+      hide(); thoughtAsk = id + ':' + variant;
+      if (ask) { $('askIn').value = ask; runAsk(); } else $('askIn').focus();
+    };
+    new IntersectionObserver(function (es) { if (!es[0].isIntersecting) hide(); }).observe(wrap); // scrolled away: the thought goes with it
+    function idle() { clearTimeout(idleT); idleT = setTimeout(function () { show('idle', 'idle'); }, 25000); }
+    ['pointermove', 'scroll', 'keydown'].forEach(function (e) { addEventListener(e, idle, { passive: true }); });
+    $('svc').addEventListener('mouseover', function (e) { var c = e.target.closest('.card[data-id]'); if (c && T[c.dataset.id]) show(c.dataset.id, 'hover'); });
+    engineP.then(function (E) {
+      if (E === NANO) {
+        var v; try { v = localStorage.getItem('sv.thoughtAB'); if (!v) localStorage.setItem('sv.thoughtAB', v = Math.random() < 0.5 ? 'A' : 'B'); } catch (e) { v = Math.random() < 0.5 ? 'A' : 'B'; }
+        variant = v; if (v === 'B') NANO.load().catch(function () {});
+      } else variant = 'A-only';
+      var sec = $('ask'), go = function () { ready = true; setTimeout(function () { show(opener(), 'arrival'); }, 2500); idle(); };
+      if (sec.classList.contains('ready')) go();
+      else new MutationObserver(function (m, ob) { if (sec.classList.contains('ready')) { ob.disconnect(); go(); } }).observe(sec, { attributes: true, attributeFilter: ['class'] });
+    });
+  })();
   // Download and warm the model in the background, and only show the Ask section once it's instant.
   // Save-Data visitors skip the ~23MB download: they see the section now and load on first focus.
   function reveal(label) {
@@ -849,7 +942,8 @@
     var id = ++asking, times = {}, searched = q;
     bubble('me', '<p>' + esc(q) + '</p>');
     var bot = bubble('bot', '<div class="trace show"></div><div class="answer"></div>'), trace = bot.firstChild, ans = bot.lastChild;
-    if (!chat.id) chat.id = uid(); // one conversation id until the chat is closed
+    if (!chat.id) { chat.id = uid(); chat.fromThought = thoughtAsk; } // one conversation id until the chat is closed; remembers a thought that started it
+    thoughtAsk = null;
     chat.push({ me: true, text: q, cut: q.length > MSG_CHARS }); // a very long paste: only the beginning reaches the model
     var E = !aiBroken && await engineP;
     if (E) {
