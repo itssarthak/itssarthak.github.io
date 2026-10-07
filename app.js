@@ -37,7 +37,7 @@
     { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', n: function (s) { return s.switchboard.clones; }, metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } },
     // New products (Oct 2026): the live number plus a 'New' pill beside it; drop tag once they're established
     { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New',
-      n: function (s) { return s.castbar.downloads; }, metric: function (s) { return [k(s.castbar.downloads), s.castbar.downloads === 1 ? 'download' : 'downloads']; } },
+      n: function (s) { return s.castbar.clones; }, metric: function (s) { return [k(s.castbar.clones), 'clones on GitHub']; } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', tag: 'New',
       n: function (s) { return s.discretedocs.files; }, metric: function (s) { return [k(s.discretedocs.files), s.discretedocs.files === 1 ? 'file processed' : 'files processed']; } }
   ];

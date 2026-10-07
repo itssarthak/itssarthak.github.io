@@ -22,7 +22,7 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", switchboard: "clones" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", switchboard: "clones", castbar: "clones" };
 /* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
    the sum of files_in on tool_run, once files_in is registered as a GA4 custom metric; until
    then each run counts as one file (every run processes at least one, so it never overstates). */
@@ -48,18 +48,19 @@ function mergeDays(previous, window) {
   return Object.fromEntries(Object.entries(days).sort().slice(-CLONE_HISTORY_DAYS));
 }
 
-async function gh(path) {
+async function gh(path, repo = GH_REPO) {
   const token = process.env.GH_TRAFFIC_TOKEN;
   if (!token) throw new Error("set GH_TRAFFIC_TOKEN (needs Administration:read on the repo)");
-  const res = await fetch(`https://api.github.com/repos/${GH_REPO}${path}`, {
+  const res = await fetch(`https://api.github.com/repos/${repo}${path}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
   });
   if (!res.ok) throw new Error(`GET ${path}: ${res.status} ${await res.text()}`);
   return res.json();
 }
 
-async function fetchSwitchboard(previous) {
-  const [traffic, repo] = await Promise.all([gh("/traffic/clones"), gh("")]);
+async function fetchSwitchboard(previous) { return fetchClones(GH_REPO, previous, "switchboard"); }
+async function fetchClones(repoName, previous, name) {
+  const [traffic, repo] = await Promise.all([gh("/traffic/clones", repoName), gh("", repoName)]);
   const days = mergeDays(previous?.days, traffic.clones || []);
   const totals = Object.values(days);
   return {
@@ -67,7 +68,7 @@ async function fetchSwitchboard(previous) {
     uniques: totals.reduce((n, d) => n + d[1], 0),
     stars: repo.stargazers_count || 0,
     days,
-    series: cloneSeries(days),
+    series: cloneSeries(days, name),
   };
 }
 
@@ -75,7 +76,7 @@ async function fetchSwitchboard(previous) {
    the chart plots one point per day and a sparse map would stretch quiet stretches
    into a straight line between two busy days. Anchored on the newest stored day
    rather than the local clock, which can be a day off GitHub's UTC rows. */
-function cloneSeries(days) {
+function cloneSeries(days, name = "switchboard") {
   const newest = Object.keys(days).sort().pop();
   if (!newest) return undefined;
   const from = addDays(new Date(newest), -(SERIES_DAYS - 1));
@@ -86,27 +87,22 @@ function cloneSeries(days) {
   let start = 0;
   while (start < values.length - 2 && values[start] === 0) start++;
   return {
-    metric: SERIES_METRIC.switchboard,
+    metric: SERIES_METRIC[name],
     from: ymd(addDays(from, start)),
     values: values.slice(start),
   };
 }
 
-/* Castbar is a Mac app: its count is downloads of its GitHub release assets (Homebrew
-   installs fetch the same zip, so they're included). The API only gives running totals,
-   so each run stores today's total and the daily series is the difference between runs. */
+/* Castbar shows its GitHub clones, like Switchboard (Sarthak, Oct 2026: show the bigger number).
+   Release downloads are kept alongside for reference. */
 const CASTBAR_REPO = "itssarthak/castbar";
 async function fetchCastbar(previous) {
-  const headers = { Accept: "application/vnd.github+json" };
-  if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
-  const res = await fetch(`https://api.github.com/repos/${CASTBAR_REPO}/releases?per_page=100`, { headers });
-  if (!res.ok) throw new Error(`castbar releases: ${res.status} ${await res.text()}`);
-  const downloads = (await res.json()).reduce((n, r) => n + r.assets.reduce((m, a) => m + a.download_count, 0), 0);
-  const totals = { ...previous?.totals, [ymd(new Date())]: downloads };
-  const days = Object.keys(totals).sort().slice(-CLONE_HISTORY_DAYS);
-  const kept = Object.fromEntries(days.map((d) => [d, totals[d]]));
-  const values = days.slice(1).map((d, i) => Math.max(0, kept[d] - kept[days[i]])).slice(-SERIES_DAYS);
-  return { downloads, totals: kept, series: values.length ? { metric: "downloads", from: days[days.length - values.length], values } : undefined };
+  const out = await fetchClones(CASTBAR_REPO, previous, "castbar");
+  try {
+    const rel = await gh("/releases?per_page=100", CASTBAR_REPO);
+    out.downloads = rel.reduce((n, r) => n + r.assets.reduce((m, a) => m + a.download_count, 0), 0);
+  } catch (err) { if (previous?.downloads != null) out.downloads = previous.downloads; }
+  return out;
 }
 
 function b64url(str) {
