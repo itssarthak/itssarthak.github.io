@@ -132,6 +132,7 @@
     $('sysDot').className = 'dot' + (st ? ' ' + st : ''); $('sys').className = st; $('sys').textContent = sysText();
   }
   // The last 30 days as a small line under each number (inline SVG; stretches to the card's width).
+  var SHOW_WEEK = false; // the '+N this week' badge on each card: hidden for now (Sarthak, Oct 2026); true brings it back
   function trendSvg(v) {
     if (v.length < 2) return '';
     var max = Math.max.apply(null, v) || 1, pts = v.map(function (x, i) { return (i / (v.length - 1) * 100).toFixed(1) + ',' + (26 - x / max * 24).toFixed(1); });
@@ -161,7 +162,7 @@
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
       return '<div class="card in" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
         '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (stats ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' +
-        (week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
+        (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
         '<span class="go"><a href="' + s.href + '">Watch it run →</a><a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
     }).join('');
     if (stats) countUp();
