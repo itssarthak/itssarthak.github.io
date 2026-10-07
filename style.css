@@ -303,3 +303,11 @@ html.chat-open{overflow:hidden}
 .act-how{font-size:12.5px;color:var(--muted);margin:2px 0 0}
 .act-steps .act-how code.act-call{display:inline;padding:1px 5px;margin:0;border-radius:4px;font-size:11.5px;color:var(--ink)}
 .chat-btn[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc)}
+/* Side quests numbers: big, in the accent colour, counting up, with this week's gain and a 30-day line */
+.svc .m{font-size:44px;color:var(--acc);display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-variant-numeric:tabular-nums}
+.svc .m small{flex-basis:100%}
+.svc .wk{font:600 12px var(--body);color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent);border-radius:999px;padding:3px 9px;transform:translateY(-6px)}
+.svc .spark{width:100%;height:28px;margin:2px 0 4px;overflow:visible}
+.svc .spark polyline{fill:none;stroke:var(--acc);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.svc .spark .area{fill:color-mix(in srgb,var(--acc) 12%,transparent)}
+.svc .card{min-width:0}

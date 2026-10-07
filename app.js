@@ -32,9 +32,9 @@
   ];
   var HEAD = STOPS.length - 1;
   var SERVICES = [
-    { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', metric: function (s) { return [k(s.askmyastro.users), 'users']; } },
-    { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in', metric: function (s) { return [k(s.filedownloader.downloads), 'downloads served']; } },
-    { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } }
+    { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', n: function (s) { return s.askmyastro.users; }, metric: function (s) { return [k(s.askmyastro.users), 'users']; } },
+    { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in', n: function (s) { return s.filedownloader.downloads; }, metric: function (s) { return [k(s.filedownloader.downloads), 'downloads served']; } },
+    { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', n: function (s) { return s.switchboard.clones; }, metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } }
   ];
   // Ask-box suggestions: [what the chip says, the answer-bank question it leads to]. 3 show at a time; see initSuggestions().
   var SUGGEST = [
@@ -131,14 +131,40 @@
     var st = sysState();
     $('sysDot').className = 'dot' + (st ? ' ' + st : ''); $('sys').className = st; $('sys').textContent = sysText();
   }
+  // The last 30 days as a small line under each number (inline SVG; stretches to the card's width).
+  function trendSvg(v) {
+    if (v.length < 2) return '';
+    var max = Math.max.apply(null, v) || 1, pts = v.map(function (x, i) { return (i / (v.length - 1) * 100).toFixed(1) + ',' + (26 - x / max * 24).toFixed(1); });
+    return '<svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" role="img" aria-label="Last 30 days"><path class="area" d="M0,28 L' + pts.join(' L') + ' L100,28 Z"/><polyline points="' + pts.join(' ') + '"/></svg>';
+  }
+  // Numbers count up from 0 the first time the cards scroll into view (skipped for reduced motion).
+  function countUp() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !window.IntersectionObserver) return;
+    var nums = [].slice.call($('svc').querySelectorAll('.num[data-n]'));
+    nums.forEach(function (el) { el.textContent = '0'; });
+    var io = new IntersectionObserver(function (es) {
+      if (!es.some(function (e) { return e.isIntersecting; })) return;
+      io.disconnect();
+      var t0 = performance.now(), D = 1200;
+      (function tick(t) {
+        var p = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - p, 3); // ease out
+        nums.forEach(function (el) { el.textContent = k(Math.round(+el.dataset.n * e)); });
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }, { threshold: 0.4 });
+    io.observe($('svc'));
+  }
   function renderServices() { // "live now": only your own products, only at HEAD (the section sits above the history, so it always is)
     $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
     $('svc').innerHTML = SERVICES.map(function (s, i) {
-      var m = stats ? s.metric(stats) : ['—', ''];
+      var m = stats ? s.metric(stats) : ['—', ''], v = stats && stats[s.id].series ? stats[s.id].series.values : [];
+      var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
       return '<div class="card in" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
-        '<span class="d">' + s.d + '</span><span class="m">' + m[0] + '<small>' + m[1] + '</small></span>' +
+        '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (stats ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' +
+        (week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
         '<span class="go"><a href="' + s.href + '">Watch it run →</a><a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
     }).join('');
+    if (stats) countUp();
   }
   function renderStop(animate) {
     var s = STOPS[era], cos = [];
