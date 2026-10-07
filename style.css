@@ -318,5 +318,5 @@ html.chat-open{overflow:hidden}
 .svc .m .new{font:600 12px var(--body);color:var(--acc);background:var(--acc-soft);border-radius:999px;padding:3px 10px;transform:translateY(-6px)}
 /* the numbers in the headers: readable at a glance, not grey fine print */
 #visits{color:var(--ink);font-weight:600}
-.sec-h .people{display:inline-block;vertical-align:middle;margin-left:8px;font:600 14px var(--body);color:var(--acc);transform:translateY(-3px)}
+.sec-h .people{font:inherit;color:var(--acc);margin-left:4px} /* same size and face as the heading, in the accent colour */
 .sec-h .people:empty{display:none}
