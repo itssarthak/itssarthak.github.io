@@ -34,7 +34,12 @@
   var SERVICES = [
     { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', n: function (s) { return s.askmyastro.users; }, metric: function (s) { return [k(s.askmyastro.users), 'users']; } },
     { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in', n: function (s) { return s.filedownloader.downloads; }, metric: function (s) { return [k(s.filedownloader.downloads), 'downloads served']; } },
-    { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', n: function (s) { return s.switchboard.clones; }, metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } }
+    { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', n: function (s) { return s.switchboard.clones; }, metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } },
+    // No live numbers yet (Sarthak, Oct 2026): these cards show a 'New' tag instead; give them n/metric from live-stats once they grow
+    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar',
+      tag: 'New · launched on Product Hunt', metric: function () { return ['new', '· launched on Product Hunt']; } },
+    { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com',
+      tag: 'New', metric: function () { return ['new', '']; } }
   ];
   // Ask-box suggestions: [what the chip says, the answer-bank question it leads to]. 3 show at a time; see initSuggestions().
   var SUGGEST = [
@@ -42,7 +47,7 @@
     ['Has he led a team?', 'Do you have team-leading experience?'], 
     
     ['What has he built on his own?', 'What have you built yourself?'], ['What is Switchboard?', 'What is Switchboard?'],
-    ['What is FileDownloader?', 'What is FileDownloader?'], ['Are these numbers real?', 'Are these numbers real?'],
+    ['What is FileDownloader?', 'What is FileDownloader?'], ['What is Castbar?', 'What is Castbar?'], ['What is DiscreteDocs?', 'What is DiscreteDocs?'], ['Are these numbers real?', 'Are these numbers real?'],
     ['What did he build at Stashfin?', 'What did you do at Stashfin?'], ['How does his LLM router work?', "What's the LLM routing engine?"],
     ['How did the companion hit 46% retention?', 'How did the companion reach 46% D15 retention?'], ['How does he reduce hallucinations?', 'How do you reduce hallucinations?'],
     ['How does he keep LLM costs down?', 'How do you control LLM costs?'], ['How does he evaluate LLM outputs?', 'How do you evaluate LLM outputs?'],
@@ -158,12 +163,12 @@
   function renderServices() { // "live now": only your own products, only at HEAD (the section sits above the history, so it always is)
     $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
     $('svc').innerHTML = SERVICES.map(function (s, i) {
-      var m = stats ? s.metric(stats) : ['—', ''], v = stats && stats[s.id].series ? stats[s.id].series.values : [];
+      var m = stats || s.tag ? s.metric(stats) : ['—', ''], v = stats && stats[s.id] && stats[s.id].series ? stats[s.id].series.values : [];
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
       return '<div class="card in" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
-        '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (stats ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' +
-        (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
-        '<span class="go"><a href="' + s.href + '">Watch it run →</a><a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
+        '<span class="d">' + s.d + '</span>' + (s.tag ? '<span class="m tag"><span class="new">' + s.tag + '</span>' : '<span class="m"><span class="num"' + (stats ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>') +
+        (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + (s.tag ? '' : '<small>' + m[1] + '</small>') + '</span>' + trendSvg(v) +
+        '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
     }).join('');
     if (stats) countUp();
   }
@@ -385,9 +390,9 @@
   var beforePageAction = function () {}; // the Ask box sets this to leave full screen, so the visitor sees what go_to did
   var TARGETS = STOPS.map(function (s) { return s.v; }).concat(['terminal', 'contact'], Object.keys(PAGES));
   var TOOL_DOCS = [
-    'search_about(query): search Sarthak\'s profile (every role with dates, skills, products, availability). Use it for anything about him: work, skills, availability, whether he is open to work, salary, how to reach him, what he built at each company, and his own products AskMyAstro, FileDownloader and Switchboard. Not for places or general topics. Keep the query to a few words.',
+    'search_about(query): search Sarthak\'s profile (every role with dates, skills, products, availability). Use it for anything about him: work, skills, availability, whether he is open to work, salary, how to reach him, what he built at each company, and his own products ' + SERVICES.map(function (x) { return x.name; }).join(', ') + '. Not for places or general topics. Keep the query to a few words.',
     'web_search(query): look up a general topic on the web (encyclopedia summaries), e.g. what a technology or company is. Not for facts about Sarthak.',
-    'live_stats(): today\'s numbers for his live products: AskMyAstro, FileDownloader, Switchboard.',
+    'live_stats(): today\'s numbers for ' + SERVICES.filter(function (x) { return x.n; }).map(function (x) { return x.name; }).join(', ') + '.',
     'go_to(target): act on this page for the visitor, only when they ask to see or go somewhere. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
       return s.v + ' (' + s.title + (cos.length ? ', ' + cos.join(' and ') : '') + ')'; }).join(', ') + ', terminal, contact, resume, askmyastro, filedownloader, switchboard.',
     'send_message(name, email, message): show the visitor a message form to Sarthak, prefilled with whatever they have said (leave unknown fields empty). Call it as soon as the visitor wants to message or contact Sarthak.',
@@ -437,7 +442,7 @@
     live_stats: async function () {
       await statsReady;
       if (!stats) return { items: [], notes: [], said: 'live stats are unavailable right now' };
-      var notes = SERVICES.map(function (s) { var m = s.metric(stats); return { label: 'live stats · ' + s.name, text: s.name + ' (' + s.d + '): ' + m[0] + ' ' + m[1] + (healthy() ? ', refreshed daily' : ', but the daily refresh is behind'), url: s.url }; });
+      var notes = SERVICES.filter(function (s) { return s.n; }).map(function (s) { var m = s.metric(stats); return { label: 'live stats · ' + s.name, text: s.name + ' (' + s.d + '): ' + m[0] + ' ' + m[1] + (healthy() ? ', refreshed daily' : ', but the daily refresh is behind'), url: s.url }; });
       return { items: notes.map(function (x) { return { label: x.text }; }), notes: notes };
     },
     go_to: async function (a) {
@@ -538,7 +543,7 @@
     }
     for (var step = 0; step < 4; step++) {
       var r = await gen(BOT + 'You never state a fact you have not found with a tool in this conversation. Pick the next step. Tools:\n- ' + TOOL_DOCS.join('\n- ') +
-        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products, and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered with about_assistant: never search or web-search for them. Questions about Sarthak himself, including hiring, availability or salary, always go to search_about first. ' +
+        '\nSearch before answering anything factual, one topic per search. Use web_search only for places, technologies or general topics that aren\'t about Sarthak or his products (' + SERVICES.map(function (x) { return x.name; }).join(', ') + '), and search again with other words if the notes don\'t cover it. Choose reply once the notes cover the question, or for greetings and small talk. Questions about you, the assistant, are answered with about_assistant: never search or web-search for them. Questions about Sarthak himself, including hiring, availability or salary, always go to search_about first. ' +
         'Reply with JSON only, e.g. {"tool": "search_about", "query": "work history"}. The query is a few words, never an answer.',
         talk + '\n\nThe message to handle now: "' + chat[chat.length - 1].text + '" (earlier messages are context only; don\'t research them again).\n\nNotes so far:\n' + noteText() + '\n\nNext step?', DECIDE, 'decide');
       var c = decision(r.text), key = c.tool + JSON.stringify(argsOf(c));
@@ -985,7 +990,7 @@
   SERVICES.forEach(function (sv) {
     FS.dir['side-quests'].dir[sv.id + '.md'] = file(function () {
       var m = stats ? sv.metric(stats) : ['—', ''];
-      return '# ' + sv.name + '\n' + sv.d + '\n\nlive      ' + m[0] + ' ' + m[1] + '\nsite      ' + sv.url + '\n\nwatch it run: `open ' + sv.id + '`';
+      return '# ' + sv.name + '\n' + sv.d + '\n\nlive      ' + m[0] + ' ' + m[1] + '\nsite      ' + sv.url + (sv.href ? '\n\nwatch it run: `open ' + sv.id + '`' : '');
     });
   });
   STOPS.forEach(function (st) { FS.dir.versions.dir[st.v + '-' + slug(st.title) + '.md'] = file(function () { return stopText(st); }); });
@@ -1042,7 +1047,7 @@
   }
   function topFrame(tick) {
     if (!stats) return 'live stats are still loading…';
-    var rows = SERVICES.map(function (sv) {
+    var rows = SERVICES.filter(function (sv) { return sv.n; }).map(function (sv) { // top only shows products with live numbers
       var ser = (stats[sv.id] && stats[sv.id].series) || { values: [], metric: '' }, vals = ser.values.slice(-21), m = sv.metric(stats);
       var sp = spark(vals), cur = tick % Math.max(1, vals.length);
       sp = sp.slice(0, cur) + '<span class="a">' + sp[cur] + '</span>' + sp.slice(cur + 1);
@@ -1187,6 +1192,7 @@
         if (!s) { r = resolve(arg); if (r && !r.node.dir) { print(esc(r.node.read())); if (r.node.run) r.node.run(); return; } }
         if (!s) return print('usage: ' + cmd + ' <' + SERVICES.map(function (x) { return x.id; }).join('|') + '>', 'e');
         if (cmd === 'visit') { window.open(s.url, '_blank', 'noopener'); return print('opened ' + s.url, 'd'); }
+        if (!s.href) { window.open(s.url, '_blank', 'noopener'); return print('opened ' + s.url, 'd'); } // no demo page yet
         location.href = '/' + s.href; return;
       }
       case 'clear': out.innerHTML = ''; return;

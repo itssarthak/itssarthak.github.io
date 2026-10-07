@@ -220,7 +220,7 @@ In code reviews Sarthak looks for correctness and edge cases first, then readabi
 
 ## His own products
 > side projects, what has he built himself, personal projects
-Sarthak builds and runs three live products solo: AskMyAstro (an AI astrologer), FileDownloader (a bulk file-download tool) and Claude Code Switchboard (an open-source dashboard for Claude Code sessions). He grows them by building in public: writing about what he makes and sharing it where the right people already are.
+Sarthak builds and runs five products of his own: AskMyAstro (an AI astrologer), FileDownloader (a bulk file-download tool), Claude Code Switchboard (an open-source dashboard for Claude Code sessions), Castbar (a Chromecast remote in the Mac menu bar) and DiscreteDocs (PDF tools that run inside the browser). He grows them by building in public: writing about what he makes and sharing it where the right people already are.
 
 ## AskMyAstro
 AskMyAstro (askmyastro.in) is an AI astrologer Sarthak built and runs solo. It reads a person's birth chart and answers real questions over chat. He built the LLM prompt pipeline, the chart computation and the product around it. It has {{askmyastro.users}} users so far. He built it because other AI astrology apps were built to squeeze money out of people and weren't honest with them; he wanted one that is truthful and helpful first.
@@ -237,6 +237,14 @@ Claude Code Switchboard is an open-source (MIT) dashboard Sarthak built for ever
 
 ## Switchboard install and privacy
 To install Switchboard, in Claude Code run `/plugin marketplace add itssarthak/claudecode-switchboard`, then `/plugin install switchboard`, then `/switchboard`. It runs locally, needs no account and makes no API calls of its own; it reads what Claude Code already writes to disk.
+
+## Castbar
+> castbar, chromecast remote, mac menu bar app, google home, nest speakers
+Castbar is Sarthak's Chromecast remote for the Mac menu bar. It controls every Chromecast, Google Home and Nest speaker or TV on the Wi-Fi: see what's playing with artwork, pause, skip, seek, and set each device's volume, without picking up a phone. Clicking the title jumps to the Chrome tab that's casting. It's open source on GitHub (github.com/itssarthak/castbar), installs with Homebrew (brew tap itssarthak/castbar, then brew install castbar), needs an Apple Silicon Mac on macOS 11 or later, and launched on Product Hunt on 27 September 2026.
+
+## DiscreteDocs
+> discretedocs, pdf tools, merge pdf, compress pdf, convert pdf, private pdf editor
+DiscreteDocs (discretedocs.com) is a free set of PDF tools by Sarthak that works inside the visitor's own browser, so files never leave their device. Most PDF websites upload your file to their servers to work on it; DiscreteDocs does the work locally instead. It can merge, split, extract and rotate pages; compress, repair and OCR; convert Word, Excel, PowerPoint, HTML and images to PDF and PDF back to those formats or Markdown; add text, watermarks and page numbers; and sign, protect, unlock, redact and compare PDFs.
 
 ## Live numbers on this site
 The product numbers on Sarthak's site are pulled daily from Google Analytics and GitHub and are not edited.

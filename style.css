@@ -314,3 +314,6 @@ html.chat-open{overflow:hidden}
 .svc .spark polyline{fill:none;stroke:var(--acc);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .svc .spark .area{fill:color-mix(in srgb,var(--acc) 12%,transparent)}
 .svc .card{min-width:0}
+/* a side quest without live numbers yet: a 'New' tag where the number would be */
+.svc .m.tag{margin-top:auto}
+.svc .m .new{font:600 13px var(--body);color:var(--acc);background:var(--acc-soft);border-radius:999px;padding:5px 12px}
