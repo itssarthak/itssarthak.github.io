@@ -134,7 +134,8 @@
   function sysText() { return { boot: 'booting…', '': 'all systems operational', warn: 'degraded · live stats are stale' }[sysState()]; }
   function renderStatus() {
     var st = sysState();
-    $('sysDot').className = 'dot' + (st ? ' ' + st : ''); $('sys').className = st; $('sys').textContent = sysText();
+    $('sysDot').className = 'dot' + (st ? ' ' + st : ''); $('sys').className = st;
+    $('sys').textContent = sysText() + (stats && stats.portfolio && st !== 'boot' ? ' · ' + k(stats.portfolio.users) + ' visitors' : ''); // this site's own all-time visitors (GA4)
   }
   // The last 30 days as a small line under each number (inline SVG; stretches to the card's width).
   var SHOW_WEEK = false; // the '+N this week' badge on each card: hidden for now (Sarthak, Oct 2026); true brings it back
