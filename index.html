@@ -77,10 +77,12 @@
     </div>
   </section>
 
-  <section id="ask" class="reveal" aria-hidden="true" inert>
+  <!-- avatar-perch: the avatar sits on top of the Ask card. Remove that class to put it back inside the card. -->
+  <section id="ask" class="reveal avatar-perch" aria-hidden="true" inert>
     <div class="reveal-in"><div class="reveal-pad">
     <div class="sec-h"><h2>Ask the system</h2><span class="label">runs in your browser</span></div>
     <div class="card ask">
+      <div class="avatar-wrap" aria-hidden="true"><img class="avatar" id="avatar" src="/assets/images/avatar/16_16.webp" alt="" width="140" height="140" decoding="async"></div>
       <div class="chat-bar" id="chatBar" hidden>
         <b class="chat-title">Ask the system</b>
         <span class="chat-note">Chats are logged anonymously to improve answers</span>
@@ -138,5 +140,6 @@
 </footer>
 
 <script src="app.js"></script>
+<script src="/assets/js/avatar.js" defer></script>
 </body>
 </html>

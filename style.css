@@ -284,3 +284,17 @@ html.chat-open{overflow:hidden}
 .chat::-webkit-scrollbar-track{background:transparent}
 .ask.full>.chat{max-width:none;margin-left:-16px;margin-right:-16px;width:auto;padding-left:max(16px,calc((100% - 760px)/2 + 16px));padding-right:max(16px,calc((100% - 760px)/2 + 16px))} /* 100% is the card inside its 16px padding: add it back so the text lines up with the header and input */
 .chat-note{font-size:12px;color:var(--muted);margin-right:4px}
+/* Avatar above the Ask section: pose frames have a transparent background, so the circle takes the era's colours */
+.avatar-wrap{display:flex;justify-content:center;margin:0 0 20px}
+.avatar{display:block;width:140px;height:140px;border-radius:50%;background:var(--acc-soft);border:1px solid var(--line);object-fit:cover;object-position:center top}
+/* avatar-perch (class on #ask): the cut-out avatar sits on the card's top edge, no circle. Remove the class to revert. */
+.avatar-perch .reveal-pad{padding-top:64px}
+.avatar-perch .ask:not(.full){position:relative}
+.avatar-perch .avatar-wrap{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin:0;pointer-events:none}
+.avatar-perch .avatar{width:120px;height:120px;border:0;border-radius:0;background:none}
+.avatar-perch .ask.full .avatar-wrap{display:none}
+@media (max-width:640px){
+  .avatar-perch .avatar-wrap{left:auto;right:8px;transform:none}
+  .avatar-perch .avatar{width:96px;height:96px}
+  .avatar-perch .sec-h{padding-right:104px}
+}
