@@ -2,7 +2,7 @@
   "updated": "2026-10-07",
   "askmyastro": {
     "users": 5183,
-    "pageviews": 16167,
+    "pageviews": 16168,
     "visits": 5943,
     "series": {
       "metric": "users",
@@ -88,6 +88,7 @@
     "pageviews": 24,
     "visits": 14,
     "files": 1,
+    "kb": 0,
     "series": {
       "metric": "files",
       "from": "2026-09-07",

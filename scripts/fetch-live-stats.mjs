@@ -25,17 +25,22 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 const SERIES_DAYS = 30;
 const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones" };
 /* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
-   the sum of files_in on tool_run, once files_in is registered as a GA4 custom metric; until
-   then each run counts as one file (every run processes at least one, so it never overstates). */
+   the sum of files_in on tool_run (registered as a GA4 custom metric on 2026-10-07), never less
+   than the number of runs, since every run processes at least one file. */
 const EVENTS = {
   filedownloader: { event: "file_download", key: "downloads" },
-  discretedocs: { event: "tool_run", key: "files", param: "customEvent:files_in" },
+  discretedocs: { event: "tool_run", key: "files", param: "customEvent:files_in", size: "customEvent:input_kb" },
 };
 async function eventReport(token, propertyId, cfg, body) {
   const filter = { dimensionFilter: { filter: { fieldName: "eventName", stringFilter: { value: cfg.event } } } };
   if (cfg.param) {
-    try { return await runReport(token, propertyId, { ...body, metrics: [{ name: cfg.param }], ...filter }); }
-    catch (err) { if (!/customEvent|not a valid metric|Did you mean/i.test(err.message)) throw err; } // not registered yet
+    /* files_in only counts from the day it was registered, while every run processes at least one file:
+       take the larger of (files counted, runs) per row, so the number never drops below what happened. */
+    try {
+      const r = await runReport(token, propertyId, { ...body, metrics: [{ name: cfg.param }, { name: "eventCount" }], ...filter });
+      for (const row of r.rows || []) row.metricValues = [{ value: String(Math.max(...row.metricValues.map((m) => +m.value || 0))) }];
+      return r;
+    } catch (err) { if (!/customEvent|not a valid metric|Did you mean/i.test(err.message)) throw err; } // not registered
   }
   return runReport(token, propertyId, { ...body, metrics: [{ name: "eventCount" }], ...filter });
 }
@@ -202,6 +207,10 @@ async function fetchSite(token, propertyId, name) {
   if (cfg) {
     site[cfg.key] = metric(await eventReport(token, propertyId, cfg, { dateRanges: [{ startDate: START_DATE, endDate: "today" }] }), 0);
     if (!site[cfg.key] && name === "filedownloader") throw new Error(`empty download report for property ${propertyId}`);
+    if (cfg.size) try { // total input size processed (KB), counted from the day input_kb was registered
+      site.kb = metric(await runReport(token, propertyId, { dateRanges: [{ startDate: START_DATE, endDate: "today" }], metrics: [{ name: cfg.size }],
+        dimensionFilter: { filter: { fieldName: "eventName", stringFilter: { value: cfg.event } } } }), 0);
+    } catch (err) { console.warn(`WARN no size for ${name}: ${err.message}`); }
   }
   return site;
 }
