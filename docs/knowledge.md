@@ -18,10 +18,11 @@ Content decisions: docs/assistant-review.md (reviewed with Sarthak, Oct 2026).
 -->
 
 ## Who Sarthak is
-> about him, introduction, tell me about yourself, summary
+> about him, introduction, tell me about yourself, summary, years of experience, one-line pitch, what does he do
 Sarthak Chhabra spends his days teaching AI agents to behave in production, with 7+ years of backend scars to show for it. He is based in Gurgaon, India, and is a backend and platform engineer who builds the platforms that put AI agents into production: LLM routing engines, RAG pipelines, agent platforms and no-code tooling that turns weeks of engineering into minutes of configuration. In one line: he removes the engineering bottleneck between an idea and a running system.
 
 ## Location and time zone
+> where is he based, where does he live, which city, which country, time zone
 Sarthak is based in Gurgaon, India, in IST (UTC+5:30).
 
 ## Languages spoken
@@ -39,6 +40,7 @@ Sarthak's roles, most recent first: Technical Lead at Stashfin, Feb 2026 – Jul
 Sarthak has a B.E. in Computer Science from Lovely Professional University (LPU), 2015 – 2019, graduating with an 8.7 CGPA.
 
 ## Career story
+> why AI, why did he move to AI, what did he learn at each job, lessons from each company, career journey
 Sarthak's own summary of his career: Bosch taught him discipline and engineering rigour, the startups (Signcatch, Gigforce) taught him speed, and Dresma AI taught him to build things that don't fall over. In the AI era he found the work he loves most: platforms that let people deploy production-grade AI agents. He moved toward AI because it is the first time the gap between an idea and a working system dropped so sharply.
 
 ## His work in numbers
@@ -50,6 +52,7 @@ Sarthak's work in production numbers: 44M tokens a day through an agent platform
 Sarthak was Technical Lead at Stashfin from Feb 2026 to Jul 2026, working in Node.js, TypeScript, AWS, PostgreSQL, Docker and microservices. He architected and led a no-code platform for building and deploying production AI agents, which cut agent delivery from days to minutes. When he left, its customer support agent was handling around 30,000 messages and 44M tokens a day for 6,000+ daily users.
 
 ## Stashfin: no-code agent platform
+> how many agents run on his platform, agents live, agent builder
 At Stashfin, Sarthak architected a self-serve platform where an agent's prompt, tools, model and channels are configured from a UI and shipped in minutes. One configuration deploys the same agent across Slack, Telegram and other channels, with per-channel auth abstracted away. About 15 agents are live on it; 10 to 12 were built by people outside engineering, and Sarthak's team built the first few as templates.
 
 ## Stashfin: dynamic tool framework
@@ -72,9 +75,11 @@ Sarthak left Stashfin in Jul 2026 because the role evolved away from the team-bu
 Sarthak was Technical Lead, Gen AI at Zupee (Cashgrail Pvt Ltd) from Jul 2025 to Feb 2026, working in Node.js, PostgreSQL, Qdrant, MongoDB, LangGraph and microservices. He built the central LLM routing engine, shipped an AI companion chatbot with 46% D15 retention (46% of users were still using it 15 days later), cut promo production from a week to about 3 hours, built a no-code bot management platform, and led a team of 4 engineers across AI products.
 
 ## Zupee: LLM routing engine
+> hardest technical problem, proudest project, biggest achievement, most impressive thing he built, LLM gateway, LLM router
 At Zupee, Sarthak architected one gateway for every LLM call across the company, with budget tracking, rate limiting, multi-provider fallbacks and circuit breakers. It handled 300,000+ requests a day at 15 to 20ms overhead and 99% uptime, and product teams rode out provider outages without noticing. It stayed fast because the routing layer was kept off the hot path, adding only low milliseconds. Sarthak calls it the hardest technical problem he has solved and the project he is proudest of.
 
 ## Zupee: AI companion chatbot
+> how did the companion reach its retention, AI companion, chatbot retention
 At Zupee, Sarthak developed an AI companion chatbot that reached 46% D15 retention: 46% of users were still using it 15 days later. It used LangGraph multi-agent planning for response planning and conflict resolution, RAG-based long-term memory on Qdrant so it carried context across conversations, and reply timing tuned to feel like a human conversation instead of instant answers.
 
 ## Zupee: promo generation system
@@ -99,6 +104,7 @@ Sarthak left Dresma AI in Apr 2025 after building deep backend and infrastructur
 Sarthak was Full Stack Developer at Gigforce from May 2021 to Apr 2022, on Node.js, AWS SQS, MongoDB and Vue.js. He led new backend modules end to end, improved stability and query performance with better indexing and service tuning, and built queue-based services on AWS SQS to absorb peak load: about −40% peak-load latency, −30% query response time and +25% stability.
 
 ## Signcatch: role (Oct 2020 – May 2021)
+> what did he do at Signcatch, Signcatch dates
 Sarthak was a Software Engineer at Signcatch from Oct 2020 to May 2021, on React, Angular, PHP and SQL. He developed and maintained new and legacy modules from requirements through to production releases, with about −20% time-to-market, −15% churn and +25% positive user feedback.
 
 ## Bosch: role (Aug 2019 – Oct 2020)
@@ -123,6 +129,7 @@ Sarthak mentors by giving people a system they fully own and making his reasonin
 Sarthak has hired engineers at junior and senior levels and run the loop end to end: writing the job description, screening, running technical and system design rounds, and making the hire decision. Juniors are judged on fundamentals, learning speed and ownership; seniors on system design judgment, trade-offs and how they raise the team.
 
 ## Working with people outside engineering
+> non-technical stakeholders, product managers, business teams, working with non-engineers
 Sarthak builds tools so people outside engineering don't need engineers for routine changes, like the no-code agent platform and the two-click product console. When they do need him, he frames trade-offs as cost, time and risk rather than implementation detail.
 
 ## Prioritising
@@ -131,7 +138,8 @@ Sarthak ranks urgent work by blast radius: what breaks the most, or affects the 
 ## Handling ambiguity
 Sarthak shapes ambiguity before building: he finds the underlying why, turns a vague ask into a concrete first version, and puts it in front of people early so the direction is corrected fast.
 
-## Tech stack
+## Tech stack and technical skills
+> skills, technical skills, tech stack, technologies, tools, programming languages, what does he code in, frameworks, what does he know
 Sarthak's current stack: Node.js, TypeScript, JavaScript, SQL, PostgreSQL, MongoDB, Kafka, AWS (SQS and core services), Docker and microservices. On the AI side: LangChain, LangGraph, CrewAI, multi-agent architecture, agent orchestration, RAG pipelines, Qdrant, embeddings, LLM routing and fallbacks, and LLM observability with Langfuse, LangSmith and OpenTelemetry.
 
 ## Frontend or backend
@@ -165,6 +173,7 @@ Sarthak has worked with OpenAI (GPT), Anthropic (Claude) and Google (Gemini), pl
 Sarthak is not an ML engineer: he is a backend and platform engineer who builds the systems that put LLMs into production, such as gateways, RAG pipelines and agent runtimes. He has not fine-tuned models; retrieval, better prompts and better tool design closed the gaps faster.
 
 ## RAG experience
+> has he built RAG, retrieval augmented generation, vector search, knowledge bases, chunking
 Sarthak has built RAG more than once: an end-to-end ingestion pipeline (upload, chunk, embed, store) for the agent platform, which people outside engineering use for their own knowledge bases, and RAG-based long-term memory on Qdrant for the AI companion. He chunks by semantic units rather than fixed sizes, with overlap so context isn't lost at boundaries. He chose Qdrant as a fast, open-source vector store that is easy to run and scales well.
 
 ## LangGraph and multi-agent design
@@ -223,6 +232,7 @@ AskMyAstro gives free credits on sign-up, enough for a good first experience, an
 FileDownloader (filedownloader.in) is a bulk file-download tool Sarthak built and runs solo: paste links, download every file at once as one ZIP. It has served {{filedownloader.downloads}} downloads for {{filedownloader.users}} users.
 
 ## Switchboard
+> open source, does he contribute to open source, GitHub projects, Claude Code dashboard
 Claude Code Switchboard is an open-source (MIT) dashboard Sarthak built for every Claude Code session running on a Mac: what each session is working on, live token burn, how much of the plan is left, and messages between sessions. It has {{switchboard.clones}} installs and {{switchboard.stars}} GitHub stars. He built it after running 12 Claude Code sessions in parallel and losing track of which were waiting on him.
 
 ## Switchboard install and privacy
@@ -236,6 +246,7 @@ The product numbers on Sarthak's site are pulled daily from Google Analytics and
 To contact Sarthak: email hello@sarthakchhabra.com, LinkedIn linkedin.com/in/sarthak-chhabra, or the contact form on this site. He'll get back to you soon. His GitHub is github.com/itssarthak, and his résumé is at resume.html with a PDF download.
 
 ## This website
+> hidden features, easter eggs, time slider, version history, terminal, how was this site built, is this site open source
 Sarthak's site is versioned like software: scrolling through the version history rolls it back, and the projects, stack and look change with each version (v1 student to v6 tech lead). Pressing ~ opens a terminal. The Ask chat runs entirely in the visitor's browser and answers only from Sarthak's own profile, web searches and live stats.
 
 ## Work, availability and opportunities
