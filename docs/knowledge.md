@@ -219,11 +219,11 @@ Sarthak writes tests alongside code once behaviour is settled and leans on end-t
 In code reviews Sarthak looks for correctness and edge cases first, then readability and maintainability, and explains the why so reviews teach. He treats tech debt as a running cost: small paydowns go into feature work, and larger refactors are argued in terms of the speed or reliability they buy back.
 
 ## His own products
-> side projects, what has he built himself, personal projects
-Sarthak builds and runs five products of his own: AskMyAstro (an AI astrologer), FileDownloader (a bulk file-download tool), Claude Code Switchboard (an open-source dashboard for Claude Code sessions), Castbar (a Chromecast remote in the Mac menu bar) and DiscreteDocs (PDF tools that run inside the browser). He grows them by building in public: writing about what he makes and sharing it where the right people already are.
+> side projects, what has he built himself, personal projects, product hunt, his launches
+Sarthak builds and runs five products of his own: AskMyAstro (an AI astrologer), FileDownloader (a bulk file-download tool), Claude Code Switchboard (an open-source dashboard for Claude Code sessions), Castbar (a Chromecast remote in the Mac menu bar) and DiscreteDocs (PDF tools that run inside the browser). On Product Hunt: AskMyAstro launched in August 2026, Castbar on 27 September 2026, and DiscreteDocs is scheduled for 10 October 2026. He grows them by building in public: writing about what he makes and sharing it where the right people already are.
 
 ## AskMyAstro
-AskMyAstro (askmyastro.in) is an AI astrologer Sarthak built and runs solo. It reads a person's birth chart and answers real questions over chat. He built the LLM prompt pipeline, the chart computation and the product around it. It has {{askmyastro.users}} users so far. He built it because other AI astrology apps were built to squeeze money out of people and weren't honest with them; he wanted one that is truthful and helpful first.
+AskMyAstro (askmyastro.in) is an AI astrologer Sarthak built and runs solo. It reads a person's birth chart and answers real questions over chat. He built the LLM prompt pipeline, the chart computation and the product around it. It has {{askmyastro.users}} users so far. It launched on Product Hunt in August 2026. He built it because other AI astrology apps were built to squeeze money out of people and weren't honest with them; he wanted one that is truthful and helpful first.
 
 ## AskMyAstro pricing
 AskMyAstro gives free credits on sign-up, enough for a good first experience, and more can be bought any time. People can also bring their own AI API key and are never charged by AskMyAstro, paying only their own key's usage.
@@ -244,7 +244,7 @@ Castbar is Sarthak's Chromecast remote for the Mac menu bar. It controls every C
 
 ## DiscreteDocs
 > discretedocs, pdf tools, merge pdf, compress pdf, convert pdf, private pdf editor
-DiscreteDocs (discretedocs.com) is a free set of PDF tools by Sarthak that works inside the visitor's own browser, so files never leave their device. Most PDF websites upload your file to their servers to work on it; DiscreteDocs does the work locally instead. It can merge, split, extract and rotate pages; compress, repair and OCR; convert Word, Excel, PowerPoint, HTML and images to PDF and PDF back to those formats or Markdown; add text, watermarks and page numbers; and sign, protect, unlock, redact and compare PDFs.
+DiscreteDocs (discretedocs.com) is a free set of PDF tools by Sarthak that works inside the visitor's own browser, so files never leave their device. Most PDF websites upload your file to their servers to work on it; DiscreteDocs does the work locally instead. It can merge, split, extract and rotate pages; compress, repair and OCR; convert Word, Excel, PowerPoint, HTML and images to PDF and PDF back to those formats or Markdown; add text, watermarks and page numbers; and sign, protect, unlock, redact and compare PDFs. It is scheduled to launch on Product Hunt on 10 October 2026.
 
 ## Live numbers on this site
 The product numbers on Sarthak's site are pulled daily from Google Analytics and GitHub and are not edited.

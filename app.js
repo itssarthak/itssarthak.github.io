@@ -38,7 +38,7 @@
     // New products (Oct 2026): the live number plus a 'New' pill beside it; drop tag once they're established
     { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New',
       n: function (s) { return s.castbar.clones; }, metric: function (s) { return [k(s.castbar.clones), 'clones on GitHub']; } },
-    { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', tag: 'New',
+    { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
       n: function (s) { return s.discretedocs.files; }, metric: function (s) { var d = s.discretedocs, mb = (d.kb || 0) / 1024;
         var size = mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : mb >= 1 ? Math.round(mb) + ' MB' : d.kb ? Math.round(d.kb) + ' KB' : '';
         return [k(d.files), (d.files === 1 ? 'file processed' : 'files processed') + (size ? ' · ' + size : '')]; } } // size of everything processed
@@ -705,11 +705,16 @@
     var src = String(sess.utm.utm_source || sess.utm.ref || host).toLowerCase(), hour = new Date().getHours(), ua = navigator.userAgent;
     var phone = /Mobi|Android|iPhone|iPod/i.test(ua), mac = /Macintosh/.test(ua) && navigator.maxTouchPoints < 2;
     var shown = {}; try { shown = JSON.parse(sessionStorage.getItem('sv.thoughts')) || {}; } catch (e) {}
+    var PH_LAUNCH = Date.UTC(2026, 9, 10, 7, 1), now = Date.now(); // DiscreteDocs on Product Hunt: 10 Oct 2026, 00:01 PDT
+    var PH_STAGE = now < PH_LAUNCH ? 'before' : now < PH_LAUNCH + 864e5 ? 'today' : 'after';
     var count = 0, MAX = 4, variant = 'A', ready = false, busy = false, hideT, idleT;
     // id → [written thought (or a function of live stats), question a click asks (null: just focus the box), the situation for B]
     var T = {
       linkedin: ['A LinkedIn visitor! Want the 30-second version of me?', 'Who is Sarthak?', 'the visitor came from LinkedIn'],
-      producthunt: ['Here for Castbar? Ask me how I built it.', 'What is Castbar?', 'the visitor came from Product Hunt, where his Castbar app launched'],
+      // Product Hunt: DiscreteDocs is scheduled for 10 Oct 2026 00:01 PDT; Castbar and AskMyAstro launched there earlier
+      producthunt: [function () { return PH_STAGE === 'before' ? 'Hi Product Hunter! 👋 DiscreteDocs is launching there soon.' : PH_STAGE === 'today' ? 'DiscreteDocs is live on Product Hunt today! 🚀' : 'Hi Product Hunter! Castbar, AskMyAstro and DiscreteDocs all launched there.'; },
+        PH_STAGE === 'after' ? 'What has he built on his own?' : 'What is DiscreteDocs?', 'the visitor came from Product Hunt, where his products launch (DiscreteDocs ' + (PH_STAGE === 'before' ? 'is launching there soon' : PH_STAGE === 'today' ? 'launched there today' : 'launched there recently') + ')'],
+      launchday: ['DiscreteDocs launches on Product Hunt today! 🚀', 'What is DiscreteDocs?', 'today his DiscreteDocs PDF tools launch on Product Hunt'],
       github: ['Hello from GitHub! Switchboard is my favourite open-source bit.', 'What is Switchboard?', 'the visitor came from GitHub'],
       search: ['Found me through a search? Ask me anything.', 'Who is Sarthak?', 'the visitor came from a search engine'],
       back: ['Welcome back! 👋 What would you like to know this time?', null, 'the visitor has been here before'],
@@ -724,13 +729,14 @@
       filedownloader: [function () { return stats ? k(stats.filedownloader.downloads) + ' downloads and counting!' : 'Paste links, get every file at once.'; }, 'What is FileDownloader?', 'the visitor is looking at FileDownloader, his bulk file-download tool with hundreds of thousands of downloads'],
       switchboard: ['I built Switchboard to tame 12 Claude Code sessions.', 'Why did he build Switchboard?', 'the visitor is looking at Switchboard, his dashboard for Claude Code sessions'],
       castbar: ['My Chromecast remote, right in the menu bar.', 'What is Castbar?', 'the visitor is looking at Castbar, his Chromecast remote for the Mac menu bar'],
-      discretedocs: ['PDF tools that never upload your files.', 'What is DiscreteDocs?', 'the visitor is looking at DiscreteDocs, his private in-browser PDF tools']
+      discretedocs: [function () { return PH_STAGE === 'today' ? 'Live on Product Hunt today! 🚀' : 'PDF tools that never upload your files.'; }, 'What is DiscreteDocs?', 'the visitor is looking at DiscreteDocs, his private in-browser PDF tools' + (PH_STAGE === 'today' ? ', launching on Product Hunt today' : '')]
     };
     function opener() {
       if (/linkedin|lnkd/.test(src)) return 'linkedin';
       if (/producthunt/.test(src)) return 'producthunt';
       if (/github/.test(src)) return 'github';
       if (/google|bing|duckduckgo|yahoo|ecosia|brave/.test(src)) return 'search';
+      if (PH_STAGE === 'today') return 'launchday';
       if (firstSeen) return 'back';
       if (phone) return 'phone';
       if (mac && Math.random() < 0.5) return 'mac';
