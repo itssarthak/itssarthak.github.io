@@ -262,7 +262,7 @@ svg.top{pointer-events:none;z-index:3}
   }
 
   function layout() {
-    var next = matchMedia('(max-width: 720px)').matches ? LAYOUT.mob : LAYOUT.desk;
+    var next = matchMedia('(max-width: 900px)').matches ? LAYOUT.mob : LAYOUT.desk;
     if (next === L) return false;
     L = next;
     var W = L.vb[0], H = L.vb[1];

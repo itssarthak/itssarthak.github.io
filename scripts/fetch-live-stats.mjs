@@ -28,7 +28,7 @@ const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discre
    the sum of files_in on tool_run (registered as a GA4 custom metric on 2026-10-07), never less
    than the number of runs, since every run processes at least one file. */
 const EVENTS = {
-  filedownloader: { event: "file_download", key: "downloads" },
+  filedownloader: { event: "file_download", key: "downloads", size: "customEvent:file_size", bytes: true },
   discretedocs: { event: "tool_run", key: "files", param: "customEvent:files_in", size: "customEvent:input_kb" },
 };
 async function eventReport(token, propertyId, cfg, body) {
@@ -207,8 +207,8 @@ async function fetchSite(token, propertyId, name) {
   if (cfg) {
     site[cfg.key] = metric(await eventReport(token, propertyId, cfg, { dateRanges: [{ startDate: START_DATE, endDate: "today" }] }), 0);
     if (!site[cfg.key] && name === "filedownloader") throw new Error(`empty download report for property ${propertyId}`);
-    if (cfg.size) try { // total input size processed (KB), counted from the day input_kb was registered
-      site.kb = metric(await runReport(token, propertyId, { dateRanges: [{ startDate: START_DATE, endDate: "today" }], metrics: [{ name: cfg.size }],
+    if (cfg.size) try { // total size in KB, counted from the day the size metric was registered
+      site.kb = (cfg.bytes ? 1 / 1024 : 1) * metric(await runReport(token, propertyId, { dateRanges: [{ startDate: START_DATE, endDate: "today" }], metrics: [{ name: cfg.size }],
         dimensionFilter: { filter: { fieldName: "eventName", stringFilter: { value: cfg.event } } } }), 0);
     } catch (err) { console.warn(`WARN no size for ${name}: ${err.message}`); }
   }
