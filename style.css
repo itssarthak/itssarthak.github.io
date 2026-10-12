@@ -357,3 +357,4 @@ section.reveal.unfolded .reveal-in{overflow:visible} /* clipping is only needed 
 @media (max-width:640px){.ask.full .chat-bar{flex-wrap:wrap}.ask.full .chat-note{order:9;flex-basis:100%}} /* full-screen chat on phones: the logging note drops below, leaving the title one line */
 body{overflow-x:clip} /* safety net: nothing can make the page scroll sideways */
 @media (max-width:420px){#visits .spark{display:none}.status .who{order:1;flex-basis:100%}} /* small phones: two tidy lines, status + terminal on top, name below */
+@media (hover:none){.psst{display:none}} /* touch screens: no ~ key or console to open */
