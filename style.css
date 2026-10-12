@@ -163,6 +163,7 @@ section{padding:36px 0}
 section.reveal{padding:0;display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(18px);
   transition:grid-template-rows .9s cubic-bezier(.2,.8,.2,1),opacity .7s ease .25s,transform .8s cubic-bezier(.2,.8,.2,1) .25s}
 section.reveal.ready{grid-template-rows:1fr;opacity:1;transform:none}
+section.reveal{grid-template-columns:minmax(0,1fr)} /* the unfolding section never grows wider than the page */
 .reveal-in{min-height:0;overflow:hidden;padding:0 16px;margin:0 -16px} /* side room so the glow isn't clipped; 16px = the page gutter, so no sideways scroll on phones */
 .reveal-pad{padding:36px 0}
 .reveal.ready .ask{animation:glow 1.6s ease .6s}
@@ -355,6 +356,5 @@ html.chat-open{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.thought.typing i{animation:none;opacity:.6}}
 section.reveal.unfolded .reveal-in{overflow:visible} /* clipping is only needed while the section unfolds */
 @media (max-width:640px){.ask.full .chat-bar{flex-wrap:wrap}.ask.full .chat-note{order:9;flex-basis:100%}} /* full-screen chat on phones: the logging note drops below, leaving the title one line */
-body{overflow-x:clip} /* safety net: nothing can make the page scroll sideways */
 @media (max-width:420px){#visits .spark{display:none}.status .who{order:1;flex-basis:100%}} /* small phones: two tidy lines, status + terminal on top, name below */
 @media (hover:none){.psst{display:none}} /* touch screens: no ~ key or console to open */
