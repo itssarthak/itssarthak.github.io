@@ -1,14 +1,13 @@
 {
-  "updated": "2026-10-13",
+  "updated": "2026-10-14",
   "askmyastro": {
-    "users": 5225,
-    "pageviews": 16302,
-    "visits": 6006,
+    "users": 5230,
+    "pageviews": 16315,
+    "visits": 6015,
     "series": {
       "metric": "users",
-      "from": "2026-09-13",
+      "from": "2026-09-14",
       "values": [
-        2,
         6,
         1,
         0,
@@ -37,21 +36,21 @@
         6,
         9,
         11,
-        5
+        5,
+        7
       ]
     }
   },
   "filedownloader": {
-    "users": 7415,
-    "pageviews": 28390,
-    "visits": 9323,
-    "downloads": 732900,
-    "kb": 2057294.017578125,
+    "users": 7448,
+    "pageviews": 28444,
+    "visits": 9369,
+    "downloads": 736475,
+    "kb": 3697892.7900390625,
     "series": {
       "metric": "downloads",
-      "from": "2026-09-13",
+      "from": "2026-09-14",
       "values": [
-        3306,
         6867,
         1558,
         929,
@@ -80,21 +79,21 @@
         6509,
         2607,
         82,
-        1524
+        1524,
+        3200
       ]
     }
   },
   "discretedocs": {
-    "users": 108,
-    "pageviews": 240,
-    "visits": 138,
-    "files": 20,
-    "kb": 941378,
+    "users": 113,
+    "pageviews": 255,
+    "visits": 148,
+    "files": 23,
+    "kb": 941917,
     "series": {
       "metric": "files",
-      "from": "2026-09-13",
+      "from": "2026-09-14",
       "values": [
-        0,
         0,
         0,
         0,
@@ -123,19 +122,19 @@
         4,
         6,
         0,
-        4
+        4,
+        3
       ]
     }
   },
   "portfolio": {
-    "users": 196,
-    "pageviews": 675,
-    "visits": 341,
+    "users": 197,
+    "pageviews": 679,
+    "visits": 343,
     "series": {
       "metric": "visits",
-      "from": "2026-09-13",
+      "from": "2026-09-14",
       "values": [
-        1,
         0,
         0,
         3,
@@ -164,7 +163,8 @@
         7,
         7,
         4,
-        5
+        5,
+        6
       ]
     }
   },
@@ -280,8 +280,8 @@
     "downloads": 5
   },
   "switchboard": {
-    "clones": 504,
-    "uniques": 250,
+    "clones": 506,
+    "uniques": 252,
     "stars": 4,
     "days": {
       "2026-08-13": [
@@ -527,13 +527,16 @@
       "2026-10-12": [
         1,
         1
+      ],
+      "2026-10-13": [
+        2,
+        2
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-09-13",
+      "from": "2026-09-14",
       "values": [
-        7,
         12,
         13,
         11,
@@ -562,7 +565,8 @@
         5,
         1,
         2,
-        1
+        1,
+        2
       ]
     }
   }
