@@ -31,18 +31,26 @@
         ['Promo generation', 'Zupee', 'Parallel ad-creative production, run by product managers.', ['1 week → 3 hours']]] }
   ];
   var HEAD = STOPS.length - 1;
+  // Each card shows the biggest of its numbers (Sarthak, Oct 2026: "whichever is higher"); all: [value, label] candidates.
+  var GA = function (d) { return [[d.users, 'users'], [d.visits, 'visits'], [d.pageviews, 'page views'], [d.events, 'actions tracked'], [Math.round((d.seconds || 0) / 3600), 'hours spent']]; };
+  var GH = function (d) { return [[d.clones, 'installs'], [d.uniques, 'people installed'], [d.views, 'repo views'], [d.viewers, 'repo visitors'], [d.stars, 'stars on GitHub'], [d.forks, 'forks']]; };
   var SERVICES = [
-    { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', n: function (s) { return s.askmyastro.users; }, metric: function (s) { return [k(s.askmyastro.users), 'users']; } },
-    { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in', n: function (s) { return s.filedownloader.downloads; }, metric: function (s) { return [k(s.filedownloader.downloads), 'downloads served']; } },
-    { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', n: function (s) { return s.switchboard.clones; }, metric: function (s) { return [s.switchboard.clones, 'installs · ' + s.switchboard.stars + ' ★']; } },
+    { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', all: GA },
+    { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in',
+      all: function (d) { return GA(d).concat([[d.downloads, 'downloads served'], [Math.round((d.kb || 0) / 1048576), 'GB downloaded']]); } },
+    { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', all: GH },
     // New products (Oct 2026): the live number plus a 'New' pill beside it; drop tag once they're established
-    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New',
-      n: function (s) { return s.castbar.clones; }, metric: function (s) { return [k(s.castbar.clones), 'clones on GitHub']; } },
+    // Castbar: card hidden (Sarthak, Oct 2026); still in the terminal and the Ask box
+    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New', hide: true,
+      all: function (d) { return GH(d).concat([[d.downloads, 'downloads']]); } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
-      n: function (s) { return s.discretedocs.files; }, metric: function (s) { var d = s.discretedocs, mb = (d.kb || 0) / 1024;
-        var size = mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : mb >= 1 ? Math.round(mb) + ' MB' : d.kb ? Math.round(d.kb) + ' KB' : '';
-        return [k(d.files), (d.files === 1 ? 'file processed' : 'files processed') + (size ? ' · ' + size : '')]; } } // size of everything processed
+      all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 1024), 'MB processed']]); } }
   ];
+  function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
+  SERVICES.forEach(function (s) {
+    s.n = function (st) { return best(s, st)[0]; };
+    s.metric = function (st) { var b = best(s, st); return [k(b[0]), b[0] === 1 ? b[1].replace(/s( |$)/, '$1') : b[1]]; };
+  });
   // Ask-box suggestions: [what the chip says, the answer-bank question it leads to]. 3 show at a time; see initSuggestions().
   var SUGGEST = [
     ['What is AskMyAstro?', 'What is AskMyAstro?'],
@@ -170,7 +178,7 @@
     var people = stats ? ['askmyastro', 'filedownloader', 'discretedocs'].reduce(function (n, id) { return n + ((stats[id] && stats[id].users) || 0); }, 0) : 0;
     $('svcPeople').textContent = people ? '(' + k(people) + ' users)' : '';
     $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
-    $('svc').innerHTML = SERVICES.map(function (s, i) {
+    $('svc').innerHTML = SERVICES.filter(function (s) { return !s.hide; }).map(function (s, i) {
       var live = stats && stats[s.id], m = live ? s.metric(stats) : ['—', ''], v = live && stats[s.id].series ? stats[s.id].series.values : [];
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
       return '<div class="card in" data-id="' + s.id + '" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +

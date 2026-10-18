@@ -66,14 +66,19 @@ async function gh(path, repo = GH_REPO) {
 
 async function fetchSwitchboard(previous) { return fetchClones(GH_REPO, previous, "switchboard"); }
 async function fetchClones(repoName, previous, name) {
-  const [traffic, repo] = await Promise.all([gh("/traffic/clones", repoName), gh("", repoName)]);
+  const [traffic, views, repo] = await Promise.all([gh("/traffic/clones", repoName), gh("/traffic/views", repoName), gh("", repoName)]);
   const days = mergeDays(previous?.days, traffic.clones || []);
-  const totals = Object.values(days);
+  const viewDays = mergeDays(previous?.viewDays, views.views || []); // same 14-day window as clones, kept the same way
+  const sum = (o, i) => Object.values(o).reduce((n, d) => n + d[i], 0);
   return {
-    clones: totals.reduce((n, d) => n + d[0], 0),
-    uniques: totals.reduce((n, d) => n + d[1], 0),
+    clones: sum(days, 0),
+    uniques: sum(days, 1),
+    views: sum(viewDays, 0),
+    viewers: sum(viewDays, 1),
     stars: repo.stargazers_count || 0,
+    forks: repo.forks_count || 0,
     days,
+    viewDays,
     series: cloneSeries(days, name),
   };
 }
@@ -199,9 +204,9 @@ async function fetchSeries(token, propertyId, name) {
 async function fetchSite(token, propertyId, name) {
   const totals = await runReport(token, propertyId, {
     dateRanges: [{ startDate: START_DATE, endDate: "today" }],
-    metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }, { name: "sessions" }],
+    metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }, { name: "sessions" }, { name: "eventCount" }, { name: "userEngagementDuration" }],
   });
-  const site = { users: metric(totals, 0), pageviews: metric(totals, 1), visits: metric(totals, 2) };
+  const site = { users: metric(totals, 0), pageviews: metric(totals, 1), visits: metric(totals, 2), events: metric(totals, 3), seconds: metric(totals, 4) };
   if (!site.users) throw new Error(`empty report for property ${propertyId}`);
   const cfg = EVENTS[name];
   if (cfg) {
