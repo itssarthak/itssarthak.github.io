@@ -44,7 +44,7 @@
     { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New', hide: true,
       all: function (d) { return GH(d).concat([[d.downloads, 'downloads']]); } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
-      all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 1024), 'MB processed']]); } }
+      all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } }
   ];
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {
