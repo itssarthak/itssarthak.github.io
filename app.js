@@ -40,8 +40,7 @@
       all: function (d) { return GA(d).concat([[d.downloads, 'downloads served'], [Math.round((d.kb || 0) / 1048576), 'GB downloaded']]); } },
     { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', all: GH },
     // New products (Oct 2026): the live number plus a 'New' pill beside it; drop tag once they're established
-    // Castbar: card hidden (Sarthak, Oct 2026); still in the terminal and the Ask box
-    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New', hide: true,
+    { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New',
       all: function (d) { return GH(d).concat([[d.downloads, 'downloads']]); } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
       all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } }
