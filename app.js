@@ -35,7 +35,8 @@
   var GA = function (d) { return [[d.users, 'users'], [d.visits, 'visits'], [d.pageviews, 'visits'], [d.engaged, 'engaged visits'], [Math.round((d.seconds || 0) / 3600), 'hours spent']]; };
   var GH = function (d) { return [[d.clones, 'installs'], [d.uniques, 'people installed'], [d.views, 'repo views'], [d.viewers, 'repo visitors'], [d.stars, 'stars on GitHub'], [d.forks, 'forks']]; };
   var SERVICES = [
-    { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', all: GA },
+    { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', all: GA,
+      turns: function (d) { return [[d.pageviews, 'visits'], [d.users, 'users']]; } }, // the card takes turns: visits, then users (Sarthak, Oct 2026)
     { id: 'filedownloader', name: 'FileDownloader', d: 'Paste links, get every file at once, zipped.', href: 'filedownloader.html', url: 'https://filedownloader.in', site: 'filedownloader.in',
       all: function (d) { return GA(d).concat([[d.downloads, 'downloads served'], [Math.round((d.kb || 0) / 1048576), 'GB downloaded']]); } },
     { id: 'switchboard', name: 'Switchboard', d: 'Open-source dashboard for every Claude Code session on your Mac.', href: 'switchboard.html', url: 'https://github.com/itssarthak/claudecode-switchboard', site: 'GitHub', all: GH },
@@ -185,7 +186,18 @@
         (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
         '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
     }).join('');
-    if (stats) countUp();
+    if (!stats) return;
+    countUp();
+    var turn = 0; // cards with turns swap their number every few seconds
+    setInterval(function () {
+      turn++;
+      SERVICES.forEach(function (s) {
+        var m = s.turns && stats[s.id] && $('svc').querySelector('[data-id="' + s.id + '"] .m');
+        if (!m) return;
+        var t = s.turns(stats[s.id]), x = t[turn % t.length], num = m.querySelector('.num');
+        num.dataset.n = x[0]; num.textContent = k(x[0]); m.querySelector('small').textContent = x[1];
+      });
+    }, 3000);
   }
   function renderStop(animate) {
     var s = STOPS[era], cos = [];
