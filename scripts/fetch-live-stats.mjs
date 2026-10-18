@@ -204,9 +204,9 @@ async function fetchSeries(token, propertyId, name) {
 async function fetchSite(token, propertyId, name) {
   const totals = await runReport(token, propertyId, {
     dateRanges: [{ startDate: START_DATE, endDate: "today" }],
-    metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }, { name: "sessions" }, { name: "eventCount" }, { name: "userEngagementDuration" }],
+    metrics: [{ name: "activeUsers" }, { name: "screenPageViews" }, { name: "sessions" }, { name: "engagedSessions" }, { name: "userEngagementDuration" }],
   });
-  const site = { users: metric(totals, 0), pageviews: metric(totals, 1), visits: metric(totals, 2), events: metric(totals, 3), seconds: metric(totals, 4) };
+  const site = { users: metric(totals, 0), pageviews: metric(totals, 1), visits: metric(totals, 2), engaged: metric(totals, 3), seconds: metric(totals, 4) };
   if (!site.users) throw new Error(`empty report for property ${propertyId}`);
   const cfg = EVENTS[name];
   if (cfg) {
