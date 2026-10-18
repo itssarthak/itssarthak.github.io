@@ -32,7 +32,7 @@
   ];
   var HEAD = STOPS.length - 1;
   // Each card shows the biggest of its numbers (Sarthak, Oct 2026: "whichever is higher"); all: [value, label] candidates.
-  var GA = function (d) { return [[d.users, 'users'], [d.visits, 'visits'], [d.pageviews, 'page views'], [d.engaged, 'engaged visits'], [Math.round((d.seconds || 0) / 3600), 'hours spent']]; };
+  var GA = function (d) { return [[d.users, 'users'], [d.visits, 'visits'], [d.pageviews, 'visits'], [d.engaged, 'engaged visits'], [Math.round((d.seconds || 0) / 3600), 'hours spent']]; };
   var GH = function (d) { return [[d.clones, 'installs'], [d.uniques, 'people installed'], [d.views, 'repo views'], [d.viewers, 'repo visitors'], [d.stars, 'stars on GitHub'], [d.forks, 'forks']]; };
   var SERVICES = [
     { id: 'askmyastro', name: 'AskMyAstro', d: 'An AI astrologer that reads your birth chart and answers over chat.', href: 'askmyastro-demo.html', url: 'https://askmyastro.in', site: 'askmyastro.in', all: GA },
