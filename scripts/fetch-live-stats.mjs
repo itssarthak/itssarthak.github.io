@@ -120,6 +120,7 @@ async function fetchCastbar(previous) {
    Razorpay sales aren't in Paddle, so they aren't counted. Sales come in mixed currencies, so revenue is
    converted to US dollars at today's rate; Homebrew installs come from GitHub release downloads. */
 const SPARESCREEN_REPO = "chaibreak/sparescreen";
+const SHOW_SPARESCREEN_SALES = false; // hidden for now (Sarthak, 2026-10-20): live-stats.json is public, so they are not even written
 async function paddleSales() {
   const key = process.env.PADDLE_API_KEY;
   if (!key) throw new Error("set PADDLE_API_KEY (Transactions: read)");
@@ -145,13 +146,13 @@ function toUsd(rows, rates) { // rates: units of each currency per 1 USD
   }, 0));
 }
 async function fetchSpareScreen(previous) {
-  const out = { ...previous };
-  try {
+  const { sales: _s, usd: _u, ...out } = previous || {};
+  if (SHOW_SPARESCREEN_SALES) try {
     const sales = await paddleSales();
     out.sales = sales.reduce((n, r) => n + r.n, 0);
     const fx = await (await fetch("https://open.er-api.com/v6/latest/USD")).json();
     out.usd = toUsd(sales, fx.rates);
-  } catch (err) { console.warn(`WARN keeping previous sparescreen sales: ${err.message}`); }
+  } catch (err) { console.warn(`WARN keeping previous sparescreen sales: ${err.message}`); if (previous?.sales != null) Object.assign(out, { sales: previous.sales, usd: previous.usd }); }
   try {
     // public repo outside the traffic token's reach, so read it unauthenticated
     const res = await fetch(`https://api.github.com/repos/${SPARESCREEN_REPO}/releases?per_page=100`, { headers: { Accept: "application/vnd.github+json" } });
