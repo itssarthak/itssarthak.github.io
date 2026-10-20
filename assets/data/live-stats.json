@@ -1,16 +1,15 @@
 {
-  "updated": "2026-10-19",
+  "updated": "2026-10-20",
   "askmyastro": {
-    "users": 5281,
-    "pageviews": 16745,
-    "visits": 6080,
-    "engaged": 4993,
-    "seconds": 254977,
+    "users": 5288,
+    "pageviews": 16777,
+    "visits": 6104,
+    "engaged": 5008,
+    "seconds": 255656,
     "series": {
       "metric": "users",
-      "from": "2026-09-19",
+      "from": "2026-09-20",
       "values": [
-        4,
         4,
         3,
         4,
@@ -39,23 +38,23 @@
         11,
         35,
         8,
-        7
+        7,
+        11
       ]
     }
   },
   "filedownloader": {
-    "users": 7571,
-    "pageviews": 28652,
-    "visits": 9579,
-    "engaged": 8145,
-    "seconds": 828133,
-    "downloads": 749267,
-    "kb": 17279854.873046875,
+    "users": 7586,
+    "pageviews": 28687,
+    "visits": 9605,
+    "engaged": 8168,
+    "seconds": 829683,
+    "downloads": 749906,
+    "kb": 17535952.499023438,
     "series": {
       "metric": "downloads",
-      "from": "2026-09-19",
+      "from": "2026-09-20",
       "values": [
-        231,
         4041,
         13642,
         3960,
@@ -84,23 +83,23 @@
         3436,
         4700,
         197,
-        793
+        838,
+        594
       ]
     }
   },
   "discretedocs": {
-    "users": 124,
-    "pageviews": 288,
-    "visits": 165,
-    "engaged": 76,
-    "seconds": 2442,
+    "users": 126,
+    "pageviews": 291,
+    "visits": 167,
+    "engaged": 78,
+    "seconds": 2471,
     "files": 27,
     "kb": 943887,
     "series": {
       "metric": "files",
-      "from": "2026-09-19",
+      "from": "2026-09-20",
       "values": [
-        0,
         0,
         0,
         0,
@@ -129,21 +128,21 @@
         2,
         3,
         0,
+        0,
         0
       ]
     }
   },
   "portfolio": {
     "users": 201,
-    "pageviews": 695,
-    "visits": 351,
-    "engaged": 218,
-    "seconds": 16917,
+    "pageviews": 706,
+    "visits": 352,
+    "engaged": 219,
+    "seconds": 18432,
     "series": {
       "metric": "visits",
-      "from": "2026-09-19",
+      "from": "2026-09-20",
       "values": [
-        0,
         1,
         4,
         0,
@@ -172,7 +171,8 @@
         5,
         1,
         0,
-        2
+        2,
+        1
       ]
     }
   },
@@ -385,6 +385,10 @@
       ]
     },
     "downloads": 5
+  },
+  "sparescreen": {
+    "sales": 1,
+    "usd": 5
   },
   "switchboard": {
     "clones": 561,
