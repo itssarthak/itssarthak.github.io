@@ -45,10 +45,10 @@
       all: function (d) { return GH(d).concat([[d.downloads, 'downloads']]); } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
       all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } },
-    // SpareScreen: installs and sales from its own server, revenue converted to US dollars (Sarthak, Oct 2026: show the dollar amount)
+    // SpareScreen: sales and revenue from Paddle in US dollars (Sarthak, Oct 2026: show the dollar amount), downloads from GitHub
     { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', tag: 'New',
-      all: function (d) { return GA(d).concat([[d.installs, 'installs'], [d.downloads, 'downloads'], [d.sales, 'sales'], [d.usd, 'dollars earned']]); },
-      turns: function (d) { return [[d.installs, 'installs'], [d.usd, 'dollars earned'], [d.sales, 'sales']].filter(function (x) { return x[0] > 0; }); } }
+      all: function (d) { return GA(d).concat([[d.downloads, 'downloads'], [d.sales, 'sales'], [d.usd, 'dollars earned']]); },
+      turns: function (d) { return [[d.downloads, 'downloads'], [d.usd, 'dollars earned'], [d.sales, 'sales']].filter(function (x) { return x[0] > 0; }); } }
   ];
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {

@@ -23,7 +23,7 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones", sparescreen: "installs" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones" };
 /* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
    the sum of files_in on tool_run (registered as a GA4 custom metric on 2026-10-07), never less
    than the number of runs, since every run processes at least one file. */
@@ -116,19 +116,26 @@ async function fetchCastbar(previous) {
   return out;
 }
 
-/* SpareScreen counts itself: its Cloudflare Worker logs installs ('trial' events) and every sale, Razorpay and
-   Paddle alike, in the D1 database below. Read with a D1-Read-only API token. Sales are in mixed currencies
-   (major units), so revenue is converted to US dollars at today's rate; Homebrew installs come from GitHub releases. */
-const SPARESCREEN_D1 = "8216d202-9ad2-4234-bcfb-a223b4a878cb"; // sparescreen-analytics
+/* SpareScreen: sales and revenue from Paddle (Sarthak, Oct 2026), read with a read-only API key. Older
+   Razorpay sales aren't in Paddle, so they aren't counted. Sales come in mixed currencies, so revenue is
+   converted to US dollars at today's rate; Homebrew installs come from GitHub release downloads. */
 const SPARESCREEN_REPO = "chaibreak/sparescreen";
-async function d1(sql) {
-  const { CF_ACCOUNT_ID: acct, CF_D1_TOKEN: token } = process.env;
-  if (!acct || !token) throw new Error("set CF_ACCOUNT_ID and CF_D1_TOKEN (D1 Read)");
-  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acct}/d1/database/${SPARESCREEN_D1}/query`, {
-    method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ sql }),
-  });
-  if (!res.ok) throw new Error(`D1 query: ${res.status} ${await res.text()}`);
-  return (await res.json()).result[0].results;
+async function paddleSales() {
+  const key = process.env.PADDLE_API_KEY;
+  if (!key) throw new Error("set PADDLE_API_KEY (Transactions: read)");
+  const byCur = {};
+  let url = "https://api.paddle.com/transactions?status=completed&per_page=200";
+  while (url) {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${key}` } });
+    if (!res.ok) throw new Error(`Paddle transactions: ${res.status} ${await res.text()}`);
+    const body = await res.json();
+    for (const t of body.data) {
+      const c = (byCur[t.currency_code] ||= { currency: t.currency_code, n: 0, amount: 0 });
+      c.n++; c.amount += Number(t.details?.totals?.grand_total || 0) / 100; // minor units
+    }
+    url = body.meta?.pagination?.has_more ? body.meta.pagination.next : null;
+  }
+  return Object.values(byCur);
 }
 function toUsd(rows, rates) { // rates: units of each currency per 1 USD
   return Math.round(rows.reduce((n, r) => {
@@ -138,22 +145,17 @@ function toUsd(rows, rates) { // rates: units of each currency per 1 USD
   }, 0));
 }
 async function fetchSpareScreen(previous) {
-  const [installs, sales, perDay] = await Promise.all([
-    d1("SELECT COUNT(*) n FROM events WHERE event = 'trial'"),
-    d1("SELECT currency, COUNT(*) n, SUM(amount) amount FROM sales WHERE amount IS NOT NULL GROUP BY currency"),
-    d1(`SELECT day, COUNT(*) n FROM events WHERE event = 'trial' AND day >= date('now', '-${SERIES_DAYS} days') GROUP BY day`),
-  ]);
-  const out = { installs: installs[0]?.n || 0, sales: sales.reduce((n, r) => n + r.n, 0) };
+  const out = { ...previous };
   try {
+    const sales = await paddleSales();
+    out.sales = sales.reduce((n, r) => n + r.n, 0);
     const fx = await (await fetch("https://open.er-api.com/v6/latest/USD")).json();
     out.usd = toUsd(sales, fx.rates);
-  } catch (err) { console.warn(`WARN keeping previous sparescreen revenue: ${err.message}`); if (previous?.usd != null) out.usd = previous.usd; }
+  } catch (err) { console.warn(`WARN keeping previous sparescreen sales: ${err.message}`); }
   try {
     const rel = await gh("/releases?per_page=100", SPARESCREEN_REPO);
     out.downloads = rel.reduce((n, r) => n + r.assets.reduce((m, a) => m + a.download_count, 0), 0);
-  } catch (err) { if (previous?.downloads != null) out.downloads = previous.downloads; }
-  const series = cloneSeries(Object.fromEntries(perDay.map((r) => [r.day, [r.n]])), "sparescreen");
-  if (series) out.series = series;
+  } catch (err) { console.warn(`WARN keeping previous sparescreen downloads: ${err.message}`); }
   return out;
 }
 
