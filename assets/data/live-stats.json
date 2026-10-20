@@ -388,7 +388,8 @@
   },
   "sparescreen": {
     "sales": 1,
-    "usd": 5
+    "usd": 5,
+    "downloads": 15
   },
   "switchboard": {
     "clones": 561,
