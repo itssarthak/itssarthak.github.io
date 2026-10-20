@@ -45,7 +45,7 @@
       all: function (d) { return GH(d).concat([[d.downloads, 'downloads']]); } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
       all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } },
-    // SpareScreen: downloads only; sales and revenue hidden for now (Sarthak, Oct 2026), see SHOW_SPARESCREEN_SALES in fetch-live-stats.mjs
+    // SpareScreen: GA4 visitors + downloads; sales and revenue hidden for now (Sarthak, Oct 2026), see SHOW_SPARESCREEN_SALES in fetch-live-stats.mjs
     { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', tag: 'New',
       all: function (d) { return GA(d).concat([[d.downloads, 'downloads']]); } }
   ];
@@ -178,7 +178,7 @@
   }
   function renderServices() { // "live now": only your own products, only at HEAD (the section sits above the history, so it always is)
     // People who use the products, added up: only products that count users (clones aren't users; this site isn't a product)
-    var people = stats ? ['askmyastro', 'filedownloader', 'discretedocs'].reduce(function (n, id) { return n + ((stats[id] && stats[id].users) || 0); }, 0) : 0;
+    var people = stats ? ['askmyastro', 'filedownloader', 'discretedocs', 'sparescreen'].reduce(function (n, id) { return n + ((stats[id] && stats[id].users) || 0); }, 0) : 0;
     $('svcPeople').textContent = people ? '(' + k(people) + ' users)' : '';
     $('svcNote').textContent = stats ? 'live · refreshed ' + stats.updated : 'live · refreshed daily';
     $('svc').innerHTML = SERVICES.filter(function (s) { return !s.hide; }).map(function (s, i) {

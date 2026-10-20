@@ -7,10 +7,11 @@ const PROPERTIES = {
   askmyastro: "541034254",
   filedownloader: "214739151",
   discretedocs: "557639183", // launched Oct 2026; read access granted to the service account on 2026-10-07
+  sparescreen: "558769468", // getsparescreen.com; needs Viewer access for the service account
   portfolio: "541660570", // this site, sarthakchhabra.com: visitors shown in the status bar
 };
 /* Young properties: a failed fetch with nothing stored yet must not fail the whole run. */
-const OPTIONAL = new Set(["discretedocs", "portfolio"]);
+const OPTIONAL = new Set(["discretedocs", "sparescreen", "portfolio"]);
 const START_DATE = "2016-01-01"; // GA4 Data API rejects anything before 2015-08-14
 /* Switchboard ships as a Claude Code plugin, so there is no download counter — a
    `/plugin marketplace add` is a git clone, and GitHub's traffic API is the only
@@ -23,7 +24,7 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones", sparescreen: "users" };
 /* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
    the sum of files_in on tool_run (registered as a GA4 custom metric on 2026-10-07), never less
    than the number of runs, since every run processes at least one file. */
@@ -302,7 +303,7 @@ async function main() {
     if (previous.castbar) out.castbar = previous.castbar;
   }
   try {
-    out.sparescreen = await fetchSpareScreen(previous.sparescreen);
+    out.sparescreen = { ...(await fetchSpareScreen(previous.sparescreen)), ...out.sparescreen }; // fresh GA4 numbers win over stored ones
   } catch (err) {
     console.warn(`WARN keeping previous sparescreen stats: ${err.message}`);
     if (previous.sparescreen) out.sparescreen = previous.sparescreen;
