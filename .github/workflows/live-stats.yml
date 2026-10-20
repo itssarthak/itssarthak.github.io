@@ -27,6 +27,8 @@ jobs:
         env:
           GA4_SA_KEY: ${{ secrets.GA4_SA_KEY }}
           GH_TRAFFIC_TOKEN: ${{ secrets.GH_TRAFFIC_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_D1_TOKEN: ${{ secrets.CF_D1_TOKEN }}
         run: node scripts/fetch-live-stats.mjs
       - name: Commit if changed
         env:

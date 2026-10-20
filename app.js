@@ -44,7 +44,11 @@
     { id: 'castbar', name: 'Castbar', d: 'Your Chromecast remote, right in your Mac menu bar.', href: null, url: 'https://github.com/itssarthak/castbar', site: 'GitHub', ph: 'https://www.producthunt.com/products/castbar', tag: 'New',
       all: function (d) { return GH(d).concat([[d.downloads, 'downloads']]); } },
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
-      all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } }
+      all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } },
+    // SpareScreen: installs and sales from its own server, revenue converted to US dollars (Sarthak, Oct 2026: show the dollar amount)
+    { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', tag: 'New',
+      all: function (d) { return GA(d).concat([[d.installs, 'installs'], [d.downloads, 'downloads'], [d.sales, 'sales'], [d.usd, 'dollars earned']]); },
+      turns: function (d) { return [[d.installs, 'installs'], [d.usd, 'dollars earned'], [d.sales, 'sales']].filter(function (x) { return x[0] > 0; }); } }
   ];
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {
@@ -57,7 +61,7 @@
     ['Has he led a team?', 'Do you have team-leading experience?'], 
     
     ['What has he built on his own?', 'What have you built yourself?'], ['What is Switchboard?', 'What is Switchboard?'],
-    ['What is FileDownloader?', 'What is FileDownloader?'], ['What is Castbar?', 'What is Castbar?'], ['What is DiscreteDocs?', 'What is DiscreteDocs?'], ['Are these numbers real?', 'Are these numbers real?'],
+    ['What is FileDownloader?', 'What is FileDownloader?'], ['What is Castbar?', 'What is Castbar?'], ['What is DiscreteDocs?', 'What is DiscreteDocs?'], ['What is SpareScreen?', 'What is SpareScreen?'], ['Are these numbers real?', 'Are these numbers real?'],
     ['What did he build at Stashfin?', 'What did you do at Stashfin?'], ['How does his LLM router work?', "What's the LLM routing engine?"],
     ['How did the companion hit 46% retention?', 'How did the companion reach 46% D15 retention?'], ['How does he reduce hallucinations?', 'How do you reduce hallucinations?'],
     ['How does he keep LLM costs down?', 'How do you control LLM costs?'], ['How does he evaluate LLM outputs?', 'How do you evaluate LLM outputs?'],
@@ -195,6 +199,7 @@
         var m = s.turns && stats[s.id] && $('svc').querySelector('[data-id="' + s.id + '"] .m');
         if (!m) return;
         var t = s.turns(stats[s.id]), x = t[turn % t.length], num = m.querySelector('.num');
+        if (!x) return;
         num.dataset.n = x[0]; num.textContent = k(x[0]); m.querySelector('small').textContent = x[1];
       });
     }, 3000);
@@ -747,6 +752,7 @@
       askmyastro: ['An AI astrologer that’s honest with you. Ask me why.', 'Why astrology?', 'the visitor is looking at AskMyAstro, his honest AI astrologer'],
       filedownloader: [function () { return stats ? k(stats.filedownloader.downloads) + ' downloads and counting!' : 'Paste links, get every file at once.'; }, 'What is FileDownloader?', 'the visitor is looking at FileDownloader, his bulk file-download tool with hundreds of thousands of downloads'],
       switchboard: ['I built Switchboard to tame 12 Claude Code sessions.', 'Why did he build Switchboard?', 'the visitor is looking at Switchboard, his dashboard for Claude Code sessions'],
+      sparescreen: ['That old iPad? It can be your second screen.', 'What is SpareScreen?', 'the visitor is looking at SpareScreen, his app that turns a spare tablet or phone into a wireless second screen for a Mac'],
       castbar: ['My Chromecast remote, right in the menu bar.', 'What is Castbar?', 'the visitor is looking at Castbar, his Chromecast remote for the Mac menu bar'],
       discretedocs: [function () { return PH_STAGE === 'today' ? 'Live on Product Hunt today! 🚀' : 'PDF tools that never upload your files.'; }, 'What is DiscreteDocs?', 'the visitor is looking at DiscreteDocs, his private in-browser PDF tools' + (PH_STAGE === 'today' ? ', launching on Product Hunt today' : '')]
     };

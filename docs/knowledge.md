@@ -220,7 +220,7 @@ In code reviews Sarthak looks for correctness and edge cases first, then readabi
 
 ## His own products
 > side projects, what has he built himself, personal projects, product hunt, his launches
-Sarthak builds and runs five products of his own: AskMyAstro (an AI astrologer), FileDownloader (a bulk file-download tool), Claude Code Switchboard (an open-source dashboard for Claude Code sessions), Castbar (a Chromecast remote in the Mac menu bar) and DiscreteDocs (PDF tools that run inside the browser). On Product Hunt: AskMyAstro launched in August 2026, Castbar on 27 September 2026, and DiscreteDocs is scheduled for 10 October 2026. He grows them by building in public: writing about what he makes and sharing it where the right people already are.
+Sarthak builds and runs six products of his own: AskMyAstro (an AI astrologer), FileDownloader (a bulk file-download tool), Claude Code Switchboard (an open-source dashboard for Claude Code sessions), Castbar (a Chromecast remote in the Mac menu bar) DiscreteDocs (PDF tools that run inside the browser) and SpareScreen (turns a spare tablet or phone into a wireless second screen for a Mac). On Product Hunt: AskMyAstro launched in August 2026, Castbar on 27 September 2026, and DiscreteDocs is scheduled for 10 October 2026. He grows them by building in public: writing about what he makes and sharing it where the right people already are.
 
 ## AskMyAstro
 AskMyAstro (askmyastro.in) is an AI astrologer Sarthak built and runs solo. It reads a person's birth chart and answers real questions over chat. He built the LLM prompt pipeline, the chart computation and the product around it. It has {{askmyastro.users}} users so far. It launched on Product Hunt in August 2026. He built it because other AI astrology apps were built to squeeze money out of people and weren't honest with them; he wanted one that is truthful and helpful first.
@@ -245,6 +245,10 @@ Castbar is Sarthak's Chromecast remote for the Mac menu bar. It controls every C
 ## DiscreteDocs
 > discretedocs, pdf tools, merge pdf, compress pdf, convert pdf, private pdf editor
 DiscreteDocs (discretedocs.com) is a free set of PDF tools by Sarthak that works inside the visitor's own browser, so files never leave their device. Most PDF websites upload your file to their servers to work on it; DiscreteDocs does the work locally instead. It can merge, split, extract and rotate pages; compress, repair and OCR; convert Word, Excel, PowerPoint, HTML and images to PDF and PDF back to those formats or Markdown; add text, watermarks and page numbers; and sign, protect, unlock, redact and compare PDFs. It is scheduled to launch on Product Hunt on 10 October 2026.
+
+## SpareScreen
+> sparescreen, getsparescreen, second screen, second monitor, ipad as monitor, extra display, mac app, sidecar alternative
+SpareScreen (getsparescreen.com) is a Mac menu-bar app Sarthak built solo that turns any spare tablet, phone or old laptop into a wireless second screen. It adds a real extra display to the Mac and streams it over Wi-Fi to any device with a web browser, so there is nothing to install on the tablet: scan a QR code or open a link. Touching the tablet can also control the Mac (optional). He built all of it: the macOS app in Swift (ScreenCaptureKit and macOS's virtual-display support), the streaming server and viewer page, licensing and payments, the website and its guides, and the Homebrew install. It has a 7-day free trial, then costs $7.99 once for lifetime access.
 
 ## Live numbers on this site
 The product numbers on Sarthak's site are pulled daily from Google Analytics and GitHub and are not edited.
