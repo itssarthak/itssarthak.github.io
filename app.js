@@ -47,8 +47,7 @@
       all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } },
     // SpareScreen: GA4 visitors + downloads; sales and revenue hidden for now (Sarthak, Oct 2026), see SHOW_SPARESCREEN_SALES in fetch-live-stats.mjs
     { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', tag: 'New',
-      all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']]; }, // users or downloads, never visits (Sarthak, Oct 2026)
-      turns: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']].filter(function (x) { return x[0] > 0; }); } }
+      all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']];  } } // whichever of users or downloads is higher, never visits (Sarthak, Oct 2026)
   ];
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {
