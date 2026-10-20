@@ -133,6 +133,50 @@
       ]
     }
   },
+  "sparescreen": {
+    "downloads": 15,
+    "users": 41,
+    "pageviews": 74,
+    "visits": 51,
+    "engaged": 17,
+    "seconds": 477,
+    "series": {
+      "metric": "users",
+      "from": "2026-09-20",
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        12,
+        11,
+        11,
+        2,
+        4,
+        3
+      ]
+    }
+  },
   "portfolio": {
     "users": 201,
     "pageviews": 706,
@@ -385,9 +429,6 @@
       ]
     },
     "downloads": 5
-  },
-  "sparescreen": {
-    "downloads": 15
   },
   "switchboard": {
     "clones": 561,
