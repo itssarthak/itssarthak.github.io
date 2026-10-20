@@ -1,11 +1,11 @@
 {
   "updated": "2026-10-20",
   "askmyastro": {
-    "users": 5288,
-    "pageviews": 16777,
-    "visits": 6104,
-    "engaged": 5008,
-    "seconds": 255656,
+    "users": 5291,
+    "pageviews": 16780,
+    "visits": 6108,
+    "engaged": 5011,
+    "seconds": 255666,
     "series": {
       "metric": "users",
       "from": "2026-09-20",
@@ -39,18 +39,18 @@
         35,
         8,
         7,
-        11
+        13
       ]
     }
   },
   "filedownloader": {
-    "users": 7586,
-    "pageviews": 28687,
-    "visits": 9605,
-    "engaged": 8168,
-    "seconds": 829683,
-    "downloads": 749906,
-    "kb": 17535952.499023438,
+    "users": 7587,
+    "pageviews": 28694,
+    "visits": 9609,
+    "engaged": 8171,
+    "seconds": 829856,
+    "downloads": 750406,
+    "kb": 17557654.884765625,
     "series": {
       "metric": "downloads",
       "from": "2026-09-20",
@@ -84,7 +84,7 @@
         4700,
         197,
         838,
-        594
+        1094
       ]
     }
   },
@@ -135,11 +135,11 @@
   },
   "sparescreen": {
     "downloads": 15,
-    "users": 41,
-    "pageviews": 74,
-    "visits": 51,
-    "engaged": 17,
-    "seconds": 477,
+    "users": 42,
+    "pageviews": 75,
+    "visits": 52,
+    "engaged": 18,
+    "seconds": 480,
     "series": {
       "metric": "users",
       "from": "2026-09-20",
@@ -173,16 +173,16 @@
         11,
         2,
         4,
-        3
+        4
       ]
     }
   },
   "portfolio": {
     "users": 201,
-    "pageviews": 706,
-    "visits": 352,
-    "engaged": 219,
-    "seconds": 18432,
+    "pageviews": 714,
+    "visits": 356,
+    "engaged": 222,
+    "seconds": 18660,
     "series": {
       "metric": "visits",
       "from": "2026-09-20",
@@ -216,7 +216,7 @@
         1,
         0,
         2,
-        1
+        5
       ]
     }
   },
