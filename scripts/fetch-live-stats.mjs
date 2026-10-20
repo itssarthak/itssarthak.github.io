@@ -153,7 +153,10 @@ async function fetchSpareScreen(previous) {
     out.usd = toUsd(sales, fx.rates);
   } catch (err) { console.warn(`WARN keeping previous sparescreen sales: ${err.message}`); }
   try {
-    const rel = await gh("/releases?per_page=100", SPARESCREEN_REPO);
+    // public repo outside the traffic token's reach, so read it unauthenticated
+    const res = await fetch(`https://api.github.com/repos/${SPARESCREEN_REPO}/releases?per_page=100`, { headers: { Accept: "application/vnd.github+json" } });
+    if (!res.ok) throw new Error(`releases: ${res.status}`);
+    const rel = await res.json();
     out.downloads = rel.reduce((n, r) => n + r.assets.reduce((m, a) => m + a.download_count, 0), 0);
   } catch (err) { console.warn(`WARN keeping previous sparescreen downloads: ${err.message}`); }
   return out;
