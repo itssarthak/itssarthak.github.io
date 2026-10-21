@@ -1,16 +1,15 @@
 {
-  "updated": "2026-10-20",
+  "updated": "2026-10-21",
   "askmyastro": {
-    "users": 5291,
-    "pageviews": 16780,
-    "visits": 6108,
-    "engaged": 5011,
-    "seconds": 255666,
+    "users": 5301,
+    "pageviews": 16833,
+    "visits": 6138,
+    "engaged": 5025,
+    "seconds": 257386,
     "series": {
       "metric": "users",
-      "from": "2026-09-20",
+      "from": "2026-09-21",
       "values": [
-        4,
         3,
         4,
         2,
@@ -39,23 +38,23 @@
         35,
         8,
         7,
+        13,
         13
       ]
     }
   },
   "filedownloader": {
-    "users": 7587,
-    "pageviews": 28694,
-    "visits": 9609,
-    "engaged": 8171,
-    "seconds": 829856,
-    "downloads": 750406,
-    "kb": 17557654.884765625,
+    "users": 7627,
+    "pageviews": 28819,
+    "visits": 9671,
+    "engaged": 8212,
+    "seconds": 833342,
+    "downloads": 750974,
+    "kb": 18157501.75,
     "series": {
       "metric": "downloads",
-      "from": "2026-09-20",
+      "from": "2026-09-21",
       "values": [
-        4041,
         13642,
         3960,
         2366,
@@ -84,23 +83,23 @@
         4700,
         197,
         838,
-        1094
+        1385,
+        269
       ]
     }
   },
   "discretedocs": {
     "users": 126,
-    "pageviews": 291,
-    "visits": 167,
-    "engaged": 78,
-    "seconds": 2471,
+    "pageviews": 295,
+    "visits": 168,
+    "engaged": 79,
+    "seconds": 2521,
     "files": 27,
     "kb": 943887,
     "series": {
       "metric": "files",
-      "from": "2026-09-20",
+      "from": "2026-09-21",
       "values": [
-        0,
         0,
         0,
         0,
@@ -129,22 +128,22 @@
         3,
         0,
         0,
+        0,
         0
       ]
     }
   },
   "sparescreen": {
     "downloads": 15,
-    "users": 42,
-    "pageviews": 75,
-    "visits": 52,
-    "engaged": 18,
-    "seconds": 480,
+    "users": 55,
+    "pageviews": 93,
+    "visits": 68,
+    "engaged": 20,
+    "seconds": 527,
     "series": {
       "metric": "users",
-      "from": "2026-09-20",
+      "from": "2026-09-21",
       "values": [
-        0,
         0,
         0,
         0,
@@ -173,21 +172,21 @@
         11,
         2,
         4,
-        4
+        4,
+        13
       ]
     }
   },
   "portfolio": {
     "users": 201,
-    "pageviews": 714,
-    "visits": 356,
-    "engaged": 222,
-    "seconds": 18660,
+    "pageviews": 719,
+    "visits": 358,
+    "engaged": 224,
+    "seconds": 18755,
     "series": {
       "metric": "visits",
-      "from": "2026-09-20",
+      "from": "2026-09-21",
       "values": [
-        1,
         4,
         0,
         0,
@@ -216,13 +215,14 @@
         1,
         0,
         2,
-        5
+        5,
+        2
       ]
     }
   },
   "castbar": {
-    "clones": 152,
-    "uniques": 87,
+    "clones": 153,
+    "uniques": 88,
     "views": 5,
     "viewers": 3,
     "stars": 0,
@@ -331,6 +331,14 @@
       "2026-10-18": [
         12,
         7
+      ],
+      "2026-10-19": [
+        0,
+        0
+      ],
+      "2026-10-20": [
+        1,
+        1
       ]
     },
     "viewDays": {
@@ -397,6 +405,14 @@
       "2026-10-18": [
         0,
         0
+      ],
+      "2026-10-19": [
+        0,
+        0
+      ],
+      "2026-10-20": [
+        0,
+        0
       ]
     },
     "series": {
@@ -425,16 +441,18 @@
         0,
         0,
         0,
-        12
+        12,
+        0,
+        1
       ]
     },
     "downloads": 5
   },
   "switchboard": {
-    "clones": 561,
-    "uniques": 275,
-    "views": 9,
-    "viewers": 9,
+    "clones": 565,
+    "uniques": 278,
+    "views": 10,
+    "viewers": 10,
     "stars": 4,
     "forks": 1,
     "days": {
@@ -705,6 +723,10 @@
       "2026-10-18": [
         35,
         17
+      ],
+      "2026-10-19": [
+        4,
+        3
       ]
     },
     "viewDays": {
@@ -771,13 +793,16 @@
       "2026-10-18": [
         1,
         1
+      ],
+      "2026-10-19": [
+        1,
+        1
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-09-19",
+      "from": "2026-09-20",
       "values": [
-        1,
         7,
         2,
         3,
@@ -806,7 +831,8 @@
         5,
         12,
         3,
-        35
+        35,
+        4
       ]
     }
   }
