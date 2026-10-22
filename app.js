@@ -47,7 +47,8 @@
       all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } },
     // SpareScreen: GA4 visitors + downloads; sales and revenue hidden for now (Sarthak, Oct 2026), see SHOW_SPARESCREEN_SALES in fetch-live-stats.mjs
     { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', tag: 'New',
-      all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']];  } } // whichever of users or downloads is higher, never visits (Sarthak, Oct 2026)
+      all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']];  } }, // whichever of users or downloads is higher, never visits (Sarthak, Oct 2026)
+    { id: 'eyeshift', name: 'Eyeshift', d: 'Look at a window or split pane and your typing goes there. Webcam, on-device.', href: null, url: 'https://github.com/itssarthak/eyeshift', site: 'GitHub', tag: 'New', all: GH }
   ];
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {
@@ -60,7 +61,7 @@
     ['Has he led a team?', 'Do you have team-leading experience?'], 
     
     ['What has he built on his own?', 'What have you built yourself?'], ['What is Switchboard?', 'What is Switchboard?'],
-    ['What is FileDownloader?', 'What is FileDownloader?'], ['What is Castbar?', 'What is Castbar?'], ['What is DiscreteDocs?', 'What is DiscreteDocs?'], ['What is SpareScreen?', 'What is SpareScreen?'], ['Are these numbers real?', 'Are these numbers real?'],
+    ['What is FileDownloader?', 'What is FileDownloader?'], ['What is Castbar?', 'What is Castbar?'], ['What is DiscreteDocs?', 'What is DiscreteDocs?'], ['What is SpareScreen?', 'What is SpareScreen?'], ['What is Eyeshift?', 'What is Eyeshift?'], ['Are these numbers real?', 'Are these numbers real?'],
     ['What did he build at Stashfin?', 'What did you do at Stashfin?'], ['How does his LLM router work?', "What's the LLM routing engine?"],
     ['How did the companion hit 46% retention?', 'How did the companion reach 46% D15 retention?'], ['How does he reduce hallucinations?', 'How do you reduce hallucinations?'],
     ['How does he keep LLM costs down?', 'How do you control LLM costs?'], ['How does he evaluate LLM outputs?', 'How do you evaluate LLM outputs?'],
@@ -752,6 +753,7 @@
       filedownloader: [function () { return stats ? k(stats.filedownloader.downloads) + ' downloads and counting!' : 'Paste links, get every file at once.'; }, 'What is FileDownloader?', 'the visitor is looking at FileDownloader, his bulk file-download tool with hundreds of thousands of downloads'],
       switchboard: ['I built Switchboard to tame 12 Claude Code sessions.', 'Why did he build Switchboard?', 'the visitor is looking at Switchboard, his dashboard for Claude Code sessions'],
       sparescreen: ['That old iPad? It can be your second screen.', 'What is SpareScreen?', 'the visitor is looking at SpareScreen, his app that turns a spare tablet or phone into a wireless second screen for a Mac'],
+      eyeshift: ['Look at a window and start typing. No click.', 'What is Eyeshift?', 'the visitor is looking at Eyeshift, his open-source Mac app that moves keyboard focus to whichever window or pane he looks at'],
       castbar: ['My Chromecast remote, right in the menu bar.', 'What is Castbar?', 'the visitor is looking at Castbar, his Chromecast remote for the Mac menu bar'],
       discretedocs: [function () { return PH_STAGE === 'today' ? 'Live on Product Hunt today! 🚀' : 'PDF tools that never upload your files.'; }, 'What is DiscreteDocs?', 'the visitor is looking at DiscreteDocs, his private in-browser PDF tools' + (PH_STAGE === 'today' ? ', launching on Product Hunt today' : '')]
     };

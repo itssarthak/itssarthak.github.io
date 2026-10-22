@@ -24,7 +24,7 @@ const OUT_URL = new URL("../assets/data/live-stats.json", import.meta.url);
 /* Daily trend series: each product charts its own headline metric, so the two are
    never plotted on a shared axis. 30 days is the widest window the UI offers. */
 const SERIES_DAYS = 30;
-const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones", sparescreen: "users" };
+const SERIES_METRIC = { askmyastro: "users", filedownloader: "downloads", discretedocs: "files", portfolio: "visits", switchboard: "clones", castbar: "clones", eyeshift: "clones", sparescreen: "users" };
 /* Products whose headline number is an event, not users. DiscreteDocs counts files processed:
    the sum of files_in on tool_run (registered as a GA4 custom metric on 2026-10-07), never less
    than the number of runs, since every run processes at least one file. */
@@ -307,6 +307,12 @@ async function main() {
   } catch (err) {
     console.warn(`WARN keeping previous sparescreen stats: ${err.message}`);
     if (previous.sparescreen) out.sparescreen = previous.sparescreen;
+  }
+  try {
+    out.eyeshift = await fetchClones("itssarthak/eyeshift", previous.eyeshift, "eyeshift");
+  } catch (err) {
+    console.warn(`WARN keeping previous eyeshift stats: ${err.message}`);
+    if (previous.eyeshift) out.eyeshift = previous.eyeshift;
   }
   /* GitHub is a side signal: a failure here must never drop the GA4 numbers. */
   try {
