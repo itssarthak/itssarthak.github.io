@@ -46,7 +46,7 @@
     { id: 'discretedocs', name: 'DiscreteDocs', d: 'PDF tools that work inside your browser. Your files never leave your device.', href: null, url: 'https://discretedocs.com', site: 'discretedocs.com', ph: 'https://www.producthunt.com/products/discretedocs', tag: 'New',
       all: function (d) { return GA(d).concat([[d.files, 'files processed'], [Math.round((d.kb || 0) / 104857.6) / 10, 'GB processed']]); } },
     // SpareScreen: GA4 visitors + downloads; sales and revenue hidden for now (Sarthak, Oct 2026), see SHOW_SPARESCREEN_SALES in fetch-live-stats.mjs
-    { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', tag: 'New',
+    { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', ph: 'https://www.producthunt.com/products/sparescreen?launch=sparescreen', tag: 'New',
       all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']];  } }, // whichever of users or downloads is higher, never visits (Sarthak, Oct 2026)
     { id: 'eyeshift', name: 'Eyeshift', d: 'Look at a window or split pane and your typing goes there. Webcam, on-device.', href: null, url: 'https://sarthakchhabra.com/eyeshift/', site: 'sarthakchhabra.com/eyeshift', tag: 'New', all: GH }
   ];
