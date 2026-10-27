@@ -1,0 +1,20 @@
+# Sarthak Chhabra
+
+> Tech Lead working on AI agent platforms, LLM infrastructure and distributed systems, who also builds and runs his own products solo.
+
+## Products
+
+- [AskMyAstro](https://askmyastro.in): An AI astrologer that reads your birth chart and answers over chat.
+- [FileDownloader](https://filedownloader.in): Paste links, get every file at once, zipped.
+- [DiscreteDocs](https://discretedocs.com): PDF tools that work inside your browser. Your files never leave your device.
+- [SpareScreen](https://getsparescreen.com): Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.
+- [Eyeshift](https://sarthakchhabra.com/eyeshift/): Open-source Mac app. Look at a window or split pane and your typing goes there. Webcam, on-device.
+- [Castbar](https://github.com/itssarthak/castbar): Your Chromecast remote, right in your Mac menu bar.
+- [Switchboard](https://github.com/itssarthak/claudecode-switchboard): Open-source dashboard for every Claude Code session on your Mac.
+
+## Key pages
+
+- [Home](https://sarthakchhabra.com/): Portfolio, live product stats, and an Ask box that answers questions about Sarthak.
+- [Résumé](https://sarthakchhabra.com/resume.html): Experience, skills and work history.
+- [How AskMyAstro works](https://sarthakchhabra.com/askmyastro.html): One question traced through the system, step by step.
+- [Contact](https://sarthakchhabra.com/contact.html): Email hello@sarthakchhabra.com.
