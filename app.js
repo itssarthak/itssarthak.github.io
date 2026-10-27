@@ -48,7 +48,7 @@
     // SpareScreen: GA4 visitors + downloads; sales and revenue hidden for now (Sarthak, Oct 2026), see SHOW_SPARESCREEN_SALES in fetch-live-stats.mjs
     { id: 'sparescreen', name: 'SpareScreen', d: 'Turn a spare tablet, phone or old laptop into a wireless second screen for your Mac.', href: null, url: 'https://getsparescreen.com', site: 'getsparescreen.com', ph: 'https://www.producthunt.com/products/sparescreen?launch=sparescreen', tag: 'New',
       all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']];  } }, // whichever of users or downloads is higher, never visits (Sarthak, Oct 2026)
-    { id: 'eyeshift', name: 'Eyeshift', d: 'Look at a window or split pane and your typing goes there. Webcam, on-device.', href: null, url: 'https://sarthakchhabra.com/eyeshift/', site: 'sarthakchhabra.com/eyeshift', tag: 'New', all: GH }
+    { id: 'eyeshift', name: 'Eyeshift', d: 'Look at a window or split pane and your typing goes there. Webcam, on-device.', href: null, url: 'https://sarthakchhabra.com/eyeshift/', site: 'sarthakchhabra.com/eyeshift', ph: 'https://www.producthunt.com/products/eyeshift?launch=eyeshift', tag: 'New', all: GH }
   ];
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {
