@@ -50,6 +50,17 @@
       all: function (d) { return [[d.users, 'users'], [d.downloads, 'downloads']];  } }, // whichever of users or downloads is higher, never visits (Sarthak, Oct 2026)
     { id: 'eyeshift', name: 'Eyeshift', d: 'Look at a window or split pane and your typing goes there. Webcam, on-device.', href: null, url: 'https://sarthakchhabra.com/eyeshift/', site: 'sarthakchhabra.com/eyeshift', ph: 'https://www.producthunt.com/products/eyeshift?launch=eyeshift', tag: 'New', all: GH }
   ];
+  // Outbound links to our own product sites carry UTM tags so each product's analytics can credit the portfolio.
+  // GitHub, Product Hunt and this site's own pages stay untagged.
+  var UTM_HOSTS = /^https:\/\/(www\.)?(askmyastro\.in|filedownloader\.in|discretedocs\.com|getsparescreen\.com)(\/|$|\?|#)/;
+  function utm(url, where) {
+    if (!url || !UTM_HOSTS.test(url)) return url;
+    var u = new URL(url);
+    [['utm_source', 'sarthakchhabra.com'], ['utm_medium', 'referral'], ['utm_campaign', 'portfolio'], ['utm_content', where]].forEach(function (p) { u.searchParams.set(p[0], p[1]); });
+    return u.href;
+  }
+  // Static product links in the page HTML (e.g. "Try it live" on the demo pages), tagged by page name.
+  document.querySelectorAll('a[href]').forEach(function (a) { a.href = utm(a.getAttribute('href'), location.pathname.replace(/^\/|\.html$/g, '') || 'home'); });
   function best(s, st) { return s.all(st[s.id]).filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; })[0] || [0, '']; }
   SERVICES.forEach(function (s) {
     s.n = function (st) { return best(s, st)[0]; };
@@ -188,7 +199,7 @@
       return '<div class="card in" data-id="' + s.id + '" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
         '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (live ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' + (s.tag ? '<span class="new">' + s.tag + '</span>' : '') +
         (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
-        '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
+        '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + utm(s.url, s.id) + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';
     }).join('');
     if (!stats) return;
     countUp();
@@ -884,8 +895,8 @@
       return list.split(',').map(function (n) { n = +n; if (!r.notes[n - 1]) return ''; if (cited.indexOf(n) < 0) cited.push(n); return '<sup class="cite">' + n + '</sup>'; }).join('');
     });
     html += cited.length ? '<ol class="srcs">' + cited.sort(function (a, b) { return a - b; }).map(function (n) { var s = r.notes[n - 1];
-      return '<li value="' + n + '">' + (s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + '</a>' : esc(s.label)) + '</li>'; }).join('') + '</ol>' : '';
-    html += r.actions.length ? '<div class="acts">' + r.actions.map(function (a) { return '<a class="btn" href="' + esc(a.href) + '" target="_blank" rel="noopener">' + esc(a.label) + '</a>'; }).join('') + '</div>' : '';
+      return '<li value="' + n + '">' + (s.url ? '<a href="' + esc(utm(s.url, 'chat')) + '" target="_blank" rel="noopener">' + esc(s.label) + '</a>' : esc(s.label)) + '</li>'; }).join('') + '</ol>' : '';
+    html += r.actions.length ? '<div class="acts">' + r.actions.map(function (a) { return '<a class="btn" href="' + esc(utm(a.href, 'chat')) + '" target="_blank" rel="noopener">' + esc(a.label) + '</a>'; }).join('') + '</div>' : '';
     if (r.draft) html += '<form class="draft"><p class="matched">Message to Sarthak · check it, then send</p><input name="fullname" required aria-label="Your name" placeholder="Your name" value="' + esc(r.draft.fullname) + '">' +
       '<input name="email" type="email" required aria-label="Your email" placeholder="Your email, so he can reply" value="' + esc(r.draft.email) + '"><textarea name="message" required rows="3" aria-label="Message" placeholder="Your message">' + esc(r.draft.message) + '</textarea>' +
       '<div><button class="btn p" type="submit">Send</button> <span class="form-msg"></span></div></form>';
@@ -1338,8 +1349,8 @@
         var s = SERVICES.find(function (x) { return x.id === arg.toLowerCase(); });
         if (!s) { r = resolve(arg); if (r && !r.node.dir) { print(esc(r.node.read())); if (r.node.run) r.node.run(); return; } }
         if (!s) return print('usage: ' + cmd + ' <' + SERVICES.map(function (x) { return x.id; }).join('|') + '>', 'e');
-        if (cmd === 'visit') { window.open(s.url, '_blank', 'noopener'); return print('opened ' + s.url, 'd'); }
-        if (!s.href) { window.open(s.url, '_blank', 'noopener'); return print('opened ' + s.url, 'd'); } // no demo page yet
+        if (cmd === 'visit') { window.open(utm(s.url, 'terminal'), '_blank', 'noopener'); return print('opened ' + s.url, 'd'); }
+        if (!s.href) { window.open(utm(s.url, 'terminal'), '_blank', 'noopener'); return print('opened ' + s.url, 'd'); } // no demo page yet
         location.href = '/' + s.href; return;
       }
       case 'clear': out.innerHTML = ''; return;
