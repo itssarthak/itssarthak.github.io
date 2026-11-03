@@ -19,7 +19,7 @@ Content decisions: docs/assistant-review.md (reviewed with Sarthak, Oct 2026).
 
 ## Who Sarthak is
 > about him, introduction, tell me about yourself, summary, years of experience, one-line pitch, what does he do
-Sarthak Chhabra spends his days teaching AI agents to behave in production, with 7+ years of backend scars to show for it. He is based in Gurgaon, India, and is a backend and platform engineer who builds the platforms that put AI agents into production: LLM routing engines, RAG pipelines, agent platforms and no-code tooling that turns weeks of engineering into minutes of configuration. In one line: he removes the engineering bottleneck between an idea and a running system.
+Sarthak Chhabra spends his days teaching AI agents to behave in production, with 7+ years of backend scars to show for it. He is based in Gurgaon, India, and is an SDE 3 at MongoDB on the AI builder experience team, making MongoDB work for AI coding agents like Claude Code and Codex. Before that, as a backend and platform engineer, he built the platforms that put AI agents into production: LLM routing engines, RAG pipelines, agent platforms and no-code tooling that turns weeks of engineering into minutes of configuration. In one line: he removes the engineering bottleneck between an idea and a running system.
 
 ## Location and time zone
 > where is he based, where does he live, which city, which country, time zone
@@ -33,7 +33,7 @@ Outside work, Sarthak likes getting out for a drive, eating out, and swimming.
 
 ## Career timeline
 > work history, where has he worked, list of companies, employment history, how long at each company, tenure, dates of each job
-Sarthak's roles, most recent first: Technical Lead at Stashfin, Feb 2026 – Jul 2026 (5 months). Technical Lead, Gen AI at Zupee (Cashgrail Pvt Ltd), Jul 2025 – Feb 2026 (7 months). Senior Software Engineer at Dresma AI, Apr 2022 – Apr 2025 (3 years). Full Stack Developer at Gigforce, May 2021 – Apr 2022 (11 months). Software Developer at Signcatch, Oct 2020 – May 2021 (7 months). Associate Software Engineer at Bosch, Aug 2019 – Oct 2020 (1 year 2 months), after a Project Trainee internship at Bosch from Jan 2019 to Jul 2019. Education: B.E. Computer Science, Lovely Professional University, 2015 – 2019.
+Sarthak's roles, most recent first: SDE 3 at MongoDB, on the AI builder experience team, Nov 2026 – present. Technical Lead at Stashfin, Feb 2026 – Jul 2026 (5 months). Technical Lead, Gen AI at Zupee (Cashgrail Pvt Ltd), Jul 2025 – Feb 2026 (7 months). Senior Software Engineer at Dresma AI, Apr 2022 – Apr 2025 (3 years). Full Stack Developer at Gigforce, May 2021 – Apr 2022 (11 months). Software Developer at Signcatch, Oct 2020 – May 2021 (7 months). Associate Software Engineer at Bosch, Aug 2019 – Oct 2020 (1 year 2 months), after a Project Trainee internship at Bosch from Jan 2019 to Jul 2019. Education: B.E. Computer Science, Lovely Professional University, 2015 – 2019.
 
 ## Education
 > where did he study, university, college, degree
@@ -114,9 +114,13 @@ Sarthak started his career at Bosch, first as a Project Trainee intern (Jan 2019
 ## Bosch: why he left
 Sarthak left Bosch for the speed and ownership of a startup. Bosch taught him discipline and engineering rigour, and he wanted to apply it somewhere he could move faster and own more.
 
-## Since Stashfin
-> what is he doing now, current status, gap after Stashfin
-Since leaving Stashfin in Jul 2026, Sarthak has been building and running his own products, AskMyAstro, FileDownloader and Claude Code Switchboard.
+## MongoDB: current role
+> what is he doing now, current job, where does he work now, current status, MongoDB, what does he do at MongoDB
+Sarthak is an SDE 3 at MongoDB, on the AI builder experience team, since Nov 2026. The team makes MongoDB's services work for AI coding agents like Claude Code and Codex.
+
+## Between Stashfin and MongoDB
+> gap after Stashfin, what did he do after Stashfin
+After leaving Stashfin in Jul 2026 and before joining MongoDB, Sarthak built and ran his own products, including AskMyAstro, FileDownloader and Claude Code Switchboard.
 
 ## Leadership style
 > team size, how many people has he managed, people management, team lead experience
@@ -263,7 +267,7 @@ To contact Sarthak: email hello@sarthakchhabra.com, LinkedIn linkedin.com/in/sar
 
 ## This website
 > hidden features, easter eggs, time slider, version history, terminal, how was this site built, is this site open source
-Sarthak's site is versioned like software: scrolling through the version history rolls it back, and the projects, stack and look change with each version (v1 student to v6 tech lead). Pressing ~ opens a terminal. The Ask chat runs entirely in the visitor's browser and answers only from Sarthak's own profile, web searches and live stats.
+Sarthak's site is versioned like software: scrolling through the version history rolls it back, and the projects, stack and look change with each version (v1 student to v7, his current role at MongoDB). Pressing ~ opens a terminal. The Ask chat runs entirely in the visitor's browser and answers only from Sarthak's own profile, web searches and live stats.
 
 ## Work, availability and opportunities
 > is he open to work, is he available, is he looking for a job, hiring him, can we hire him, what role does he want, kind of work he wants, companies he wants to work at, salary, remote, relocation, visa, contract, freelance, notice period, when can he start, references, on-call, IC or manager, future plans, five-year goal

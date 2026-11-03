@@ -6,29 +6,32 @@
   // Versions follow titles, not dates (no dates anywhere on the site). `look` picks the page style for that version;
   // company names only appear as small labels on projects.
   var STOPS = [
-    { v: 'v1', title: 'Student', look: 'college', blurb: 'B.E. Computer Science. Where the system first booted.',
+    { v: 'v1', title: 'Booting up', role: 'Student', look: 'college', blurb: 'B.E. Computer Science. Where the system first booted.',
       stack: ['Computer Science'], projects: [['B.E. Computer Science', 'LPU', 'Graduated with an 8.7 CGPA.', ['8.7 CGPA']]] },
-    { v: 'v2', title: 'Associate Software Engineer', look: 'bosch', blurb: 'Where I learned discipline: close work with product owners and careful releases.',
+    { v: 'v2', title: 'Discipline', role: 'Associate Software Engineer', look: 'bosch', blurb: 'Close work with product owners and careful releases.',
       stack: ['Angular', 'C#', 'SQL'], projects: [['Cross-platform applications', 'Bosch', 'Built alongside product owners, with rigorous version control.', ['−25% ticket resolution time', '−20% rework']]] },
-    { v: 'v3', title: 'Software Developer', look: 'startups', blurb: 'Where I learned speed: shipping across the whole lifecycle.',
+    { v: 'v3', title: 'Speed', role: 'Software Developer', look: 'startups', blurb: 'Shipping across the whole lifecycle.',
       stack: ['ReactJS', 'Angular', 'PHP', 'SQL'], projects: [['New and legacy modules', 'Signcatch', 'New features and legacy upkeep, from spec to release.', ['−20% time-to-market', '−15% churn', '+25% positive feedback']]] },
-    { v: 'v4', title: 'Full Stack Developer', look: 'startups', blurb: 'Owning modules end to end, and scaling the backend behind them.',
+    { v: 'v4', title: 'Ownership', role: 'Full Stack Developer', look: 'startups', blurb: 'Owning modules end to end, and scaling the backend behind them.',
       stack: ['NodeJS', 'VueJS', 'MongoDB', 'AWS SQS'], projects: [
         ['End-to-end modules', 'Gigforce', 'Owned new modules from design to launch.', ['+25% stability', 'fewer post-launch bugs']],
         ['Backend scaling', 'Gigforce', 'Scaled backend services for operational growth.', ['−40% peak-load latency', '−30% query time']]] },
-    { v: 'v5', title: 'Senior Software Engineer', look: 'transition', blurb: 'Where I learned to build things that don’t fall over, and started moving toward AI.',
+    { v: 'v5', title: 'Toward AI', role: 'Senior Software Engineer', look: 'transition', blurb: 'Where I learned to build things that don’t fall over, and started moving toward AI.',
       stack: ['NodeJS', 'TypeScript', 'AWS', 'MongoDB', 'Kafka'], projects: [
         ['High-throughput processing', 'Dresma AI', 'Near-fail-proof architecture for heavy computation.', ['+50% stability', '−30% processing time']],
         ['Performance', 'Dresma AI', 'Optimisation and debugging across services.', ['−40% response time', '+30% efficiency']],
         ['Mentoring', 'Dresma AI', 'Coached junior engineers across backend, frontend and AWS.', ['+20% delivery efficiency', '−30% error rates']]] },
-    { v: 'v6', title: 'Tech Lead', look: 'agents', blurb: 'Platforms that put AI agents into production, and leading the team that builds them.',
+    { v: 'v6', title: 'Agents in production', role: 'Tech Lead', look: 'agents', blurb: 'Platforms that put AI agents into production, and leading the team that builds them.',
       stack: ['NodeJS', 'TypeScript', 'Postgres', 'Qdrant', 'LangGraph', 'RAG', 'AWS', 'Docker'], projects: [
         ['No-code agent platform', 'Stashfin', 'Prompt, tools, model and channels, all self-serve.', ['days → minutes', '44M tokens/day']],
         ['LLM routing engine', 'Zupee', 'One gateway for every LLM call, surviving provider outages.', ['300K+ req/day', '15–20ms', '99% uptime']],
         ['AI companion', 'Zupee', 'Multi-agent response planning with long-term memory.', ['46% D15 retention']],
         ['Dynamic tool framework', 'Stashfin', 'Any REST API becomes an agent tool, no code.', ['zero hand-written integrations']],
         ['Knowledge + memory', 'Stashfin', 'Knowledge bases without engineering; one memory across email, phone and Slack.', ['self-serve RAG']],
-        ['Promo generation', 'Zupee', 'Parallel ad-creative production, run by product managers.', ['1 week → 3 hours']]] }
+        ['Promo generation', 'Zupee', 'Parallel ad-creative production, run by product managers.', ['1 week → 3 hours']]] },
+    { v: 'v7', title: 'Tools for agents', role: 'SDE 3', look: 'agents', blurb: 'Making MongoDB work for AI coding agents like Claude Code and Codex.',
+      stack: ['MongoDB', 'Claude Code', 'Codex'], projects: [
+        ['AI builder experience', 'MongoDB', 'MongoDB services built for coding agents like Claude Code and Codex.', []]] }
   ];
   var HEAD = STOPS.length - 1;
   // Each card shows the biggest of its numbers (Sarthak, Oct 2026: "whichever is higher"); all: [value, label] candidates.
@@ -145,11 +148,11 @@
     renderStatus();
     renderStop(changed);
   }
-  function eraFromArg(a) { // v3, 3, or a word from the title ("senior", "tech lead", "head")
+  function eraFromArg(a) { // v3, 3, or a word from the title or role ("senior", "tech lead", "head")
     a = String(a).toLowerCase().trim().replace(/^v(?=\d)/, '');
     if (/^(head|now|main)$/.test(a)) return HEAD;
     if (/^\d+$/.test(a)) return +a >= 1 && +a <= STOPS.length ? +a - 1 : -1;
-    return a ? STOPS.findIndex(function (s) { return s.title.toLowerCase().indexOf(a) >= 0; }) : -1;
+    return a ? STOPS.findIndex(function (s) { return (s.title + ' ' + s.role).toLowerCase().indexOf(a) >= 0; }) : -1;
   }
   function goEra(i) { // on home, checking out a version scrolls the history to it; elsewhere, go home at that version
     if (HOME) scrollToStop(i, true); else location.href = './?v=' + STOPS[i].v;
@@ -218,9 +221,9 @@
   function renderStop(animate) {
     var s = STOPS[era], cos = [];
     s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
-    [].forEach.call($('rail').children, function (li) { var j = +li.firstChild.dataset.i; li.classList.toggle('on', j === era); li.classList.toggle('past', j > era); }); // rail runs v6 → v1
+    [].forEach.call($('rail').children, function (li) { var j = +li.firstChild.dataset.i; li.classList.toggle('on', j === era); li.classList.toggle('past', j > era); }); // rail runs newest → v1
     $('vstage').innerHTML = '<div class="vframe' + (animate ? ' enter' : '') + '">' +
-      '<div class="vhead"><span class="vnum">' + s.v + '</span><h3>' + esc(s.title) + '</h3><span class="cos">' + cos.map(esc).join(' · ') + '</span></div>' +
+      '<div class="vhead"><span class="vnum">' + s.v + '</span><h3>' + esc(s.title) + '</h3><span class="cos">' + [s.role].concat(cos).map(esc).join(' · ') + '</span></div>' +
       '<p class="vblurb">' + esc(s.blurb) + '</p>' +
       '<div class="vcards">' + s.projects.map(function (p, i) {
         return '<div class="card vcard" style="animation-delay:' + (animate ? 80 + i * 60 : 0) + 'ms"><span class="co">' + esc(p[1]) + '</span><b>' + esc(p[0]) + '</b><p>' + esc(p[2]) + '</p>' +
@@ -229,7 +232,7 @@
       '<div class="stack">stack @ ' + s.v + ': ' + s.stack.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div></div>';
   }
 
-  // Scroll inside the pinned section to go back in time, v6 → v1, like the demos. Page is already at HEAD when you arrive,
+  // Scroll inside the pinned section to go back in time, newest → v1, like the demos. Page is already at HEAD when you arrive,
   // so there's no jump in; after the section it returns to HEAD for the footer.
   var vsec = $('versions');
   function barH() { return $('status') ? $('status').offsetHeight : 0; }
@@ -437,7 +440,7 @@
     'web_search(query): look up a general topic on the web (encyclopedia summaries), e.g. what a technology or company is. Not for facts about Sarthak.',
     'live_stats(): today\'s numbers for ' + SERVICES.filter(function (x) { return x.n; }).map(function (x) { return x.name; }).join(', ') + '.',
     'go_to(target): act on this page for the visitor, only when they ask to see or go somewhere. target is one of: ' + STOPS.map(function (s) { var cos = []; s.projects.forEach(function (p) { if (cos.indexOf(p[1]) < 0) cos.push(p[1]); });
-      return s.v + ' (' + s.title + (cos.length ? ', ' + cos.join(' and ') : '') + ')'; }).join(', ') + ', terminal, contact, resume, askmyastro, filedownloader, switchboard.',
+      return s.v + ' (' + s.title + ', ' + s.role + (cos.length ? ', ' + cos.join(' and ') : '') + ')'; }).join(', ') + ', terminal, contact, resume, askmyastro, filedownloader, switchboard.',
     'send_message(name, email, message): show the visitor a message form to Sarthak, prefilled with whatever they have said (leave unknown fields empty). Call it as soon as the visitor wants to message or contact Sarthak.',
     'about_assistant(): everything about you, the assistant: what you are, which model you run, what you can do, and how chats are logged. Use it whenever the visitor asks about you.',
     'reply: answer the visitor now.'];
@@ -1132,12 +1135,12 @@
   // -- virtual filesystem: built from the same data as the page, so it never drifts ----------------------
   function file(read, run) { return { read: read, run: run }; }
   function stopText(s) {
-    return '# ' + s.v + ' · ' + s.title + '\n' + s.blurb + '\n\n' + s.projects.map(function (p) {
+    return '# ' + s.v + ' · ' + s.title + '\n' + s.role + '\n' + s.blurb + '\n\n' + s.projects.map(function (p) {
       return '## ' + p[0] + '  (' + p[1] + ')\n' + p[2] + '\n' + p[3].map(function (m) { return '  › ' + m; }).join('\n');
     }).join('\n\n') + '\n\nstack: ' + s.stack.join(', ');
   }
   var FS = { dir: {
-    'about.md': file(function () { return '# Sarthak Chhabra\nTech Lead, 7+ years. I build the platforms that put AI agents into production:\nrouting engines, RAG pipelines and no-code tooling that turn weeks of engineering\ninto minutes of configuration.\n\nGurgaon, India · IST (UTC+5:30)'; }),
+    'about.md': file(function () { return '# Sarthak Chhabra\nSDE 3 at MongoDB, 7+ years. I make MongoDB work for AI coding agents like\nClaude Code and Codex. Before that I built the platforms that put AI agents into\nproduction: routing engines, RAG pipelines and no-code tooling.\n\nGurgaon, India · IST (UTC+5:30)'; }),
     'contact.md': file(function () { return 'email     ' + EMAIL + '\nlinkedin  linkedin.com/in/sarthak-chhabra\n\nor write to me right here: run `mail`'; }),
     'stack.json': file(function () { return JSON.stringify({ version: STOPS[HEAD].v, stack: STOPS[HEAD].stack }, null, 2); }),
     'resume.pdf': file(function () { return 'binary file. opening it instead…'; }, function () { window.open('/Sarthak%20Resume.pdf', '_blank', 'noopener'); }),
@@ -1188,6 +1191,7 @@
   function gitDiff(a, b) {
     var A = STOPS[a], B = STOPS[b], o = ['<span class="d">diff --career ' + A.v + ' ' + B.v + '</span>'];
     if (A.title !== B.title) o.push('<span class="e">- title: ' + esc(A.title) + '</span>', '<span class="c">+ title: ' + esc(B.title) + '</span>');
+    if (A.role !== B.role) o.push('<span class="e">- role: ' + esc(A.role) + '</span>', '<span class="c">+ role: ' + esc(B.role) + '</span>');
     var coA = A.projects.map(function (p) { return p[1]; }), coB = B.projects.map(function (p) { return p[1]; });
     coA.filter(function (c, i) { return coA.indexOf(c) === i && coB.indexOf(c) < 0; }).forEach(function (c) { o.push('<span class="e">- at: ' + esc(c) + '</span>'); });
     coB.filter(function (c, i) { return coB.indexOf(c) === i && coA.indexOf(c) < 0; }).forEach(function (c) { o.push('<span class="c">+ at: ' + esc(c) + '</span>'); });
@@ -1247,7 +1251,7 @@
       '<span class="a">Shell</span>   zsh (in your browser)',
       '<span class="a">Stack</span>   ' + STOPS[HEAD].stack.slice(0, 5).join(', '),
       '<span class="a">Quests</span>  ' + SERVICES.length + ' live side quests',
-      '<span class="a">Status</span>  open to Tech Lead / EM roles'
+      '<span class="a">Status</span>  SDE 3 at MongoDB, AI builder experience'
     ];
     return info.map(function (l, i) { return '<span class="a">' + (logo[i] || '').padEnd(19) + '</span>' + l; }).join('\n');
   }
@@ -1276,7 +1280,7 @@
   // -- commands ---------------------------------------------------------------------------------------
   var HELP = [
     ['explore', [['ls [-a] [dir]', 'list files'], ['cd <dir>', 'change directory (~, .., side-quests, versions)'], ['cat <file>', 'print a file'], ['tree', 'everything at once'], ['pwd', 'where am I']]],
-    ['history', [['git log [--graph]', 'every version'], ['git show v5', 'one version in detail'], ['git diff v5 v6', 'what changed between two versions'], ['git branch', 'side quests'], ['git checkout v3', 'roll the site back']]],
+    ['history', [['git log [--graph]', 'every version'], ['git show v6', 'one version in detail'], ['git diff v6 v7', 'what changed between two versions'], ['git branch', 'side quests'], ['git checkout v3', 'roll the site back']]],
     ['live', [['top', 'side quests, live'], ['neofetch', 'who is this'], ['uptime', 'how long I’ve been shipping'], ['ping <host>', 'e.g. ping askmyastro.in'], ['status', 'system health']]],
     ['talk', [['ask "…"', 'ask me anything (or just type a question)'], ['mail', 'send me a message from here'], ['open / visit <project>', 'watch its demo / open the real product'], ['contact', 'email and LinkedIn']]],
     ['shell', [['clear, Ctrl+L', ''], ['Ctrl+C', 'cancel'], ['Tab, →', 'autocomplete'], ['home, exit', '']]]
@@ -1317,10 +1321,10 @@
         if (g === 'log') return print(gitLog(/--graph|--oneline/.test(arg)));
         if (g === 'branch') return print('* <span class="c">main</span>\n' + SERVICES.map(function (x) { return '  side-quest/' + x.id; }).join('\n'));
         if (g === 'status') return print('On branch main\nHEAD at ' + label(era) + '\nnothing to commit, open to opportunities');
-        if (g === 'show') { var i = eraFromArg(sub[1] || 'v6'); if (i < 0) return print('usage: git show v1 … v6', 'e'); return print(esc(stopText(STOPS[i]))); }
+        if (g === 'show') { var i = eraFromArg(sub[1] || 'head'); if (i < 0) return print('usage: git show v1 … ' + STOPS[HEAD].v, 'e'); return print(esc(stopText(STOPS[i]))); }
         if (g === 'diff') {
-          var x = eraFromArg(sub[1] || 'v5'), y = eraFromArg(sub[2] || (sub[1] ? 'v6' : 'v6'));
-          if (x < 0 || y < 0) return print('usage: git diff v5 v6', 'e');
+          var x = eraFromArg(sub[1] || String(HEAD)), y = eraFromArg(sub[2] || 'head');
+          if (x < 0 || y < 0) return print('usage: git diff ' + STOPS[HEAD - 1].v + ' ' + STOPS[HEAD].v, 'e');
           return print(gitDiff(x, y));
         }
         if (g === 'checkout') {

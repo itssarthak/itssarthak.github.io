@@ -83,7 +83,7 @@ section{padding:36px 0}
 .stack span{background:var(--acc-soft);color:var(--ink);padding:3px 10px;border-radius:999px}
 [data-era="college"] .stack span,[data-era="bosch"] .stack span{border-radius:var(--r)}
 
-/* version history: a tall section whose inner frame pins while you scroll through v1 → v6 */
+/* version history: a tall section whose inner frame pins while you scroll through the versions */
 .versions{position:relative;padding:0;height:calc(100vh + var(--stops,6) * 70vh)}
 .vpin{position:sticky;top:var(--bar,46px);height:calc(100vh - var(--bar,46px));height:calc(100svh - var(--bar,46px));display:flex;flex-direction:column;justify-content:center;padding:18px 0}
 /* fixed-height body so the block stays centred and doesn't jump as versions with more projects come in */
