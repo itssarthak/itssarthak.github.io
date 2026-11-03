@@ -199,7 +199,7 @@
     $('svc').innerHTML = SERVICES.filter(function (s) { return !s.hide; }).map(function (s, i) {
       var live = stats && stats[s.id], m = live ? s.metric(stats) : ['—', ''], v = live && stats[s.id].series ? stats[s.id].series.values : [];
       var week = v.slice(-7).reduce(function (a, b) { return a + b; }, 0);
-      return '<div class="card in" data-id="' + s.id + '" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + '</span>' +
+      return '<div class="card in" data-id="' + s.id + '" style="animation-delay:' + i * 70 + 'ms"><span class="nm"><span class="dot' + (stats && !healthy() ? ' warn' : '') + '"></span>' + s.name + (live && stats[s.id].stars > 0 && m[1].indexOf('star') < 0 ? '<span class="stars" title="' + stats[s.id].stars + ' stars on GitHub">★ ' + k(stats[s.id].stars) + '</span>' : '') + '</span>' +
         '<span class="d">' + s.d + '</span><span class="m"><span class="num"' + (live ? ' data-n="' + s.n(stats) + '"' : '') + '>' + m[0] + '</span>' + (s.tag ? '<span class="new">' + s.tag + '</span>' : '') +
         (SHOW_WEEK && week ? '<span class="wk">+' + k(week) + ' this week</span>' : '') + '<small>' + m[1] + '</small></span>' + trendSvg(v) +
         '<span class="go">' + (s.href ? '<a href="' + s.href + '">Watch it run →</a>' : '') + (s.ph ? '<a href="' + s.ph + '" target="_blank" rel="noopener">Product Hunt ↗</a>' : '') + '<a href="' + utm(s.url, s.id) + '" target="_blank" rel="noopener">' + s.site + ' ↗</a></span></div>';

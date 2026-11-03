@@ -68,6 +68,7 @@ section{padding:36px 0}
 .svc .card{display:flex;flex-direction:column;gap:6px;padding:18px;min-height:190px}
 .svc .card:hover{border-color:var(--acc)}
 .svc .nm{display:flex;align-items:center;gap:9px;font-weight:600;font-size:17px}
+.svc .nm .stars{margin-left:auto;font-weight:500;font-size:13px;color:var(--muted)}
 .svc .d{color:var(--muted);font-size:14px}
 .svc .m{font:600 34px/1 var(--head);margin-top:auto}
 .svc .m small{display:block;font:500 12.5px var(--body);color:var(--muted);margin-top:4px}
