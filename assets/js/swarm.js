@@ -18,8 +18,8 @@
     bots: matchMedia('(max-width: 640px)').matches ? 3 : 5,
     colors: ['#A5432A', '#2B4C7E', '#1F6F6B', '#8C2F45', '#4B3FD1'],
     moveMs: 380, drawMs: 300, holdMs: 120, // bot travel to a piece, drawing its box, then a beat before the next
-    buildAt: 0.35, breakAt: 0.7,           // share of the section on screen (of the screen, for sections taller than it): build once this much has
-                                           // come in; take apart once a leaving section drops below this
+    buildAt: 0, breakAt: 0.7,              // share of the section on screen (of the screen, for sections taller than it): build once more than this
+                                           // is in (0 = any of it); take apart once a leaving section drops below this
     breakStaggerMs: 110,                   // gap between pieces falling (each takes ~0.9s, set in style.css)
     flips: 4, flipWindowMs: 2500,          // "too much" = this many direction changes within this window
     pauseStepMs: 1000, pauseMaxMs: 5000,   // each repeat pauses 1s longer, up to 5s
@@ -76,10 +76,15 @@
       wake();
     }
     function drop(j) { if (j.gen !== j.s.gen) return; if (!j.low) j.s.top--; if (j.s.top <= 0) wake(); } // a top-half piece is finished (or gone): once none are left, the bottom half starts by itself
-    function done(j) { j.p.classList.add('sw-on'); drop(j); }
+    function done(j) { j.p.classList.remove('sw-fall'); j.p.classList.add('sw-on'); drop(j); }
     function next() { // highest piece on the page first, so the page fills in top to bottom
-      var best = -1;
-      for (var i = 0; i < jobs.length; i++) if ((!jobs[i].low || jobs[i].s.top <= 0) && (best < 0 || jobs[i].y < jobs[best].y)) best = i;
+      var best = -1, by = 0; // pieces still below the screen wait until they scroll in, so they're built where they're seen
+      for (var i = 0; i < jobs.length; i++) {
+        var j = jobs[i]; if (j.low && j.s.top > 0) continue;
+        if (j.fig && !j.s.pieces.every(function (p) { return p === j.p || p.classList.contains('sw-on') || !document.contains(p); })) continue; // the figure waits for the card it stands on
+        var y = j.p.getBoundingClientRect().top; // measured now: the page may have shifted since queueing
+        if (y < innerHeight && (best < 0 || y < by)) { best = i; by = y; }
+      }
       return best < 0 ? null : jobs.splice(best, 1)[0];
     }
 
@@ -95,7 +100,14 @@
       ps.filter(function (p) { return p.classList.contains('sw-on') && !keep(p); })
         .map(function (p) { var r = p.getBoundingClientRect(); return { p: p, d: r.bottom < 0 ? -r.bottom : r.top > vh ? r.top - vh : -1 }; })
         .sort(function (a, b) { return a.d - b.d; })
-        .forEach(function (x, i) { x.p.style.setProperty('--d', i * CFG.breakStaggerMs + 'ms'); x.p.classList.remove('sw-on'); });
+        .forEach(function (x, i) {
+          var p = x.p, d = i * CFG.breakStaggerMs;
+          p.style.setProperty('--d', d + 'ms'); p.classList.remove('sw-on'); p.classList.add('sw-fall');
+          setTimeout(function () { // once it has fallen out of sight, put it back in its real spot, unseen
+            if (!p.classList.contains('sw-fall')) return;
+            p.style.transition = 'none'; p.classList.remove('sw-fall'); void p.offsetWidth; p.style.transition = '';
+          }, d + 1100);
+        });
     }
     function unbuild(s) {
       s.state = 'off';
@@ -111,12 +123,12 @@
       secs.forEach(function (s) {
         var r = s.el.getBoundingClientRect(), seen = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0)) / Math.min(r.height || 1, vh);
         var leaving = scrolled === true && (lastDir > 0 ? r.top < 0 : r.bottom > vh); // cut off on the side it's scrolling out of
-        if (s.state === 'off' && seen >= CFG.buildAt && (!leaving || seen >= 0.98)) build(s);
+        if (s.state === 'off' && seen > CFG.buildAt && (!leaving || seen >= 0.98)) build(s);
         else if (s.state !== 'off' && leaving && seen < CFG.breakAt) unbuild(s);
       });
     }
     var ticking = false;
-    addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; check(true); }); } }, { passive: true });
+    addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; check(true); if (jobs.length) wake(); }); } }, { passive: true });
     addEventListener('resize', function () { check(); });
     check();
     var ask = secs.find(function (s) { return s.el.id === 'ask'; });
@@ -217,7 +229,7 @@
         if (j.s.state === 'off' || j.gen !== j.s.gen) continue; // its section left (and maybe came back): build() queued it afresh
         if (!document.contains(j.p) || j.p.closest('.sw-ghost') || j.p.classList.contains('sw-on')) { drop(j); continue; }
         var r = j.p.getBoundingClientRect(), layer = layerFor(j.p);
-        if (!r.width || !r.height || r.bottom < -200 || r.top > innerHeight + 200) { done(j); continue; } // nothing to watch
+        if (!r.width || !r.height || r.bottom < -200) { done(j); continue; } // already scrolled past: nothing to watch
         b.el.classList.remove('sw-idle');
         if (j.fig && !crew) {
           crew = { p: j.p, layer: layer, until: Date.now() + CFG.figureMs, n: 1 }; wake();
@@ -226,7 +238,7 @@
           var grow = setInterval(function () { if (angry) return; step++; fig.style.setProperty('--cut', Math.max(0, 100 - step * 100 / CFG.figureSteps) + '%'); if (step >= CFG.figureSteps) clearInterval(grow); }, CFG.figureMs / CFG.figureSteps);
           await sketch(b, fig, layer);
           clearInterval(grow); crew = null;
-          fig.classList.add('sw-on'); fig.classList.remove('sw-forming'); fig.style.removeProperty('--cut'); // on first, so it never blinks out
+          fig.classList.remove('sw-fall'); fig.classList.add('sw-on'); fig.classList.remove('sw-forming'); fig.style.removeProperty('--cut'); // on first, so it never blinks out
         }
         var o = at(layer, r);
         place(b, layer, o.x + Math.min(24, r.width / 2), o.y + Math.min(14, r.height / 2));

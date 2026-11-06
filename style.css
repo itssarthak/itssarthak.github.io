@@ -364,8 +364,10 @@ section.reveal.unfolded .reveal-in{overflow:visible} /* clipping is only needed 
 html.sw-boot main, html.sw-boot footer{visibility:hidden;animation:sw-fail 0s 2.5s forwards} /* if swarm.js never runs, show the page anyway */
 @keyframes sw-fail{to{visibility:visible}}
 html.sw .sw-piece{transition:opacity .5s ease var(--d,0ms),transform .6s cubic-bezier(.2,.7,.2,1) var(--d,0ms)}
-html.sw .sw-piece:not(.sw-on){transition-duration:.9s,1s;transition-timing-function:ease-in,cubic-bezier(.5,0,.8,.4)} /* falling apart: slower, accelerating */
-html.sw .sw-piece:not(.sw-on){opacity:0;transform:translateY(40px) rotate(var(--r,0deg)) scale(.9);pointer-events:none}
+html.sw .sw-piece.sw-fall{transition-duration:.9s,1s;transition-timing-function:ease-in,cubic-bezier(.5,0,.8,.4);transform:translateY(40px) rotate(var(--r,0deg)) scale(.9)} /* falling apart: slower, accelerating */
+html.sw .sw-piece:not(.sw-on){opacity:0;pointer-events:none} /* waits unseen in its real spot, so the bots measure it true */
+html.sw .sw-piece.sw-on{animation:sw-in .5s cubic-bezier(.2,.7,.2,1)}
+@keyframes sw-in{from{transform:translateY(10px) scale(.98)}}
 html.sw .svc .card.sw-piece,html.sw .vframe .sw-piece{animation:none}
 html.sw .vstage{position:relative}
 .sw-ghost{position:absolute;top:0;left:0;right:0;pointer-events:none} /* the outgoing version, falling apart over the incoming one */
