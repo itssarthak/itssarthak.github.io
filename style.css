@@ -359,3 +359,26 @@ section.reveal.unfolded .reveal-in{overflow:visible} /* clipping is only needed 
 @media (max-width:640px){.ask.full .chat-bar{flex-wrap:wrap}.ask.full .chat-note{order:9;flex-basis:100%}} /* full-screen chat on phones: the logging note drops below, leaving the title one line */
 @media (max-width:420px){#visits .spark{display:none}.status .who{order:1;flex-basis:100%}} /* small phones: two tidy lines, status + terminal on top, name below */
 @media (hover:none){.psst{display:none}} /* touch screens: no ~ key or console to open */
+
+/* ---- swarm (assets/js/swarm.js): bots build each section as it scrolls in ---- */
+html.sw-boot main, html.sw-boot footer{visibility:hidden;animation:sw-fail 0s 2.5s forwards} /* if swarm.js never runs, show the page anyway */
+@keyframes sw-fail{to{visibility:visible}}
+html.sw .sw-piece{transition:opacity .35s ease var(--d,0ms),transform .45s cubic-bezier(.2,.7,.2,1) var(--d,0ms)}
+html.sw .sw-piece:not(.sw-on){opacity:0;transform:translateY(14px) rotate(var(--r,0deg)) scale(.96);pointer-events:none}
+html.sw .svc .card.sw-piece{animation:none}
+.sw-layer{position:absolute;top:0;left:0;width:100%;overflow:hidden;z-index:60;pointer-events:none} /* clipped so a bot at the edge never makes the page scroll sideways */
+.sw-bot{position:absolute;top:0;left:0;transition:transform .32s cubic-bezier(.3,.7,.2,1),opacity .3s;will-change:transform}
+.sw-bot.sw-idle{opacity:0}
+.sw-bot svg{width:18px;height:18px;display:block;fill:var(--c);stroke:#fff;stroke-width:1.2;filter:drop-shadow(0 1px 2px #0003)}
+.sw-tag{position:absolute;left:14px;top:14px;display:flex;gap:4px;padding:4px 7px;border-radius:9px;background:var(--c);box-shadow:0 2px 6px #0002}
+.sw-tag i{width:5px;height:5px;border-radius:50%;background:#fff;transition:background .2s,box-shadow .2s}
+.sw-say{position:absolute;left:14px;top:40px;width:max-content;max-width:min(240px,70vw);padding:8px 11px;border-radius:12px;background:var(--ink);color:var(--bg);font:500 13px/1.35 Inter,system-ui,sans-serif;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s}
+.sw-talk .sw-say{opacity:1;transform:none}
+html.sw-angry .sw-bot{opacity:1}
+html.sw-angry .sw-tag{animation:sw-shake .35s infinite;background:#1B1B1B} /* dark face so the red eyes read on every bot colour */
+html.sw-angry .sw-tag i{background:#FF2A2A;box-shadow:0 0 6px #FF2A2A}
+@keyframes sw-shake{25%{transform:translateX(-2px) rotate(-4deg)}75%{transform:translateX(2px) rotate(4deg)}}
+.sw-box{position:absolute;border:1.5px solid var(--c);border-radius:2px;animation:sw-draw .24s ease-out both;transition:opacity .35s}
+.sw-box.sw-gone{opacity:0}
+.sw-box span{position:absolute;left:50%;top:100%;transform:translate(-50%,6px);padding:1px 6px;border-radius:4px;background:var(--c);color:#fff;font:600 11px/1.5 'JetBrains Mono',monospace;white-space:nowrap}
+@keyframes sw-draw{from{clip-path:inset(0 100% 100% 0)}to{clip-path:inset(0 -40px -40px 0)}}
