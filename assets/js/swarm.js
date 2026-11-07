@@ -24,9 +24,9 @@
     flips: 4, flipWindowMs: 2500,          // "too much" = this many direction changes within this window
     pauseStepMs: 1000, pauseMaxMs: 5000,   // each repeat pauses 1s longer, up to 5s
     calmResetMs: 10000,                    // this long without a tantrum and the anger starts over at 1s
-    angryScale: 1.3, huddle: 46,           // while angry: bots grow this much and bunch up in the middle of the screen, this far apart
+    angryScale: 1.5, huddle: 46,           // while angry: bots grow with each repeat, up to this at the max pause, and bunch up in the middle of the screen, this far apart
     lowBattery: 0.2,                       // below this and not charging: no animation
-    lines: [                               // said at the max pause, rotated
+    lines: [                               // said at the max pause, picked at random (never the same twice in a row)
       'We were almost done. Pick a direction.',
       'Up, down, up. Are you testing us?',
       'Union rules: no building on a moving floor.',
@@ -58,7 +58,6 @@
     function collect(s) { s.pieces = mark(topmost(s.el)); }
     secs.forEach(collect);
     root.classList.add('sw');
-    root.style.setProperty('--sw-angry-scale', CFG.angryScale);
     root.classList.remove('sw-boot');
 
     var jobs = [], waiting = [];
@@ -262,7 +261,7 @@
     bots.forEach(run);
 
     // ---- anger --------------------------------------------------------------------------------------
-    var angry = false, level = 0, lastFit = 0, said = 0, flips = [], lastY = scrollY, lastDir = 0, resume = [];
+    var angry = false, level = 0, lastFit = 0, said = -1, flips = [], lastY = scrollY, lastDir = 0, resume = [];
     function calm() { return angry ? new Promise(function (r) { resume.push(r); }) : Promise.resolve(); }
     addEventListener('scroll', function () {
       var dy = scrollY - lastY; if (Math.abs(dy) < 4) return;
@@ -279,13 +278,15 @@
       level++;
       var ms = Math.min(CFG.pauseStepMs * level, CFG.pauseMaxMs);
       angry = true; flips = [];
+      var grow = Math.min(level * CFG.pauseStepMs / CFG.pauseMaxMs, 1); // 0..1, reaches 1 at the max pause
+      root.style.setProperty('--sw-angry-scale', 1 + (CFG.angryScale - 1) * grow);
       root.classList.add('sw-angry');
       bots.forEach(function (b, i) { // everyone huddles in the middle of the screen, in a ring, for the whole pause
         var a = i / bots.length * 2 * Math.PI - Math.PI / 2;
         place(b, screenLayer, innerWidth / 2 + Math.cos(a) * CFG.huddle, innerHeight / 2 + Math.sin(a) * CFG.huddle * 0.7);
         b.el.classList.remove('sw-idle');
       });
-      if (ms >= CFG.pauseMaxMs) { say.textContent = CFG.lines[said++ % CFG.lines.length]; say.style.bottom = (innerHeight / 2 + CFG.huddle * 0.7 + 52) + 'px'; say.classList.add('sw-on'); }
+      if (ms >= CFG.pauseMaxMs) { var n; do { n = Math.floor(Math.random() * CFG.lines.length); } while (n === said && CFG.lines.length > 1); said = n; say.textContent = CFG.lines[n]; say.style.bottom = (innerHeight / 2 + CFG.huddle * 0.7 + 52 * CFG.angryScale) + 'px'; say.classList.add('sw-on'); }
       setTimeout(function () {
         angry = false; lastFit = Date.now();
         root.classList.remove('sw-angry');
