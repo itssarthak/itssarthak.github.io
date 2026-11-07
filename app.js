@@ -29,9 +29,9 @@
         ['Dynamic tool framework', 'Stashfin', 'Any REST API becomes an agent tool, no code.', ['zero hand-written integrations']],
         ['Knowledge + memory', 'Stashfin', 'Knowledge bases without engineering; one memory across email, phone and Slack.', ['self-serve RAG']],
         ['Promo generation', 'Zupee', 'Parallel ad-creative production, run by product managers.', ['1 week → 3 hours']]] },
-    { v: 'v7', title: 'Tools for agents', role: 'SDE 3', look: 'agents', blurb: 'Making MongoDB work for AI coding agents like Claude Code and Codex.',
-      stack: ['MongoDB', 'Claude Code', 'Codex'], projects: [
-        ['AI builder experience', 'MongoDB', 'MongoDB services built for coding agents like Claude Code and Codex.', []]] }
+    { v: 'v7', title: 'MongoDB', role: 'SDE 3', look: 'agents', blurb: 'SDE 3 at MongoDB.',
+      stack: ['MongoDB'], projects: [
+        ['SDE 3', 'MongoDB', 'Joined Nov 2026.', []]] }
   ];
   var HEAD = STOPS.length - 1;
   // Each card shows the biggest of its numbers (Sarthak, Oct 2026: "whichever is higher"); all: [value, label] candidates.
@@ -1140,7 +1140,7 @@
     }).join('\n\n') + '\n\nstack: ' + s.stack.join(', ');
   }
   var FS = { dir: {
-    'about.md': file(function () { return '# Sarthak Chhabra\nSDE 3 at MongoDB, 7+ years. I make MongoDB work for AI coding agents like\nClaude Code and Codex. Before that I built the platforms that put AI agents into\nproduction: routing engines, RAG pipelines and no-code tooling.\n\nGurgaon, India · IST (UTC+5:30)'; }),
+    'about.md': file(function () { return '# Sarthak Chhabra\nSDE 3 at MongoDB, 7+ years. Before that I built the platforms that put AI agents into\nproduction: routing engines, RAG pipelines and no-code tooling.\n\nGurgaon, India · IST (UTC+5:30)'; }),
     'contact.md': file(function () { return 'email     ' + EMAIL + '\nlinkedin  linkedin.com/in/sarthak-chhabra\n\nor write to me right here: run `mail`'; }),
     'stack.json': file(function () { return JSON.stringify({ version: STOPS[HEAD].v, stack: STOPS[HEAD].stack }, null, 2); }),
     'resume.pdf': file(function () { return 'binary file. opening it instead…'; }, function () { window.open('/Sarthak%20Resume.pdf', '_blank', 'noopener'); }),
@@ -1251,7 +1251,7 @@
       '<span class="a">Shell</span>   zsh (in your browser)',
       '<span class="a">Stack</span>   ' + STOPS[HEAD].stack.slice(0, 5).join(', '),
       '<span class="a">Quests</span>  ' + SERVICES.length + ' live side quests',
-      '<span class="a">Status</span>  SDE 3 at MongoDB, AI builder experience'
+      '<span class="a">Status</span>  SDE 3 at MongoDB'
     ];
     return info.map(function (l, i) { return '<span class="a">' + (logo[i] || '').padEnd(19) + '</span>' + l; }).join('\n');
   }

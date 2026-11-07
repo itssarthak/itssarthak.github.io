@@ -1,6 +1,6 @@
 # Sarthak Chhabra
 
-> SDE 3 at MongoDB on the AI builder experience team, making MongoDB work for AI coding agents like Claude Code and Codex. Previously a Tech Lead building AI agent platforms and LLM infrastructure. He also builds and runs his own products solo.
+> SDE 3 at MongoDB. Previously a Tech Lead building AI agent platforms and LLM infrastructure. He also builds and runs his own products solo.
 
 ## Products
 
