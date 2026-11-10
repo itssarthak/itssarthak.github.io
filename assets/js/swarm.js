@@ -4,7 +4,7 @@
 // history each version is built as it comes up, and the one it replaces falls apart.
 // Flip scroll direction too often and the bots get angry (red eyes) and pause, longer each time, up to a max
 // where they also say something. All content stays in the HTML; this only hides and shows it.
-// Off for prefers-reduced-motion and for a low battery that isn't charging (the page just shows finished).
+// Off for prefers-reduced-motion, search crawlers, and a low battery that isn't charging (the page just shows finished).
 (function () {
   'use strict';
 
@@ -37,7 +37,7 @@
 
   var root = document.documentElement;
   function off() { root.classList.remove('sw-boot', 'sw'); }
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return off();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || /bot|crawl|spider|slurp/i.test(navigator.userAgent)) return off(); // search crawlers get the finished page
 
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var lowBattery = navigator.getBattery
