@@ -18,7 +18,7 @@
     bots: matchMedia('(max-width: 640px)').matches ? 3 : 5,
     colors: ['#A5432A', '#2B4C7E', '#1F6F6B', '#8C2F45', '#4B3FD1'],
     moveMs: 380, drawMs: 300, holdMs: 120, // bot travel to a piece, drawing its box, then a beat before the next
-    buildAt: 0, breakAt: 0.7,              // share of the section on screen (of the screen, for sections taller than it): build once more than this
+    buildAt: 0, breakAt: 0.15,             // share of the section on screen (of the screen, for sections taller than it): build once more than this
                                            // is in (0 = any of it); take apart once a leaving section drops below this
     breakStaggerMs: 110,                   // gap between pieces falling (each takes ~0.9s, set in style.css)
     flips: 4, flipWindowMs: 2500,          // "too much" = this many direction changes within this window
