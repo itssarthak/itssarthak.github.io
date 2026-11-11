@@ -29,9 +29,9 @@
         ['Dynamic tool framework', 'Stashfin', 'Any REST API becomes an agent tool, no code.', ['zero hand-written integrations']],
         ['Knowledge + memory', 'Stashfin', 'Knowledge bases without engineering; one memory across email, phone and Slack.', ['self-serve RAG']],
         ['Promo generation', 'Zupee', 'Parallel ad-creative production, run by product managers.', ['1 week → 3 hours']]] },
-    { v: 'v7', title: 'MongoDB', role: 'SDE 3', look: 'agents', blurb: 'SDE 3 at MongoDB.',
+    { v: 'v7', title: 'Next chapter', role: 'SDE 3', look: 'agents', blurb: 'A new chapter, as an SDE 3.',
       stack: ['MongoDB'], projects: [
-        ['SDE 3', 'MongoDB', 'Joined Nov 2026.', []]] }
+        ['SDE 3', 'MongoDB', 'Where the next version gets built.', []]] }
   ];
   var HEAD = STOPS.length - 1;
   // Each card shows the biggest of its numbers (Sarthak, Oct 2026: "whichever is higher"); all: [value, label] candidates.
