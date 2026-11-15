@@ -1,16 +1,15 @@
 {
-  "updated": "2026-11-14",
+  "updated": "2026-11-15",
   "askmyastro": {
-    "users": 5388,
-    "pageviews": 17060,
-    "visits": 6245,
-    "engaged": 5073,
-    "seconds": 264632,
+    "users": 5390,
+    "pageviews": 17062,
+    "visits": 6244,
+    "engaged": 5074,
+    "seconds": 264636,
     "series": {
       "metric": "users",
-      "from": "2026-10-15",
+      "from": "2026-10-16",
       "values": [
-        11,
         35,
         8,
         7,
@@ -39,23 +38,23 @@
         3,
         6,
         6,
+        4,
         4
       ]
     }
   },
   "filedownloader": {
-    "users": 8040,
-    "pageviews": 29494,
-    "visits": 10175,
-    "engaged": 8591,
-    "seconds": 900650,
-    "downloads": 835175,
-    "kb": 128901591.62011719,
+    "users": 8056,
+    "pageviews": 29519,
+    "visits": 10193,
+    "engaged": 8603,
+    "seconds": 901287,
+    "downloads": 835516,
+    "kb": 128952941.49804688,
     "series": {
       "metric": "downloads",
-      "from": "2026-10-15",
+      "from": "2026-10-16",
       "values": [
-        3436,
         4700,
         197,
         838,
@@ -84,23 +83,23 @@
         1155,
         2163,
         435,
-        3250
+        3250,
+        1121
       ]
     }
   },
   "discretedocs": {
-    "users": 178,
-    "pageviews": 382,
-    "visits": 233,
-    "engaged": 101,
-    "seconds": 6548,
-    "files": 44,
-    "kb": 963893,
+    "users": 193,
+    "pageviews": 400,
+    "visits": 248,
+    "engaged": 104,
+    "seconds": 6674,
+    "files": 49,
+    "kb": 975953,
     "series": {
       "metric": "files",
-      "from": "2026-10-15",
+      "from": "2026-10-16",
       "values": [
-        2,
         3,
         0,
         0,
@@ -129,22 +128,22 @@
         0,
         0,
         7,
-        3
+        3,
+        1
       ]
     }
   },
   "sparescreen": {
     "downloads": 16,
-    "users": 170,
-    "pageviews": 257,
-    "visits": 199,
-    "engaged": 57,
-    "seconds": 1536,
+    "users": 173,
+    "pageviews": 260,
+    "visits": 202,
+    "engaged": 58,
+    "seconds": 1546,
     "series": {
       "metric": "users",
-      "from": "2026-10-15",
+      "from": "2026-10-16",
       "values": [
-        11,
         11,
         2,
         4,
@@ -173,21 +172,21 @@
         7,
         2,
         3,
+        3,
         3
       ]
     }
   },
   "portfolio": {
-    "users": 259,
-    "pageviews": 848,
-    "visits": 455,
+    "users": 260,
+    "pageviews": 849,
+    "visits": 456,
     "engaged": 277,
-    "seconds": 21223,
+    "seconds": 21226,
     "series": {
       "metric": "visits",
-      "from": "2026-10-15",
+      "from": "2026-10-16",
       "values": [
-        5,
         1,
         0,
         2,
@@ -216,6 +215,7 @@
         8,
         10,
         0,
+        1,
         1
       ]
     }
@@ -435,6 +435,10 @@
       "2026-11-13": [
         3,
         3
+      ],
+      "2026-11-14": [
+        0,
+        0
       ]
     },
     "viewDays": {
@@ -605,6 +609,10 @@
       "2026-11-13": [
         0,
         0
+      ],
+      "2026-11-14": [
+        0,
+        0
       ]
     },
     "series": {
@@ -637,16 +645,17 @@
         0,
         0,
         0,
-        3
+        3,
+        0
       ]
     },
     "downloads": 9
   },
   "eyeshift": {
-    "clones": 194,
-    "uniques": 123,
-    "views": 182,
-    "viewers": 80,
+    "clones": 196,
+    "uniques": 125,
+    "views": 187,
+    "viewers": 85,
     "stars": 6,
     "forks": 1,
     "days": {
@@ -793,6 +802,10 @@
       "2026-11-13": [
         3,
         3
+      ],
+      "2026-11-14": [
+        2,
+        2
       ]
     },
     "viewDays": {
@@ -939,6 +952,10 @@
       "2026-11-13": [
         17,
         3
+      ],
+      "2026-11-14": [
+        5,
+        5
       ]
     },
     "series": {
@@ -967,13 +984,14 @@
         1,
         4,
         2,
-        3
+        3,
+        2
       ]
     }
   },
   "switchboard": {
-    "clones": 766,
-    "uniques": 360,
+    "clones": 771,
+    "uniques": 365,
     "views": 17,
     "viewers": 16,
     "stars": 4,
@@ -1350,6 +1368,10 @@
       "2026-11-13": [
         10,
         6
+      ],
+      "2026-11-14": [
+        5,
+        5
       ]
     },
     "viewDays": {
@@ -1520,13 +1542,16 @@
       "2026-11-13": [
         0,
         0
+      ],
+      "2026-11-14": [
+        0,
+        0
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-10-15",
+      "from": "2026-10-16",
       "values": [
-        5,
         12,
         3,
         35,
@@ -1555,7 +1580,8 @@
         7,
         5,
         5,
-        10
+        10,
+        5
       ]
     }
   }
