@@ -1,16 +1,15 @@
 {
-  "updated": "2026-11-15",
+  "updated": "2026-11-16",
   "askmyastro": {
-    "users": 5390,
-    "pageviews": 17062,
+    "users": 5392,
+    "pageviews": 17064,
     "visits": 6244,
     "engaged": 5074,
-    "seconds": 264636,
+    "seconds": 264640,
     "series": {
       "metric": "users",
-      "from": "2026-10-16",
+      "from": "2026-10-17",
       "values": [
-        35,
         8,
         7,
         13,
@@ -39,23 +38,23 @@
         6,
         6,
         4,
-        4
+        4,
+        2
       ]
     }
   },
   "filedownloader": {
-    "users": 8056,
-    "pageviews": 29519,
-    "visits": 10193,
-    "engaged": 8603,
-    "seconds": 901287,
-    "downloads": 835516,
-    "kb": 128952941.49804688,
+    "users": 8066,
+    "pageviews": 29536,
+    "visits": 10201,
+    "engaged": 8604,
+    "seconds": 901739,
+    "downloads": 835626,
+    "kb": 128957819.20214844,
     "series": {
       "metric": "downloads",
-      "from": "2026-10-16",
+      "from": "2026-10-17",
       "values": [
-        4700,
         197,
         838,
         1385,
@@ -84,23 +83,23 @@
         2163,
         435,
         3250,
-        1121
+        1121,
+        76
       ]
     }
   },
   "discretedocs": {
-    "users": 193,
-    "pageviews": 400,
-    "visits": 248,
-    "engaged": 104,
-    "seconds": 6674,
-    "files": 49,
-    "kb": 975953,
+    "users": 198,
+    "pageviews": 406,
+    "visits": 254,
+    "engaged": 105,
+    "seconds": 6687,
+    "files": 50,
+    "kb": 989580,
     "series": {
       "metric": "files",
-      "from": "2026-10-16",
+      "from": "2026-10-17",
       "values": [
-        3,
         0,
         0,
         0,
@@ -129,12 +128,13 @@
         0,
         7,
         3,
-        1
+        1,
+        4
       ]
     }
   },
   "sparescreen": {
-    "downloads": 16,
+    "downloads": 17,
     "users": 173,
     "pageviews": 260,
     "visits": 202,
@@ -142,9 +142,8 @@
     "seconds": 1546,
     "series": {
       "metric": "users",
-      "from": "2026-10-16",
+      "from": "2026-10-17",
       "values": [
-        11,
         2,
         4,
         4,
@@ -173,7 +172,8 @@
         2,
         3,
         3,
-        3
+        3,
+        0
       ]
     }
   },
@@ -185,9 +185,8 @@
     "seconds": 21226,
     "series": {
       "metric": "visits",
-      "from": "2026-10-16",
+      "from": "2026-10-17",
       "values": [
-        1,
         0,
         2,
         5,
@@ -216,7 +215,8 @@
         10,
         0,
         1,
-        1
+        1,
+        0
       ]
     }
   },
