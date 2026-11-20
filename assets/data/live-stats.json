@@ -1,16 +1,15 @@
 {
-  "updated": "2026-11-19",
+  "updated": "2026-11-20",
   "askmyastro": {
-    "users": 5397,
-    "pageviews": 17074,
-    "visits": 6246,
-    "engaged": 5075,
-    "seconds": 264948,
+    "users": 5403,
+    "pageviews": 17083,
+    "visits": 6249,
+    "engaged": 5074,
+    "seconds": 264954,
     "series": {
       "metric": "users",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        13,
         5,
         9,
         8,
@@ -39,23 +38,23 @@
         2,
         1,
         2,
-        3
+        3,
+        6
       ]
     }
   },
   "filedownloader": {
-    "users": 8122,
-    "pageviews": 29619,
-    "visits": 10293,
-    "engaged": 8659,
-    "seconds": 906941,
-    "downloads": 838028,
-    "kb": 130620337.61035156,
+    "users": 8135,
+    "pageviews": 29642,
+    "visits": 10298,
+    "engaged": 8681,
+    "seconds": 908382,
+    "downloads": 838870,
+    "kb": 131281480.08105469,
     "series": {
       "metric": "downloads",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        269,
         621,
         478,
         1258,
@@ -84,23 +83,23 @@
         76,
         2023,
         168,
-        279
+        279,
+        193
       ]
     }
   },
   "discretedocs": {
-    "users": 213,
-    "pageviews": 437,
-    "visits": 274,
+    "users": 215,
+    "pageviews": 439,
+    "visits": 276,
     "engaged": 113,
     "seconds": 7005,
     "files": 63,
     "kb": 1028413,
     "series": {
       "metric": "files",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        0,
         0,
         0,
         1,
@@ -129,22 +128,22 @@
         4,
         7,
         3,
-        4
+        4,
+        0
       ]
     }
   },
   "sparescreen": {
     "downloads": 17,
-    "users": 178,
-    "pageviews": 265,
-    "visits": 207,
+    "users": 179,
+    "pageviews": 266,
+    "visits": 208,
     "engaged": 58,
-    "seconds": 1553,
+    "seconds": 1557,
     "series": {
       "metric": "users",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        13,
         7,
         7,
         11,
@@ -173,21 +172,21 @@
         0,
         1,
         3,
+        1,
         1
       ]
     }
   },
   "portfolio": {
-    "users": 266,
-    "pageviews": 861,
-    "visits": 463,
-    "engaged": 280,
-    "seconds": 21628,
+    "users": 268,
+    "pageviews": 863,
+    "visits": 465,
+    "engaged": 281,
+    "seconds": 21736,
     "series": {
       "metric": "visits",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        2,
         3,
         2,
         1,
@@ -216,7 +215,8 @@
         0,
         2,
         3,
-        2
+        2,
+        1
       ]
     }
   },
@@ -455,6 +455,10 @@
       "2026-11-18": [
         0,
         0
+      ],
+      "2026-11-19": [
+        0,
+        0
       ]
     },
     "viewDays": {
@@ -645,13 +649,16 @@
       "2026-11-18": [
         1,
         1
+      ],
+      "2026-11-19": [
+        0,
+        0
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        1,
         2,
         2,
         0,
@@ -679,6 +686,7 @@
         0,
         2,
         2,
+        0,
         0,
         0
       ]
@@ -1060,8 +1068,8 @@
     }
   },
   "switchboard": {
-    "clones": 788,
-    "uniques": 374,
+    "clones": 790,
+    "uniques": 375,
     "views": 20,
     "viewers": 17,
     "stars": 3,
@@ -1458,6 +1466,10 @@
       "2026-11-18": [
         2,
         2
+      ],
+      "2026-11-19": [
+        2,
+        1
       ]
     },
     "viewDays": {
@@ -1648,13 +1660,16 @@
       "2026-11-18": [
         0,
         0
+      ],
+      "2026-11-19": [
+        0,
+        0
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-10-20",
+      "from": "2026-10-21",
       "values": [
-        8,
         10,
         11,
         6,
@@ -1683,6 +1698,7 @@
         2,
         9,
         4,
+        2,
         2
       ]
     }
