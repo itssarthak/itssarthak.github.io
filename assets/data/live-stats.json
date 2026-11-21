@@ -1,16 +1,15 @@
 {
-  "updated": "2026-11-20",
+  "updated": "2026-11-21",
   "askmyastro": {
-    "users": 5403,
-    "pageviews": 17083,
-    "visits": 6249,
+    "users": 5407,
+    "pageviews": 17087,
+    "visits": 6246,
     "engaged": 5074,
-    "seconds": 264954,
+    "seconds": 264971,
     "series": {
       "metric": "users",
-      "from": "2026-10-21",
+      "from": "2026-10-22",
       "values": [
-        5,
         9,
         8,
         6,
@@ -39,23 +38,23 @@
         1,
         2,
         3,
-        6
+        6,
+        5
       ]
     }
   },
   "filedownloader": {
-    "users": 8135,
-    "pageviews": 29642,
-    "visits": 10298,
-    "engaged": 8681,
-    "seconds": 908382,
-    "downloads": 838870,
-    "kb": 131281480.08105469,
+    "users": 8163,
+    "pageviews": 29677,
+    "visits": 10343,
+    "engaged": 8709,
+    "seconds": 910233,
+    "downloads": 840871,
+    "kb": 133636360.31640625,
     "series": {
       "metric": "downloads",
-      "from": "2026-10-21",
+      "from": "2026-10-22",
       "values": [
-        621,
         478,
         1258,
         4798,
@@ -84,24 +83,24 @@
         2023,
         168,
         279,
-        193
+        193,
+        2343
       ]
     }
   },
   "discretedocs": {
-    "users": 215,
-    "pageviews": 439,
-    "visits": 276,
+    "users": 216,
+    "pageviews": 440,
+    "visits": 277,
     "engaged": 113,
     "seconds": 7005,
     "files": 63,
     "kb": 1028413,
     "series": {
       "metric": "files",
-      "from": "2026-10-21",
+      "from": "2026-10-22",
       "values": [
         0,
-        0,
         1,
         0,
         0,
@@ -129,6 +128,7 @@
         7,
         3,
         4,
+        0,
         0
       ]
     }
@@ -142,9 +142,8 @@
     "seconds": 1557,
     "series": {
       "metric": "users",
-      "from": "2026-10-21",
+      "from": "2026-10-22",
       "values": [
-        7,
         7,
         11,
         9,
@@ -173,21 +172,21 @@
         1,
         3,
         1,
-        1
+        1,
+        0
       ]
     }
   },
   "portfolio": {
-    "users": 268,
-    "pageviews": 863,
-    "visits": 465,
+    "users": 271,
+    "pageviews": 867,
+    "visits": 470,
     "engaged": 281,
-    "seconds": 21736,
+    "seconds": 21751,
     "series": {
       "metric": "visits",
-      "from": "2026-10-21",
+      "from": "2026-10-22",
       "values": [
-        3,
         2,
         1,
         3,
@@ -216,7 +215,8 @@
         2,
         3,
         2,
-        1
+        1,
+        4
       ]
     }
   },
@@ -694,10 +694,10 @@
     "downloads": 10
   },
   "eyeshift": {
-    "clones": 207,
-    "uniques": 135,
-    "views": 210,
-    "viewers": 101,
+    "clones": 213,
+    "uniques": 140,
+    "views": 213,
+    "viewers": 104,
     "stars": 5,
     "forks": 1,
     "days": {
@@ -862,6 +862,14 @@
         3
       ],
       "2026-11-18": [
+        2,
+        2
+      ],
+      "2026-11-19": [
+        4,
+        3
+      ],
+      "2026-11-20": [
         2,
         2
       ]
@@ -1030,6 +1038,14 @@
       "2026-11-18": [
         5,
         4
+      ],
+      "2026-11-19": [
+        1,
+        1
+      ],
+      "2026-11-20": [
+        2,
+        2
       ]
     },
     "series": {
@@ -1063,15 +1079,17 @@
         1,
         5,
         3,
+        2,
+        4,
         2
       ]
     }
   },
   "switchboard": {
-    "clones": 790,
-    "uniques": 375,
-    "views": 20,
-    "viewers": 17,
+    "clones": 791,
+    "uniques": 376,
+    "views": 22,
+    "viewers": 18,
     "stars": 3,
     "forks": 1,
     "days": {
@@ -1470,6 +1488,10 @@
       "2026-11-19": [
         2,
         1
+      ],
+      "2026-11-20": [
+        1,
+        1
       ]
     },
     "viewDays": {
@@ -1664,13 +1686,16 @@
       "2026-11-19": [
         0,
         0
+      ],
+      "2026-11-20": [
+        2,
+        1
       ]
     },
     "series": {
       "metric": "clones",
-      "from": "2026-10-21",
+      "from": "2026-10-22",
       "values": [
-        10,
         11,
         6,
         11,
@@ -1699,7 +1724,8 @@
         9,
         4,
         2,
-        2
+        2,
+        1
       ]
     }
   }
